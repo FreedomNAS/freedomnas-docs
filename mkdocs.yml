@@ -1,0 +1,116 @@
+site_name: FreedomNAS Documentation
+site_description: Software-Defined Storage Appliance — OS-agnostic NAS platform
+site_author: FreedomNAS Contributors
+site_url: https://docs.freedomnas.org
+
+repo_name: FreedomNAS
+repo_url: https://codeberg.org/FreedomNAS
+
+theme:
+  name: material
+  logo: assets/logo_cut.png
+  favicon: assets/logo_cut.png
+  palette:
+    - scheme: slate
+      primary: custom
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: custom
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Overview: getting-started/overview.md
+    - Installation (Installer): getting-started/installation.md
+    - First-Run Setup (WebUI): getting-started/first-run.md
+  - User Guide:
+    - Dashboard: user-guide/dashboard.md
+    - Storage (ZFS): user-guide/storage.md
+    - File Shares: user-guide/shares.md
+    - Network: user-guide/network.md
+    - Users: user-guide/users.md
+    - Updates: user-guide/updates.md
+    - System Settings: user-guide/system.md
+    - UI Levels: user-guide/ui-levels.md
+  - Architecture:
+    - System Stack: architecture/system-stack.md
+    - Core Engine: architecture/engine.md
+    - Configuration Manager: architecture/config.md
+    - Orchestrator: architecture/orchestrator.md
+    - Reconciliation Engine: architecture/reconciler.md
+    - Init System Agnosticism: architecture/init-agnosticism.md
+    - Security: architecture/security.md
+  - Profile System:
+    - Overview: profiles/overview.md
+    - OS Profiles: profiles/os-profiles.md
+    - Init Profiles: profiles/init-profiles.md
+    - Package Categories: profiles/packages.md
+    - Adding a New OS: profiles/adding-os.md
+  - API Reference:
+    - Authentication: api/authentication.md
+    - System: api/system.md
+    - Storage: api/storage.md
+    - Network: api/network.md
+    - Users: api/users.md
+    - Shares: api/shares.md
+    - Updates: api/updates.md
+    - Setup: api/setup.md
+    - WebSocket Terminal: api/websocket.md
+  - Developer Guide:
+    - Repository Structure: developer/repositories.md
+    - Installer Flow: developer/installer.md
+    - ZFS Best Practices: developer/zfs.md
+    - WebUI Development: developer/webui.md
+    - Git & Codeberg: developer/git.md
+    - AI Assistant Constraints: developer/ai-constraints.md
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/git-alt
+      link: https://codeberg.org/FreedomNAS
+      name: FreedomNAS on Codeberg
