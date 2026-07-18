@@ -10,15 +10,22 @@ api/
 ├── main.py           FastAPI app, page routes, first-run guard
 ├── deps.py           Engine singleton, config singleton, PAM auth
 └── routes/           API route handlers (one file per domain)
-websocket/
-└── terminal.py       Topgrade streaming
+websocket/            (not yet created — see below)
+└── terminal.py       Topgrade streaming — pending
 frontend/
 ├── templates/        10 Jinja2 templates
 └── static/
     ├── css/main.css  Complete CSS design system
-    ├── js/           11 JS modules
+    ├── js/           10 JS modules
     └── img/          logo.png, logo_cut.png
 ```
+
+!!! warning "websocket/terminal.py not yet implemented"
+    `api/websocket/terminal.py` does not exist yet. The `/ws/updates/terminal`
+    endpoint is documented in [WebSocket Terminal](../api/websocket.md) and
+    referenced by `frontend/static/js/terminal.js`, but the Python handler has
+    not been created. The import `from websocket import terminal` in `main.py`
+    must be resolved before the WebUI can start.
 
 ## CSS Design System
 
@@ -61,8 +68,38 @@ on `<html>`, stored in `localStorage`.
 | `shares.js` | SMB/NFS CRUD, inline delete confirm |
 | `network.js` | Interface list, edit IP modal |
 | `users.js` | User table, create/delete |
-| `updates.js` | WebSocket terminal consumer, topgrade runner |
+| `updates.js` | Topgrade runner, status polling |
 | `system.js` | Hostname save, reboot/shutdown confirm |
+
+## deps.py — Dependency Injection
+
+`api/deps.py` provides three FastAPI dependencies shared by all route handlers:
+
+```python
+from api.deps import get_engine, get_config, authenticate
+```
+
+| Dependency | What it returns | Notes |
+|------------|----------------|-------|
+| `get_engine()` | `FreedomNASEngine` singleton | Calls `freedomnas.engine.get_engine()` |
+| `get_config()` | `ConfigurationManager` singleton | Lazily created on first call, module-level cache |
+| `authenticate(credentials)` | `str` (username) | PAM validation via `python3-pam`; raises `HTTP 401` on failure |
+
+PAM authentication validates against the OS user database. Any OS user with a valid
+password can log in. There is no FreedomNAS-specific user store for auth.
+
+```python
+# Route handler — auth + DI pattern
+@router.post("/hostname")
+async def set_hostname(body: dict, username: str = Depends(authenticate)):
+    engine = get_engine()
+    config = get_config()
+    ...
+```
+
+**Never** instantiate `FreedomNASEngine` or `ConfigurationManager` directly in a
+route handler — always use these functions. This ensures both objects remain
+singletons within the process.
 
 ## `api()` Function
 
@@ -114,7 +151,7 @@ All authenticated pages extend `base.html`:
 {% endblock %}
 ```
 
-`setup.html` and `auth.html` are standalone (no sidebar needed).
+`setup/wizard.html` and `login.html` are standalone (no sidebar needed).
 
 ## Template Variable Reference
 

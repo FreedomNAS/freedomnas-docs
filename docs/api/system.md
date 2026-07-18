@@ -2,22 +2,19 @@
 
 ## GET /api/system/status
 
-Health check. Returns 200 if the WebUI is running. Does not require auth.
+Health check — always accessible, no auth required.
 
 **Response:**
 
 ```json
-{
-  "status": "ok",
-  "initialized": true
-}
+{ "status": "ok" }
 ```
 
 ---
 
 ## GET /api/system/info
 
-Returns OS information and system details.
+Returns OS and system identity information.
 
 **Auth required:** yes
 
@@ -26,21 +23,23 @@ Returns OS information and system details.
 ```json
 {
   "hostname": "freedomnas",
-  "os_name": "Debian GNU/Linux",
-  "os_version": "12",
-  "os_family": "linux",
-  "init_system": "systemd",
   "edition": "debian",
-  "uptime": "up 3 days, 14 hours",
-  "update_count": 5
+  "timezone": "Europe/Rome",
+  "uptime_since": "up 3 days, 14:22",
+  "initialized": true
 }
 ```
+
+- `timezone` — live read via `system.timezone_get` profile command
+- `uptime_since` — live read via `system.uptime` profile command
+- `edition` — read from `config.yaml`
+- `initialized` — `config.is_initialized()`
 
 ---
 
 ## POST /api/system/hostname
 
-Set the system hostname.
+Set the system hostname (spec §7.5 dual write).
 
 **Auth required:** yes
 
@@ -50,29 +49,54 @@ Set the system hostname.
 { "hostname": "nas-server" }
 ```
 
-**Behaviour (dual write):**
+**Behaviour:**
 
 1. `engine.execute("system", "hostname_set", hostname="nas-server")`
-2. `config.set_hostname("nas-server")` + `config.save()`
+2. `config.set_hostname("nas-server")`
 
-**Response:** `{ "ok": true }`
+**Response:**
+
+```json
+{ "hostname": "nas-server" }
+```
+
+**Errors:**
+
+| Code | Detail |
+|------|--------|
+| 422 | `hostname` is missing or empty |
+| 500 | Engine command failed |
 
 ---
 
 ## POST /api/system/reboot
 
-Reboot the system immediately.
+Reboot the system.
 
 **Auth required:** yes
 
-**Response:** `{ "ok": true }` (sent before the reboot command)
+Calls `engine.execute("system", "reboot", check=False)`.
+The response is sent before the command executes.
+
+**Response:**
+
+```json
+{ "detail": "Rebooting" }
+```
 
 ---
 
 ## POST /api/system/shutdown
 
-Power off the system immediately.
+Power off the system.
 
 **Auth required:** yes
 
-**Response:** `{ "ok": true }` (sent before the shutdown command)
+Calls `engine.execute("system", "shutdown", check=False)`.
+The response is sent before the command executes.
+
+**Response:**
+
+```json
+{ "detail": "Shutting down" }
+```

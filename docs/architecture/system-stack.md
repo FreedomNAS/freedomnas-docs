@@ -89,7 +89,8 @@ The profile layer has zero Python logic. It is pure data:
 
 | Layer | Debian | FreeBSD |
 |-------|--------|---------|
-| Root filesystem | Btrfs (OS snapshots via grub-btrfs) | ZFS (Boot Environments via `bectl`) |
+| Root filesystem | ZFS (`rpool/ROOT/debian`) | ZFS (Boot Environments via `bectl`) |
+| Boot | UKI on ESP via efibootmgr (UEFI) or Clover (BIOS) | Native ZFS boot |
 | Data pool | ZFS (datapool) | ZFS (datapool) |
 | Config persistence | ZFS dataset `.freedomnas` | ZFS dataset `.freedomnas` |
 

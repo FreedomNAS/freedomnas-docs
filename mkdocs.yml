@@ -80,6 +80,8 @@ nav:
     - Configuration Manager: architecture/config.md
     - Orchestrator: architecture/orchestrator.md
     - Reconciliation Engine: architecture/reconciler.md
+    - Backup Manager: architecture/backup-manager.md
+    - Package Manager: architecture/package-manager.md
     - Init System Agnosticism: architecture/init-agnosticism.md
     - Security: architecture/security.md
   - Profile System:
@@ -103,6 +105,7 @@ nav:
     - Installer Flow: developer/installer.md
     - ZFS Best Practices: developer/zfs.md
     - WebUI Development: developer/webui.md
+    - Frontend JS Modules: developer/frontend.md
     - Git & Codeberg: developer/git.md
     - AI Assistant Constraints: developer/ai-constraints.md
 

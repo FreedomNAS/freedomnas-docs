@@ -1,5 +1,10 @@
 # WebSocket Terminal
 
+!!! warning "Not yet implemented"
+    `api/websocket/terminal.py` has not been created. The endpoint is
+    specified here and the frontend (`terminal.js`) is ready, but the
+    Python handler is pending. See [WebUI Development](../developer/webui.md).
+
 ## Endpoint
 
 ```

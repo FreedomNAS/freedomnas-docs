@@ -6,23 +6,43 @@ List all network interfaces detected on the system.
 
 **Auth required:** yes
 
-**Response:**
+**Response (Linux — `ip -j link` output, wrapped):**
 
 ```json
-[
-  {
-    "logical_name": "fnas_lan",
-    "physical_name": "eth0",
-    "mac": "00:1a:2b:3c:4d:5e",
-    "ip": "192.168.1.50",
-    "cidr": 24,
-    "state": "UP"
-  }
-]
+{
+  "interfaces": [
+    {
+      "ifindex": 1,
+      "ifname": "lo",
+      "flags": ["LOOPBACK", "UP", "LOWER_UP"],
+      "operstate": "UNKNOWN",
+      "address": "00:00:00:00:00:00",
+      "addr_info": [{"family": "inet", "local": "127.0.0.1", "prefixlen": 8}]
+    },
+    {
+      "ifindex": 2,
+      "ifname": "eth0",
+      "flags": ["BROADCAST", "MULTICAST", "UP", "LOWER_UP"],
+      "operstate": "UP",
+      "address": "00:1a:2b:3c:4d:5e",
+      "addr_info": [{"family": "inet", "local": "192.168.1.50", "prefixlen": 24}]
+    }
+  ]
+}
 ```
 
-The `logical_name` is the stable FreedomNAS name derived from the MAC address mapping
-stored in `config.yaml`. It survives reboots and OS reinstallation.
+The response is the direct JSON output of the OS-profile command
+(`network.list_interfaces` on Linux, `network.list_interfaces_json` on
+FreeBSD). The exact field names depend on the OS.
+
+The WebUI normalises these fields client-side in `network.js`:
+
+| JS field read | Fallback chain |
+|---------------|----------------|
+| Interface name | `i.name` → `i.ifname` → `i.interface` |
+| IP addresses | `i.addr_info` → `i.inet` |
+| MAC address | `i.address` → `i.mac` |
+| State | `i.operstate` → `i.flags` (contains "up") |
 
 ---
 
@@ -32,7 +52,7 @@ Set a static IPv4 address on an interface.
 
 **Auth required:** yes
 
-**Path parameter:** `name` — the logical interface name (e.g. `fnas_lan`)
+**Path parameter:** `name` — logical interface name (e.g. `eth0`, `fnas_lan`)
 
 **Request body:**
 
@@ -45,22 +65,26 @@ Set a static IPv4 address on an interface.
 }
 ```
 
+All four fields are required. `dns` may be a list or a space-separated string.
+
 **Behaviour (dual write):**
 
-1. `engine.execute("network", "set_static_ip", interface="fnas_lan", ip="192.168.1.50", ...)`
-2. `engine.execute("network", "apply_config", interface="fnas_lan")`
-3. `config.get_interface("fnas_lan")` → update ip/cidr/gateway/dns → `config.save()`
+1. `engine.execute("network", "set_static_ip", conn_name=name, ip=..., cidr=..., gateway=..., dns=...)`
+2. Update or create interface record in `config.yaml` with `method: static`
 
-**Response:** `{ "ok": true }`
+**Response:**
+
+```json
+{ "detail": "Static IP set on eth0" }
+```
 
 **Errors:**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
-| 404 | Interface not found |
-| 400 | Invalid IP address or CIDR |
-| 500 | Network configuration failed |
+| 422 | One or more required fields missing |
+| 500 | Network command failed |
 
 !!! warning
-    Changing the IP address of the interface you're using to reach the WebUI
-    will disconnect your browser session. Reconnect at the new IP.
+    Changing the IP of the interface you are using to access the WebUI will
+    immediately disconnect your session. Reconnect at the new address.

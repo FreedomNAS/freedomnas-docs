@@ -12,8 +12,7 @@ Returns the current update status.
 {
   "pending_updates": 5,
   "topgrade_configured": true,
-  "auto_snapshot": true,
-  "enabled_steps": ["system", "containers", "firmware"]
+  "auto_snapshot": true
 }
 ```
 
@@ -57,7 +56,11 @@ only = ["system", "containers", "firmware"]
 enable = false
 ```
 
-**Response:** `{ "ok": true }`
+**Response:**
+
+```json
+{"detail": "Topgrade configured", "enabled_steps": ["system", "containers", "firmware"]}
+```
 
 ---
 

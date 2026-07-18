@@ -1,33 +1,29 @@
 # Setup API
 
-The setup API handles the first-run wizard. These routes are exempt from
-authentication and from the first-run guard (they are always accessible).
+The setup API handles the first-run wizard. All routes here are exempt from
+authentication and from the first-run guard — they are always accessible.
 
 ## GET /api/setup/status
 
-Returns the current initialization state.
+Returns whether the system has been initialized.
 
 **Auth required:** no
 
-**Response (not initialized):**
+**Response:**
 
 ```json
 {
   "initialized": false,
-  "edition": null,
-  "hostname": null
+  "edition": null
 }
 ```
 
-**Response (initialized):**
+After initialization:
 
 ```json
 {
   "initialized": true,
-  "edition": "debian",
-  "hostname": "freedomnas",
-  "initialized_at": "2026-01-15T10:30:00",
-  "initialized_by": "installer"
+  "edition": "debian"
 }
 ```
 
@@ -49,26 +45,47 @@ Run the first-run initialization.
 }
 ```
 
+`edition` is required (`debian` / `freebsd`). `hostname` defaults to
+`"freedomnas"`, `timezone` to `"UTC"`.
+
 **Behaviour:**
 
-1. `engine.execute("system", "hostname_set", hostname="freedomnas")`
-2. `engine.execute("system", "timezone_set", timezone="Europe/Rome")`
-3. `config.set_hostname("freedomnas")`
-4. `config.set_timezone("Europe/Rome")`
-5. `config.mark_initialized(edition="debian", initialized_by="webui")`
-6. `config.save()`
+1. Returns `409` immediately if `config.is_initialized()` is already `true`
+2. `engine.execute("system", "hostname_set", hostname=...)`
+3. `config.set_hostname(hostname)`
+4. `engine.execute("system", "timezone_set", timezone=...)`
+5. `config.set("system.timezone", timezone)`
+6. Writes Samba usershare stanza to `smb.conf` (path from `samba.config_file` profile key):
+   ```
+   [global]
+      usershare path = /var/lib/samba/usershares
+      usershare max shares = 100
+      usershare allow guests = no
+   ```
+7. Creates `/var/lib/samba/usershares/` directory
+8. `config.mark_initialized(edition=edition, initialized_by="webui")`
 
-**Response:** `{ "ok": true }`
+**Response:**
+
+```json
+{
+  "detail": "System initialized",
+  "hostname": "freedomnas",
+  "edition": "debian"
+}
+```
 
 **Errors:**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
 | 409 | System already initialized |
-| 400 | Invalid edition, hostname, or timezone |
-| 500 | Engine command failed |
+| 422 | `edition` is missing |
+| 500 | Engine command or file write failed |
 
 !!! note
-    If the system was installed via the TUI installer, `initialized_by` is
-    `"installer"` and this endpoint will return 409. The WebUI setup wizard
-    detects this and skips to the login page.
+    When the system was installed via the TUI installer, it is already
+    initialized (`initialized_by: "installer"`). The WebUI's `setup.js`
+    checks `GET /api/setup/status` on every page load and redirects to the
+    dashboard if `initialized` is `true` — so the wizard page is skipped
+    entirely on installer-provisioned systems.

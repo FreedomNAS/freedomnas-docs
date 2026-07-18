@@ -66,14 +66,14 @@ When working on a specific repository:
 
 | File | Lines | Responsibility |
 |------|-------|----------------|
-| `setup.py` | 329 | Orchestrator — 20-step install flow |
-| `lib/installer_modules.py` | 308 | Logger, DialogManager, Configuration, run_command |
-| `lib/disk_installer.py` | 207 | lsblk, sgdisk UEFI/BIOS, mkfs.vfat |
-| `lib/zfs_installer.py` | 183 | bpool/rpool creation, dataset layout |
+| `setup.py` | 327 | Orchestrator — 20-step install flow |
+| `lib/installer_modules.py` | 307 | Logger, DialogManager, Configuration, run_command |
+| `lib/disk_installer.py` | 182 | lsblk, sgdisk UEFI/BIOS, mkfs.vfat |
+| `lib/zfs_installer.py` | 117 | bpool/rpool creation, dataset layout |
 | `lib/system_installer.py` | 209 | Boot mode, mirrors, debootstrap, chroot |
 | `lib/users_installer.py` | 163 | Admin password, additional users, chpasswd |
 | `lib/packages_installer.py` | 129 | apt in chroot, supervisor.sh |
-| `lib/bootloader_installer.py` | 95 | GRUB UEFI/BIOS, update-grub |
+| `lib/bootloader_installer.py` | 252 | GRUB UEFI/BIOS, update-grub |
 
 ### freedomnas-webui — COMPLETE
 
@@ -81,7 +81,7 @@ When working on a specific repository:
 
 | File | Lines | Endpoints |
 |------|-------|-----------|
-| `api/main.py` | 121 | FastAPI app, 9 page routes, first-run guard middleware |
+| `api/main.py` | 157 | FastAPI app, 9 page routes, first-run guard middleware |
 | `api/deps.py` | 45 | Engine singleton, config singleton, PAM auth |
 | `api/routes/system.py` | 78 | `/api/system/*` |
 | `api/routes/storage.py` | 84 | `/api/storage/*` |
@@ -90,15 +90,15 @@ When working on a specific repository:
 | `api/routes/shares.py` | 170 | `/api/shares/smb*` + `/api/shares/nfs*` |
 | `api/routes/updates.py` | 63 | `/api/updates/*` |
 | `api/routes/setup.py` | 73 | `/api/setup/*` |
-| `websocket/terminal.py` | 91 | `/ws/updates/terminal` |
+| `websocket/terminal.py` | — | `/ws/updates/terminal` — **not yet created** |
 
 **Frontend:**
 
 | File | Purpose |
 |------|---------|
 | `frontend/templates/base.html` | Layout: sidebar, topbar, SVG icon sprite |
-| `frontend/templates/auth.html` | Login page |
-| `frontend/templates/setup.html` | 3-step first-run wizard |
+| `frontend/templates/login.html` | Login page |
+| `frontend/templates/setup/wizard.html` | 3-step first-run wizard |
 | `frontend/templates/dashboard.html` | Stat cards + module health grid |
 | `frontend/templates/storage.html` | ZFS pools/datasets/snapshots |
 | `frontend/templates/shares.html` | SMB/NFS shares management |
@@ -115,5 +115,6 @@ When working on a specific repository:
 | `frontend/static/js/shares.js` | SMB/NFS CRUD |
 | `frontend/static/js/network.js` | Interface list + IP modal |
 | `frontend/static/js/users.js` | User table + create/delete |
-| `frontend/static/js/updates.js` | WebSocket terminal consumer |
+| `frontend/static/js/updates.js` | Topgrade runner, status polling |
+| `frontend/static/js/terminal.js` | WebSocket terminal: connect, stream lines, display |
 | `frontend/static/js/system.js` | Hostname save, reboot/shutdown |

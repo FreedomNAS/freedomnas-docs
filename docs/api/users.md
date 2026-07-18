@@ -2,36 +2,38 @@
 
 ## GET /api/users/
 
-List all configured users.
+List all users recorded in `config.yaml`.
 
 **Auth required:** yes
 
 **Response:**
 
 ```json
-[
-  {
-    "username": "admin",
-    "uid": 1000,
-    "gid": 1000,
-    "shell": "/bin/bash",
-    "groups": ["sudo", "samba"]
-  },
-  {
-    "username": "sarah",
-    "uid": 1001,
-    "gid": 1001,
-    "shell": "/bin/bash",
-    "groups": ["samba"]
-  }
-]
+{
+  "users": [
+    {
+      "username": "admin",
+      "groups": ["sudo", "samba"],
+      "shell": "/bin/bash"
+    },
+    {
+      "username": "sarah",
+      "groups": ["samba"],
+      "shell": "/bin/bash"
+    }
+  ]
+}
 ```
+
+!!! note
+    This returns what is stored in `config.yaml` — not a live read from
+    `/etc/passwd`. Users created outside FreedomNAS will not appear here.
 
 ---
 
 ## POST /api/users/
 
-Create a new system user.
+Create a new OS user and persist to `config.yaml`.
 
 **Auth required:** yes
 
@@ -40,39 +42,45 @@ Create a new system user.
 ```json
 {
   "username": "sarah",
-  "uid": 1001,
-  "gid": 1001,
-  "shell": "/bin/bash",
   "groups": ["samba"],
-  "password": "s3cur3pass",
-  "samba_password": "s3cur3pass"
+  "shell": "/bin/bash",
+  "uid": 1001,
+  "gid": 1001
 }
 ```
 
+`username` is required. `groups` defaults to `[]`, `shell` to `/bin/bash`.
+`uid` and `gid` are optional — omit them to let the OS assign IDs.
+
+!!! warning "Passwords are not set via this endpoint"
+    The API creates the OS account but does **not** set a password. The user
+    will be locked until a password is set via the terminal
+    (`passwd <username>`). Password management via the API is deferred to a
+    future release.
+
 **Behaviour (dual write):**
 
-1. `engine.execute("users", "create", username="sarah", uid=1001, ...)`
-2. `engine.execute_with_stdin("users", "set_password", stdin_data="sarah:s3cur3pass\n", username="sarah")`
-3. `engine.execute_with_stdin("users", "set_samba_pass", stdin_data="s3cur3pass\n", username="sarah")`
-4. `config.add_user({...})` + `config.save()`
+1. `engine.execute("users", "create", username=..., groups=..., shell=..., uid=..., gid=...)`
+2. `config.add_user({username, groups, shell, [uid, gid]})`
 
-Passwords are always passed via stdin — never in command strings.
+**Response:**
 
-**Response:** `{ "ok": true, "username": "sarah" }`
+```json
+{ "username": "sarah" }
+```
 
 **Errors:**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
-| 409 | Username already exists |
-| 400 | Invalid username or UID conflict |
-| 500 | OS user creation failed |
+| 422 | `username` is missing |
+| 500 | OS user creation failed (duplicate username, invalid groups, etc.) |
 
 ---
 
 ## DELETE /api/users/{target}
 
-Delete a system user.
+Delete an OS user and remove from `config.yaml`.
 
 **Auth required:** yes
 
@@ -80,15 +88,21 @@ Delete a system user.
 
 **Behaviour (dual write):**
 
-1. `engine.execute("users", "delete", username="sarah")` (removes home directory)
-2. `config.remove_user("sarah")` + `config.save()`
+1. `engine.execute("users", "delete", username=target)`
+2. `config.remove_user(target)`
 
-**Response:** `{ "ok": true }`
+**Response:**
+
+```json
+{ "detail": "User sarah deleted" }
+```
 
 **Errors:**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
-| 404 | User not found |
-| 403 | Attempt to delete the last admin user |
 | 500 | OS user deletion failed |
+
+!!! warning
+    The API does not prevent deleting the currently authenticated user or
+    the last admin account. Guard these cases in the UI layer.

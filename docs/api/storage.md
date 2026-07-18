@@ -9,16 +9,23 @@ List all ZFS pools.
 **Response:**
 
 ```json
-[
-  {
-    "name": "datapool",
-    "health": "ONLINE",
-    "size": "10.9T",
-    "allocated": "2.14T",
-    "free": "8.76T"
-  }
-]
+{
+  "pools": [
+    { "name": "rpool", "size": "465G" },
+    { "name": "datapool", "size": "10.9T" }
+  ]
+}
 ```
+
+The fields returned depend on the `zfs.pool_list` command in the active OS profile.
+The backend splits each output line by tabs and maps position 0 → `name`,
+position 1 → `size`.
+
+**Errors:**
+
+| Code | Detail |
+|------|--------|
+| 500 | ZFS command failed or profile key missing |
 
 ---
 
@@ -31,16 +38,21 @@ List all ZFS datasets.
 **Response:**
 
 ```json
-[
-  {
-    "name": "datapool/documents",
-    "used": "45.6G",
-    "available": "8.71T",
-    "mountpoint": "/mnt/datapool/documents",
-    "type": "filesystem"
-  }
-]
+{
+  "datasets": [
+    {
+      "name": "datapool/documents",
+      "used": "45.6G",
+      "avail": "8.71T",
+      "refer": "45.3G",
+      "mountpoint": "/mnt/datapool/documents"
+    }
+  ]
+}
 ```
+
+Fields come from the `zfs.dataset_list` profile command (typically
+`zfs list -H -o name,used,avail,refer,mountpoint`).
 
 ---
 
@@ -53,20 +65,22 @@ List all ZFS snapshots.
 **Response:**
 
 ```json
-[
-  {
-    "name": "datapool/documents@pre-update-20260627",
-    "creation": "2026-06-27T10:30:00",
-    "used": "1.2G"
-  }
-]
+{
+  "snapshots": [
+    {
+      "name": "rpool/ROOT/debian@pre-update-20260718",
+      "creation": "2026-07-18T10:30:00",
+      "used": "1.2G"
+    }
+  ]
+}
 ```
 
 ---
 
 ## POST /api/storage/snapshots
 
-Create a ZFS snapshot.
+Create a ZFS snapshot and record it in `config.yaml`.
 
 **Auth required:** yes
 
@@ -74,24 +88,27 @@ Create a ZFS snapshot.
 
 ```json
 {
-  "dataset": "datapool/documents",
-  "snapshot_name": "pre-update-20260627"
+  "dataset": "rpool/ROOT/debian",
+  "snap_name": "pre-update-20260718"
 }
 ```
 
+Both fields are required; `422` is returned if either is missing.
+
 **Behaviour:**
 
-```python
-engine.execute("zfs", "create_snapshot",
-               dataset="datapool/documents",
-               snapshot_name="pre-update-20260627")
-```
+1. `engine.execute("zfs", "snapshot_create", dataset=..., snap_name=...)`
+2. `config.add_root_snapshot("rpool/ROOT/debian@pre-update-20260718")`
 
-**Response:** `{ "ok": true, "snapshot": "datapool/documents@pre-update-20260627" }`
+**Response:**
+
+```json
+{ "snapshot": "rpool/ROOT/debian@pre-update-20260718" }
+```
 
 **Errors:**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
-| 400 | Invalid dataset name or snapshot name |
-| 500 | ZFS command failed (pool degraded, dataset does not exist) |
+| 422 | `dataset` or `snap_name` missing |
+| 500 | ZFS command failed (dataset doesn't exist, pool degraded, etc.) |

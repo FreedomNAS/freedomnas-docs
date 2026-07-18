@@ -34,45 +34,62 @@ class FreedomNASEngine:
 def get_engine(profile_dir=None) -> FreedomNASEngine   # singleton accessor
 ```
 
-Always use `get_engine()` from `deps.py` — never instantiate `FreedomNASEngine` directly.
+Always use `get_engine()` (from `api/deps.py` in the WebUI) — never instantiate
+`FreedomNASEngine` directly in application code.
 
 ## OS Detection
 
 On startup, the engine reads `/etc/os-release` on Linux or uses
 `platform.system()` for FreeBSD. Detection is automatic — no user selection.
 
+Supported: `debian` (also matches Ubuntu), `arch`, `freebsd`.
+Raises `OSNotSupportedException` for RHEL/CentOS and any unrecognised OS.
+
 ## Init System Detection
 
-The engine detects the running init system by checking filesystem markers:
+The engine detects the running init system by checking filesystem markers in
+this order:
 
-| Marker | Init system |
-|--------|-------------|
-| `/run/systemd/private` | systemd |
-| `/run/openrc/started` | openrc |
-| `/run/runit` | runit |
-| `/run/s6` | s6 |
-| `/run/dinit` | dinit |
-| `/etc/rc.conf` (BSD) | bsd_rc |
-
-Falls back to the `init_system` field in the OS profile. Defaults to `systemd`.
+| Check | Init system |
+|-------|-------------|
+| `/run/systemd/system` exists | `systemd` |
+| `/sbin/openrc` or `/usr/sbin/openrc` exists | `openrc` |
+| `/sbin/runit` or `/run/runit` exists | `runit` |
+| `/usr/bin/s6-svscan` exists | `s6` |
+| `/usr/bin/dinit` exists | `dinit` |
+| `/etc/rc.d` exists + FreeBSD | `bsd_rc` |
+| none of the above | read `init_system` from OS profile, or default `systemd` |
 
 The init profile (`init/{name}.json`) is loaded separately. Its `services`
-section is merged into the OS profile at runtime. OS profiles never contain
-a `services` key directly.
+section **replaces** the OS profile's `services` section at runtime.
+
+## Profile Search Path
+
+The engine searches for profiles in this order:
+
+1. `/usr/lib/freedomnas/profiles` — system install
+2. `../../freedomnas-profiles` — sibling repo in dev tree
+3. `../os_profiles`, `./os_profiles` — local dev
+4. `/opt/freedomnas/lib/os_profiles` — alternative install
 
 ## Command Execution Safety
 
-All commands use `shlex.split()` + `subprocess.run(shell=False)`.
+Commands without shell metacharacters (`|`, `>`, `<`, `;`, `&`, `$(`) run via
+`shlex.split()` + `subprocess.run(shell=False)`.
 
-Exception: commands in the profile that contain `|`, `>`, or `$()` metacharacters
-trigger `shell=True` automatically inside `engine._run_safe()`. This is the only
-place where `shell=True` is permitted, and it is controlled by the profile — not by application code.
+Commands containing those metacharacters trigger `shell=True` automatically
+inside `_run_safe()`. This is the only permitted use of `shell=True`, and it is
+controlled by the profile author — not by application code.
+
+Before template substitution, `_sanitize_kwargs()` strips the characters
+`;|&$\`` from all kwargs values to limit injection risk even in `shell=True`
+paths.
 
 ## Sensitive Data
 
-`execute_with_stdin()` pipes passwords and other sensitive data to the process
-via stdin. This prevents them from appearing in the command string (visible in
-`ps aux`) or in log files.
+`execute_with_stdin()` pipes passwords and other sensitive values to the process
+via stdin. They never appear in the command string (visible in `ps aux`) or
+in log files.
 
 ```python
 # Correct — password via stdin
@@ -84,9 +101,8 @@ engine.execute("users", "set_password_inline", username="admin", password="newpa
 
 ## Template Substitution
 
-`get_command()` substitutes `{variable}` placeholders in the profile command
-string using `str.format_map(kwargs)`. Before substitution, `_sanitize_kwargs()`
-strips shell metacharacters from all kwargs to prevent injection.
+`get_command()` formats `{variable}` placeholders in the profile command
+using `str.format(**safe_kwargs)`. All kwargs are sanitised first.
 
 Example:
 
@@ -98,3 +114,18 @@ Example:
 engine.execute("system", "hostname_set", hostname="freedomnas")
 # → runs: hostnamectl set-hostname freedomnas
 ```
+
+## Command Sequences
+
+A profile entry may be a list of commands instead of a single string. The
+engine executes them in order and returns the output of the last command.
+`execute_with_stdin()` does not support sequences (raises
+`CommandTranslationError` if the template is a list).
+
+## Exceptions
+
+| Exception | When raised |
+|-----------|-------------|
+| `OSNotSupportedException` | OS not recognised or profile file not found |
+| `CommandTranslationError` | Category or action key missing in profile |
+| `CommandExecutionError` | Command exited non-zero (if `check=True`) or timed out |
