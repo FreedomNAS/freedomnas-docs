@@ -98,6 +98,66 @@ zfs set compression=lz4 datapool
 zfs set compression=lz4 datapool/documents
 ```
 
+## Encrypted Pools
+
+Data pools (not `rpool`) can be created with ZFS native encryption
+(`-O encryption=aes-256-gcm -O keyformat=raw`). ZFS native encryption only
+supports **one active key per encryption root** — there is no LUKS-style
+multi-keyslot mechanism built into ZFS itself. FreedomNAS works around this
+in `freedomnas-core/keymgmt.py`, not by hand-rolling `zfs` calls.
+
+**Never** create an encrypted pool with a raw `engine.execute("zfs",
+"pool_create_encrypted", ...)` call and then manage the key yourself. Always
+go through `freedomnas.keymgmt.PoolProvisioner.create_encrypted_pool(...)`,
+which:
+
+1. Generates a random 32-byte raw ZFS key and creates the pool via the
+   engine — the key is written only to a `0600` tmpfs file under
+   `/run/freedomnas/` referenced by `-L file://...`, never passed as a
+   process argument.
+2. Wraps that same raw key **twice**, into two independent keyslots at
+   `/etc/freedomnas/keyslots/<pool>.json`: once with the operator's Master
+   Passphrase, once with a freshly generated random USB key. Wrapping is
+   `scrypt` (KDF) + `AES-256-GCM` (AEAD) via `cryptography.hazmat.primitives
+   .ciphers.aead.AESGCM` — the stdlib has no AES, so `cryptography>=41.0` is
+   a hard dependency of `freedomnas-core`. Each slot has its own salt and
+   nonce, so compromising one slot's secret never exposes the other slot or
+   the pool key, and a tampered slot fails AEAD authentication rather than
+   silently unwrapping to garbage.
+3. Writes the USB key as `freedomnas.key` onto every device passed in
+   `usb_devices`.
+
+The read side, `keymgmt.PoolUnlocker`, is what `python -m freedomnas
+unlock-pools` runs at boot (called from `firstboot.sh`, right after `zpool
+import -a -N` and before the disaster-recovery `reconcile` call — a pool
+must be unlocked before its datasets can mount). It tries the USB key first
+(scans removable partitions via the `media` profile category for a
+`freedomnas.key` file, mounts read-only), then falls back to a TTY
+passphrase prompt on `/dev/console` (local echo disabled), retrying for up
+to `--tty-timeout` seconds (default 300). If nobody answers in time,
+`unlock-pools` **fails open**: it logs a warning and returns non-zero, but
+boot continues to the WebUI with the pool left locked, rather than blocking
+indefinitely.
+
+**Never** wrap or unwrap a keyslot with anything other than
+`keymgmt.wrap_key()`/`unwrap_key()`. No XOR, no unauthenticated ciphers, no
+hand-rolled KDFs — an unauthenticated wrap can't detect a tampered keyslot
+file, and a weak KDF makes offline brute-forcing of the Master Passphrase
+cheap.
+
+Converting an *existing* unencrypted pool to encrypted is not supported —
+`PoolProvisioner` only handles pool creation, and the reconciler does not
+support pool modification at all (see the reconciler's constraints).
+
+!!! note "No first-run wizard UI yet"
+    `POST /api/setup/initialize` accepts an optional `pool` body field that
+    drives `PoolProvisioner` during first-run setup, but
+    `wizard.html`/`setup.js` have not been updated to expose it — there is
+    no button or step in the WebUI for creating an encrypted pool today.
+    Exercising this requires calling the API directly. See
+    [First-Run Setup](../getting-started/first-run.md) and
+    [Storage](../user-guide/storage.md).
+
 ## Snapshots
 
 ### Naming convention

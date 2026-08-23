@@ -15,9 +15,17 @@ and service names. They decouple `config.yaml` from any specific OS.
     {"id": "containers",     "required": false},
     {"id": "virtualization", "required": false}
   ],
-  "supported_editions": ["debian", "freebsd", "arch"]
+  "supported_editions": ["debian", "freebsd", "arch", "artix", "void"]
 }
 ```
+
+!!! note
+    `artix` and `void` are listed in `supported_editions` and each category
+    file (`core.json`, `containers.json`, `nfs.json`, `samba-cifs.json`,
+    `virtualization.json`) has `artix`/`void` package entries — but
+    `engine.py`'s `SUPPORTED_OS` still only contains `debian`, `freebsd`,
+    `arch`. This is Phase 3 profile scaffolding, not a runtime-selectable
+    edition yet.
 
 ## Category Structure
 

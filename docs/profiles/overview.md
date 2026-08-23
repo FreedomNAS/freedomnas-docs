@@ -19,7 +19,7 @@ strings. The shell runs the resulting command.
 
 | Type | Location | Purpose |
 |------|----------|---------|
-| OS profile | `debian.json`, `freebsd.json`, `arch.json` | Maps all actions for one OS |
+| OS profile | `debian.json`, `freebsd.json`, `arch.json` (`artix.json`, `void.json` also exist as Phase 3 scaffolding — see [OS Profiles](os-profiles.md)) | Maps all actions for one OS |
 | Init profile | `init/systemd.json`, `init/openrc.json`, … | Maps service management commands for one init system |
 | Package category | `packages/samba-cifs.json`, … | Maps abstract feature IDs to OS-specific package names |
 | Manifest | `packages/MANIFEST.json` | Declares all available categories |

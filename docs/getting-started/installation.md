@@ -1,5 +1,15 @@
 # Installation (TUI Installer)
 
+!!! warning "Parked — pre-built images are now the recommended install path"
+    The TUI installer described on this page is **parked**: superseded by
+    `freedomnas-image-builder`'s pre-built, flash-and-go OS images (ADR-002).
+    It is still functional (it now prints a startup warning when run) and
+    the flow below remains accurate, but it is no longer actively developed
+    — new install-time features (such as encrypted-pool creation) are not
+    guaranteed to land here. Prefer flashing a pre-built image where one is
+    available for your edition; use this installer only if you specifically
+    need to install onto a live/running system by hand.
+
 The FreedomNAS TUI installer provisions a complete ZFS-on-root system using
 Python and the `dialog` tool. It requires no prior OS installation.
 

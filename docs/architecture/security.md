@@ -43,6 +43,44 @@ uses `shell=True`.
 `config.yaml` is always written with `chmod 0o600` (owner read/write only).
 The file is owned by root. No other user can read it.
 
+## Encrypted Pool Keyslots
+
+ZFS native encryption allows only one active key per encryption root — there
+is no LUKS-style multi-keyslot mechanism built into ZFS itself. `keymgmt.py`
+works around this by generating its own random 32-byte raw ZFS key (never
+stored in the clear) and keeping **two independently-wrapped copies** of it in
+a keyslot file outside the encrypted pool, at
+`/etc/freedomnas/keyslots/<pool>.json`, so it is readable before the pool
+unlocks:
+
+| Slot | Wrapped by | Delivered via |
+|------|-----------|----------------|
+| `usb` | The byte content of a `freedomnas.key` file | Removable media, scanned via the `media` profile category |
+| `passphrase` | The operator's Master Passphrase | TTY prompt on `/dev/console`, tried only if no USB key matches |
+
+Each slot has its own random salt and AES-256-GCM nonce. Wrapping derives a
+key-encryption-key with `hashlib.scrypt` and encrypts/decrypts the raw key
+with `cryptography.hazmat.primitives.ciphers.aead.AESGCM` (the `cryptography`
+package is a required dependency — the standard library has no AES). A
+tampered or mismatched slot fails authentication (`SlotUnavailableError`)
+rather than silently returning a wrong key, and compromising one slot never
+exposes the other slot or the pool key.
+
+At boot, `PoolUnlocker` (invoked by `python -m freedomnas unlock-pools` from
+`firstboot.sh`) tries the USB slot first and falls back to the passphrase
+slot only if no USB key matches. The passphrase prompt disables local echo
+and retries for up to `--tty-timeout` seconds (default 300). If nobody
+answers in time, `unlock-pools` **fails open**: it logs a warning and returns
+non-zero, but `firstboot.sh` still boots the WebUI rather than blocking
+indefinitely — the pool simply stays locked until unlocked manually.
+
+Secret material for the passphrase path never appears in argv or a
+subprocess pipe. The only place the unwrapped raw key ever touches disk is a
+`0600` file under `/run/freedomnas/` (tmpfs), written just long enough for
+`zfs load-key -L file://...` to read it, then overwritten with random bytes
+and unlinked (shredded) immediately afterward — on both the unlock path and
+the pool-provisioning path used by `/api/setup/initialize`.
+
 ## HTTP Basic Auth via PAM
 
 The WebUI uses PAM for authentication. Credentials are never stored in the
@@ -65,6 +103,7 @@ The terminal only shows topgrade output — it cannot be used as an interactive 
 | Command injection via API input | `_sanitize_kwargs()` strips metacharacters before substitution |
 | Password exposure in logs/ps | `execute_with_stdin()` for all password operations |
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
+| Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
 | Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes |
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |
 | XSS via Jinja2 | Jinja2 auto-escaping enabled (default) |

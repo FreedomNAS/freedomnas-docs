@@ -14,25 +14,42 @@ Debian, FreeBSD, Arch Linux, and any other UNIX-like OS without modification.
 
 ## Installation Paths
 
-There are two ways to install FreedomNAS:
+There are two ways to install FreedomNAS on a dedicated machine, plus a
+WebUI-only path for an already-installed system:
 
-### Option A — TUI Installer (recommended for new systems)
+### Option A — Pre-built image (recommended for new systems)
+
+`freedomnas-image-builder` publishes ready-to-flash OS images
+(`{edition}.img.zst`) — write one to the target disk and boot it, the same
+"flash and go" experience as Raspberry Pi OS. On first boot the image
+imports any ZFS pools, unlocks encrypted ones, and either reconciles an
+existing `.freedomnas` configuration or launches the first-run wizard.
+Debian and FreeBSD images are the primary/official editions; Void and Artix
+are early "exotic" community editions still being built out.
+
+Use this if you're installing FreedomNAS from scratch on a dedicated
+machine — it's the actively maintained path.
+
+### Option B — TUI Installer (parked, still functional)
 
 The Python + dialog installer handles everything automatically:
 
 - Detects UEFI or BIOS boot mode
 - Partitions the target disk
-- Creates ZFS pools (bpool + rpool)
+- Creates a single `rpool` (no separate boot pool)
 - Installs the base OS via debootstrap
 - Configures hostname, timezone, users
-- Installs GRUB bootloader
+- Builds a dracut Unified Kernel Image and registers it via `efibootmgr`
+  (UEFI) or vendored Clover (BIOS) — there is no GRUB step
 - Sets up the WebUI with automatic restart
 
-Use this if you're installing FreedomNAS from scratch on a dedicated machine.
+This installer is **parked** — superseded by the pre-built-image path
+above (ADR-002) — but still works if you need to install onto a live/
+running system by hand rather than flashing an image.
 
 [Installer guide →](installation.md)
 
-### Option B — WebUI First-Run (existing system)
+### Option C — WebUI First-Run (existing system)
 
 If FreedomNAS packages are already installed on a running system, open the
 WebUI and complete the first-run wizard. It configures:

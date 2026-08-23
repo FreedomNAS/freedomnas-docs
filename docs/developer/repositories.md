@@ -4,14 +4,20 @@
 
 ```
 codeberg.org/FreedomNAS/
-├── freedomnas-core        Engine + Config + Reconciler + Orchestrator + Modules
-├── freedomnas-profiles    JSON translation profiles (OS + init + packages)
-├── freedomnas-installer   TUI installer (Python + dialog)
-├── freedomnas-webui       FastAPI WebUI + Jinja2 frontend
-├── freedomnas-docs        This documentation site
-├── freedomnas-debian      Debian APT packaging                 [deferred]
-└── freedomnas-iso         ISO build system                     [deferred]
+├── freedomnas-core          Engine + Config + Reconciler + Orchestrator + Modules
+├── freedomnas-profiles      JSON translation profiles (OS + init + packages)
+├── freedomnas-installer     TUI installer (Python + dialog)          [PARKED]
+├── freedomnas-image-builder Pre-built OS images — primary install path
+├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
+├── freedomnas-docs          This documentation site
+├── freedomnas-debian        Debian APT packaging                 [deferred]
+└── freedomnas-iso           ISO build system                     [deferred]
 ```
+
+`freedomnas-installer` is parked — superseded by `freedomnas-image-builder`
+(ADR-002, `IMAGE-BASED-INSTALLATION.md`). It is still functional (prints a
+startup warning) but not the recommended install path; see
+[Installer Flow](installer.md).
 
 ## Dependency Graph
 
@@ -23,10 +29,15 @@ freedomnas-profiles   (no dependencies)
         ▼
 freedomnas-core       (depends on profiles at runtime via profile search paths)
         │
-        ├──────────────────────┐
-        ▼                      ▼
-freedomnas-installer    freedomnas-webui
+        ├──────────────────┬──────────────────────┐
+        ▼                  ▼                       ▼
+freedomnas-installer  freedomnas-webui   freedomnas-image-builder
+   [PARKED]
 ```
+
+`freedomnas-image-builder` doesn't import `freedomnas-core` at Python level
+— its `build.sh` scripts install the packaged core/profiles into the image
+non-interactively, the same way the (parked) installer does.
 
 ## Repository Scope
 
@@ -45,6 +56,7 @@ When working on a specific repository:
 | `engine.py` | 670 | OS-agnostic command executor |
 | `config.py` | 686 | YAML configuration manager |
 | `reconcile.py` | 546 | Desired-vs-current diff + apply |
+| `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `backup_manager.py` | 276 | ZFS snapshot lifecycle |
 | `package_manager.py` | 186 | Abstract package install/remove |
@@ -54,15 +66,19 @@ When working on a specific repository:
 | `modules/users.py` | 64 | Configured user existence check |
 | `modules/updates.py` | 49 | Topgrade configuration check |
 
-### freedomnas-profiles — COMPLETE
+### freedomnas-profiles — COMPLETE (Debian/FreeBSD/Arch); Void/Artix scaffolded
 
 | Type | Files |
 |------|-------|
-| OS profiles | `debian.json` (138 lines), `arch.json` (116), `freebsd.json` (111) |
+| OS profiles | `debian.json` (146 lines), `arch.json` (128), `freebsd.json` (131) — each now includes `zfs` (pool creation, encrypted-pool actions, key status) and a `media` category (removable-device listing for USB keyslot unlock) |
+| OS profiles (Phase 3, not runtime-reachable) | `artix.json` (121), `void.json` (121) — profile scaffolding only; `engine.py`'s `SUPPORTED_OS` still only lists `debian`/`freebsd`/`arch`, so these are not loadable yet |
 | Init profiles | `systemd.json`, `openrc.json`, `runit.json`, `s6.json`, `dinit.json`, `bsd_rc.json` (~16 lines each) |
 | Package categories | `MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` |
 
-### freedomnas-installer — COMPLETE
+### freedomnas-installer — COMPLETE, PARKED
+
+Functional and unchanged in shape, but superseded — see the note above and
+[Installer Flow](installer.md).
 
 | File | Lines | Responsibility |
 |------|-------|----------------|
@@ -89,7 +105,7 @@ When working on a specific repository:
 | `api/routes/users.py` | 68 | `/api/users/*` |
 | `api/routes/shares.py` | 170 | `/api/shares/smb*` + `/api/shares/nfs*` |
 | `api/routes/updates.py` | 63 | `/api/updates/*` |
-| `api/routes/setup.py` | 73 | `/api/setup/*` |
+| `api/routes/setup.py` | 136 | `/api/setup/*`, including the optional encrypted-`pool` field on `POST /api/setup/initialize` |
 | `websocket/terminal.py` | — | `/ws/updates/terminal` — **not yet created** |
 
 **Frontend:**
@@ -111,7 +127,7 @@ When working on a specific repository:
 | `frontend/static/js/auth.js` | Login form + PAM credential check |
 | `frontend/static/js/setup.js` | Wizard state machine |
 | `frontend/static/js/dashboard.js` | System info + module health |
-| `frontend/static/js/storage.js` | Pool/dataset/snapshot CRUD |
+| `frontend/static/js/storage.js` | Pool/dataset listing + snapshot CRUD (no pool-creation UI; see `keymgmt.py`/`setup.py` for how pools are created) |
 | `frontend/static/js/shares.js` | SMB/NFS CRUD |
 | `frontend/static/js/network.js` | Interface list + IP modal |
 | `frontend/static/js/users.js` | User table + create/delete |

@@ -53,6 +53,19 @@ The wizard calls `POST /api/setup/initialize`, which:
 3. Marks the system as initialized in `config.yaml`
 4. Saves the configuration to the `.freedomnas` ZFS dataset
 
+!!! note "Encrypted data pool creation is API-only for now"
+    `POST /api/setup/initialize` also accepts an optional `pool` field that
+    creates an encrypted ZFS data pool (name, devices, a ≥12-character
+    Master Passphrase, and optionally USB devices to write a zero-touch
+    unlock key onto) as part of setup — see
+    [Encrypted Data Pools](../developer/zfs.md#encrypted-pools). The wizard
+    shown here has **no step for it yet**: `wizard.html`/`setup.js` still
+    only cover the 3 steps above, and there is currently no way to create a
+    pool — encrypted or not — from the WebUI at all (`/api/storage/*` only
+    lists pools/datasets and manages snapshots). To create a data pool
+    today you must call `POST /api/setup/initialize` with a `pool` field
+    directly, before or during first-run setup.
+
 ## Done
 
 After initialization you'll see a confirmation screen. Click **Sign In**

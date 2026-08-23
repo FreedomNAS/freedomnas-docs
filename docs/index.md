@@ -24,8 +24,8 @@ contains a native system command. When you run FreedomNAS on Debian, it reads
 
 -   :material-rocket-launch: **Getting Started**
 
-    Install FreedomNAS via the TUI installer or use the WebUI first-run wizard
-    on an existing system.
+    Install FreedomNAS from a pre-built image (recommended), via the parked
+    TUI installer, or use the WebUI first-run wizard on an existing system.
 
     [Get started →](getting-started/overview.md)
 
@@ -71,7 +71,9 @@ contains a native system command. When you run FreedomNAS on Debian, it reads
 |---------|------|--------|
 | **Debian** | Debian trixie | Official — maximum hardware compatibility |
 | **FreeBSD** | FreeBSD 14+ | Official — native ZFS, robust network stack |
-| **Arch, Artix, Alpine, Gentoo, …** | Any | Community — via profile system, no core changes |
+| **Arch** | Arch Linux | Official — runtime-supported (`arch.json`, in `engine.py`'s `SUPPORTED_OS`) |
+| **Artix, Void** | Arch (OpenRC) / independent (runit) | Scaffolded, not yet runtime-reachable — profiles exist but `SUPPORTED_OS` doesn't list them yet |
+| **Alpine, Gentoo, …** | Any | Community — via the profile system, no core changes, once a profile is written |
 
 ---
 

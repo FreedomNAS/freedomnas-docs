@@ -1,5 +1,14 @@
 # Installer Flow
 
+!!! warning "freedomnas-installer is PARKED"
+    Superseded by `freedomnas-image-builder` for new installs (ADR-002,
+    `IMAGE-BASED-INSTALLATION.md`). The flow described below is still
+    functional — it now prints a startup warning — but it is historical/
+    reference material, not the maintained install path. New editions and
+    features (e.g. encrypted-pool creation) land in the image builder and
+    the WebUI, not here. See [Installation](../getting-started/installation.md)
+    for the current recommendation.
+
 The `freedomnas-installer` is a Python + dialog TUI that provisions a
 complete ZFS-on-root system. It runs before the WebUI exists.
 

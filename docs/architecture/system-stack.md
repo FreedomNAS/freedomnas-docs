@@ -72,6 +72,7 @@ All three communicate with the core library — never directly with the OS.
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
 | `backup_manager.py` | ZFS snapshot lifecycle and scheduling |
 | `package_manager.py` | Abstract package install/remove via profiles |
+| `keymgmt.py` | Encrypted-pool keyslot wrapping/unwrapping and boot-time unlock |
 | `modules/*.py` | Health check implementations (storage, network, shares, users, updates) |
 
 ### JSON/YAML translator layer
@@ -79,7 +80,7 @@ All three communicate with the core library — never directly with the OS.
 The profile layer has zero Python logic. It is pure data:
 
 - **OS profiles** (`debian.json`, `freebsd.json`, `arch.json`): map abstract
-  actions to OS-specific commands for users, network, packages, ZFS, Samba, NFS, system
+  actions to OS-specific commands for users, network, packages, ZFS, media, Samba, NFS, system
 - **Init profiles** (`init/systemd.json`, `init/openrc.json`, …): map service
   management actions (start, stop, enable, …) for each init system
 - **Package categories** (`packages/samba-cifs.json`, …): map feature IDs to
@@ -104,6 +105,7 @@ The profile layer has zero Python logic. It is pure data:
 │       ├── config.py
 │       ├── reconcile.py
 │       ├── orchestrator.py
+│       ├── keymgmt.py
 │       └── modules/
 ├── profiles/               ← freedomnas-profiles package
 │   ├── debian.json

@@ -17,6 +17,16 @@ and free space. Pool data comes from `zpool list`.
 
 A red health badge triggers an alert in the module health grid on the dashboard.
 
+!!! note "No pool creation from this page"
+    The Pools tab is read-only — it lists existing pools but has no
+    "create pool" action, encrypted or not. A data pool (optionally ZFS-
+    encrypted with an independent USB key and Master Passphrase) can
+    currently only be created once, via the `pool` field of
+    `POST /api/setup/initialize` during first-run setup — see
+    [First-Run Setup](../getting-started/first-run.md) and, for the
+    encryption design, [Encrypted Pools](../developer/zfs.md#encrypted-pools).
+    There is no wizard step or Storage-page button for it yet.
+
 ## Datasets Tab
 
 Lists all ZFS datasets with used space, available space, mountpoint, and type
@@ -61,8 +71,9 @@ For manual snapshots, use any descriptive name without spaces.
 - **Use compression**: `lz4` is the recommended default (fast, transparent)
 - **Set `ashift=12`** for modern drives (4K sector alignment)
 - **For redundancy**: mirror (2 drives) or RAIDZ2 (4+ drives)
-- **Data pool** (`rpool`) and **boot pool** (`bpool`) are separate:
-  `bpool` uses a limited feature set for GRUB compatibility
+- **No separate boot pool**: there is no `bpool` — that existed only for GRUB
+  compatibility and was removed when the boot chain moved to a dracut UKI.
+  `rpool` alone holds both the OS and its boot environments
 
 !!! tip
     Enable **auto-snapshot before updates** in the Updates page. This creates

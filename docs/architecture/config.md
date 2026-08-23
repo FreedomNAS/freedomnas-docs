@@ -138,6 +138,10 @@ storage:
       vdev_type: "single"
       ashift: 12
       compression: "lz4"
+    - name: "datapool"
+      vdev_type: "mirror"
+      encrypted: true            # set by /api/setup/initialize when pool.master_passphrase is given
+      usb_keyslot_devices: 2     # count only -- never the key material; see the keymgmt.py docs
 
 installed_features:
   - id: "samba-cifs"
@@ -210,6 +214,9 @@ class ConfigurationManager:
 ## Key Invariants
 
 - `config.yaml` **never** stores plaintext passwords
+- Likewise, an encrypted pool's `encrypted`/`usb_keyslot_devices` fields are
+  metadata only — the wrapped keys themselves live outside `config.yaml`, in
+  `/etc/freedomnas/keyslots/<pool>.json` (see Security)
 - File permissions are always `0o600`
 - `to_dict()` adds top-level `smb_shares` and `nfs_shares` aliases so the
   `ReconciliationEngine` can address them without nesting into `shares.smb`

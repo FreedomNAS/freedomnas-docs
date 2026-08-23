@@ -62,9 +62,19 @@ When restoring from a config snapshot, changes are applied in this fixed order:
 This order ensures dependencies are satisfied: pools must exist before shares,
 users must exist before share permissions can reference them.
 
+On first boot, `firstboot.sh` runs `python -m freedomnas unlock-pools`
+*before* `reconcile --mode disaster_recovery` — an encrypted pool must be
+unlocked before its datasets can mount. `reconcile.py` itself performs no
+unlocking; if a pool is still locked when reconciliation runs (e.g. the
+`unlock-pools` TTY prompt timed out and failed open), that pool's datasets
+simply are not mounted yet and any reconciliation steps depending on them
+will not converge correctly until it is unlocked manually. See
+[Security](security.md#encrypted-pool-keyslots) for the unlock mechanism.
+
 ## Constraints
 
 - **Idempotent**: safe to re-run; applying the same config twice has the same result as applying it once
 - **Engine-only**: never calls OS commands directly — all changes via `engine.execute()`
-- **No pool modification**: pool topology changes are not supported via reconciler (use storage API)
+- **No pool modification**: pool topology changes — including converting an
+  existing pool to encrypted — are not supported via reconciler (use storage API)
 - **Service names**: always resolved via `engine.get_profile_value()` — never hardcoded

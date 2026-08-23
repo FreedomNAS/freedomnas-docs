@@ -1,7 +1,18 @@
 # Adding a New OS
 
-Adding support for a new OS (e.g. Alpine Linux, Void Linux, NixOS) requires
+Adding support for a new OS (e.g. Alpine Linux, NixOS) requires
 **zero Python code changes**. You only need JSON files.
+
+!!! note
+    Artix Linux and Void Linux are worked examples of steps 1-4 below:
+    `artix.json`/`void.json` exist, `MANIFEST.json`'s `supported_editions`
+    lists both, and the package category files have matching `artix`/`void`
+    sections. Neither is selectable yet, though — `engine.py`'s
+    `SUPPORTED_OS` constant (and its OS auto-detection logic) has not been
+    extended to recognize them, so this JSON-only groundwork is not yet
+    reachable at runtime. That gap is real Python work this guide's
+    "zero Python code changes" claim does not cover; it is tracked as
+    Phase 3 scaffolding.
 
 ## Steps
 

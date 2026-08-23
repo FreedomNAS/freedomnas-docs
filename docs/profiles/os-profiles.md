@@ -10,6 +10,15 @@ OS-specific shell command. One file per supported OS.
 | `debian.json` | Debian trixie (and compatible) | Official |
 | `freebsd.json` | FreeBSD 14+ | Official |
 | `arch.json` | Arch Linux | Community |
+| `artix.json` | Artix Linux (OpenRC) | Scaffolded — Phase 3, not yet reachable |
+| `void.json` | Void Linux (runit) | Scaffolded — Phase 3, not yet reachable |
+
+!!! note
+    `artix.json` and `void.json` exist and are filled in, and the matching
+    `artix`/`void` sections have been added to the package category files —
+    but `engine.py`'s `SUPPORTED_OS` still only lists `debian`, `freebsd`,
+    and `arch`. Artix and Void are profile scaffolding for a future phase,
+    not yet selectable at runtime.
 
 ## Top-Level Structure
 
@@ -24,6 +33,7 @@ OS-specific shell command. One file per supported OS.
   "network":  { ... },
   "packages": { ... },
   "zfs":      { ... },
+  "media":    { ... },
   "samba":    { ... },
   "nfs":      { ... },
   "system":   { ... },
@@ -89,6 +99,36 @@ OS-specific shell command. One file per supported OS.
 | `set_compression` | Set dataset compression algorithm |
 | `create_dataset` | Create a new dataset |
 | `set_quota` | Set dataset quota |
+| `pool_create_encrypted` | Create a pool with ZFS native encryption (`-O encryption=aes-256-gcm -O keyformat=raw -O keylocation=file://{keyfile_path}`) |
+| `pool_keystatus` | Read a pool's `keystatus` property (`available`/`unavailable`/`-`) |
+| `load_key_file` | Load a raw key from a file into the pool (`zfs load-key -L file://{keyfile_path} {pool_name}`) |
+| `unload_key` | Unload a pool's encryption key |
+| `mount_all` | `zfs mount -a` — mount all datasets whose keys are loaded |
+
+The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
+`mount_all` actions back the ZFS pool encryption feature: independent
+USB and Master Passphrase unlock factors managed by
+`freedomnas.keymgmt` (`KeyslotStore`, `PoolUnlocker`, `PoolProvisioner`).
+The raw ZFS key is always unwrapped in Python first — it is never handed
+to `zfs load-key` as a passphrase directly.
+
+### `media`
+
+Removable-media handling for the USB zero-touch unlock path
+(`freedomnas.keymgmt.PoolUnlocker`/`PoolProvisioner`). Enumeration and
+mount/unmount are OS-specific: Debian/Arch use `lsblk`+`mount`, FreeBSD uses
+`camcontrol devlist -v`+`mount -t msdosfs` (untested on real FreeBSD
+hardware, since FreeBSD's `mount` does not autodetect filesystem type).
+Deciding which device might hold a `freedomnas.key` file, trying each in
+turn, and mounting/unmounting are all handled in Python — never branched on
+inside the profile.
+
+| Key | Command |
+|-----|---------|
+| `list_removable` | List removable devices (Debian/Arch: `lsblk -rno NAME,RM,TYPE`; FreeBSD: `camcontrol devlist -v`) |
+| `mount_ro` | Mount a device read-only (`noexec,nosuid,nodev` where supported) |
+| `mount_rw` | Mount a device writable — used only when provisioning a new `freedomnas.key` |
+| `unmount` | `umount {mountpoint}` |
 
 ### `samba`
 
