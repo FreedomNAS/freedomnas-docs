@@ -7,9 +7,13 @@ JavaScript. No frontend frameworks. No npm. No CDN.
 
 ```
 api/
-├── main.py           FastAPI app, page routes, first-run guard
-├── deps.py           Engine singleton, config singleton, PAM auth
-└── routes/           API route handlers (one file per domain)
+├── main.py               FastAPI app, page routes, first-run guard, mounts
+│                         community-module routes discovered below
+├── module_discovery.py   Scans modules/*/manifest.json for a "webui" block;
+│                         mounts each one's router/templates/static (2026-09-02)
+├── deps.py               Engine singleton, config singleton, PAM auth
+└── routes/               API route handlers (one file per domain) — core
+                          modules only, untouched by module_discovery.py
 websocket/            (not yet created — see below)
 └── terminal.py       Topgrade streaming — pending
 frontend/
@@ -19,6 +23,11 @@ frontend/
     ├── js/           10 JS modules
     └── img/          logo.png, logo_cut.png
 ```
+
+A community module (its own repo/`.deb`, dropped into `modules/<id>/`) can
+add its own routes, page, and static assets without any file above being
+edited — see [Orchestrator](../architecture/orchestrator.md) for the
+`manifest.json` schema shared with `freedomnas-core`'s `module_loader.py`.
 
 !!! warning "websocket/terminal.py not yet implemented"
     `api/websocket/terminal.py` does not exist yet. The `/ws/updates/terminal`
@@ -171,7 +180,7 @@ All authenticated pages extend `base.html`:
 | `{packages}` | packages.install | `samba samba-common-bin` |
 | `{pool_name}` | zfs | `datapool` |
 | `{dataset}` | zfs | `datapool/documents` |
-| `{snapshot_name}` | zfs | `pre-update-20260627` |
+| `{snap_name}` | zfs.snapshot_create | `pre-update-20260627` — **not** `snapshot_name`, see [Storage API](../api/storage.md) |
 | `{ashift}` | zfs.create_pool | `12` |
 | `{disks}` | zfs.create_pool | `/dev/disk/by-id/ata-...` |
 | `{algorithm}` | zfs.set_compression | `lz4` |

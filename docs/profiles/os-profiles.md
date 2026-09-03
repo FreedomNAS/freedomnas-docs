@@ -1,26 +1,47 @@
 # OS Profiles
 
-An OS profile is a single JSON file that maps every abstract action to an
-OS-specific shell command. One file per supported OS.
+**A profile is no longer one file per OS** (split per module, 2026-09-02).
+It's assembled at engine startup from a shared base fragment
+(`os/os-<name>.json`) plus one fragment per module — see
+[Overview](overview.md) for the merge algorithm and
+[Architecture → Orchestrator](../architecture/orchestrator.md) for how
+modules themselves are discovered. This page covers every category
+regardless of which file it physically lives in.
 
-## Available Profiles
+## Available Base Fragments
 
 | File | OS | Status |
 |------|----|--------|
-| `debian.json` | Debian trixie (and compatible) | Official |
-| `freebsd.json` | FreeBSD 14+ | Official |
-| `arch.json` | Arch Linux | Community |
-| `artix.json` | Artix Linux (OpenRC) | Scaffolded — Phase 3, not yet reachable |
-| `void.json` | Void Linux (runit) | Scaffolded — Phase 3, not yet reachable |
+| `os/os-debian.json` | Debian trixie (and compatible) | Official |
+| `os/os-freebsd.json` | FreeBSD 14+ | Official |
+| `os/os-arch.json` | Arch Linux | Community |
+| `os/os-artix.json` | Artix Linux (OpenRC) | Scaffolded — Phase 3, not yet reachable |
+| `os/os-void.json` | Void Linux (runit) | Scaffolded — Phase 3, not yet reachable |
 
 !!! note
-    `artix.json` and `void.json` exist and are filled in, and the matching
-    `artix`/`void` sections have been added to the package category files —
-    but `engine.py`'s `SUPPORTED_OS` still only lists `debian`, `freebsd`,
-    and `arch`. Artix and Void are profile scaffolding for a future phase,
-    not yet selectable at runtime.
+    `os-artix.json` and `os-void.json` exist and are filled in (along with
+    matching `artix-<os>.json`/`void-<os>.json` fragments in every module
+    directory, and matching `artix`/`void` sections in the package category
+    files) — but `engine.py`'s `SUPPORTED_OS` still only lists `debian`,
+    `freebsd`, and `arch`. Artix and Void are profile scaffolding for a
+    future phase, not yet selectable at runtime.
 
-## Top-Level Structure
+## Where Each Category Lives
+
+| File | Owns |
+|------|------|
+| `os/os-<name>.json` | `os_name`/`os_family`/`os_version`/`init_system`, `packages`, `bootloader`, `system` |
+| `storage/storage-<name>.json` | `zfs`, `media`, `btrfs` |
+| `network/network-<name>.json` | `network` |
+| `shares/shares-<name>.json` | `samba`, `nfs` |
+| `users/users-<name>.json` | `users` |
+| `updates/` | *(no dedicated fragment — `UpdatesModule` reads the shared `packages` category from `os/` directly)* |
+| `init/init-<init_system>.json` | `services` — **never** in any of the files above, see [Init Profiles](init-profiles.md) |
+
+A community module follows the same convention: `profiles/<id>/<id>-<name>.json`,
+usually shipped in the module's own repo/`.deb` rather than this one.
+
+## Shared Base Fragment Structure (`os/os-<name>.json`)
 
 ```json
 {
@@ -29,21 +50,25 @@ OS-specific shell command. One file per supported OS.
   "os_version":  "12+",
   "init_system": "systemd",   ← fallback if runtime detection fails
 
-  "users":    { ... },
-  "network":  { ... },
-  "packages": { ... },
-  "zfs":      { ... },
-  "media":    { ... },
-  "samba":    { ... },
-  "nfs":      { ... },
-  "system":   { ... },
-  "updates":  { ... }
+  "packages":   { ... },
+  "bootloader": { ... },
+  "system":     { ... }
+}
+```
+
+## Per-Module Fragment Structure (example: `storage/storage-<name>.json`)
+
+```json
+{
+  "zfs":   { ... },
+  "media": { ... },
+  "btrfs": { ... }
 }
 ```
 
 !!! note
-    OS profiles do **not** have a `services` key. Service management commands
-    are in the separate [init profiles](init-profiles.md).
+    No file above has a `services` key. Service management commands are in
+    the separate [init profiles](init-profiles.md), merged in last by the engine.
 
 ## Category Reference
 

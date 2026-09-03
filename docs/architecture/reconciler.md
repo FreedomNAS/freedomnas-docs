@@ -1,7 +1,10 @@
 # Reconciliation Engine
 
-`reconcile.py` is used by the **installer only** (not the WebUI) to apply
-configuration during system provisioning or disaster recovery.
+`reconcile.py` is used by the (parked) **installer** and by
+`freedomnas-image-builder`'s baked-in `firstboot.sh` — via
+`python -m freedomnas reconcile --mode {hybrid,declarative,disaster_recovery}`,
+which exposes it on the CLI — to apply configuration during provisioning,
+first boot, or disaster recovery. **Never called directly by the WebUI.**
 
 It computes the diff between a desired state (YAML) and the current system
 state, then executes the necessary changes through the engine.

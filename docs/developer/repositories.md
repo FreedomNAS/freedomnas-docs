@@ -53,27 +53,38 @@ When working on a specific repository:
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `engine.py` | 670 | OS-agnostic command executor |
+| `engine.py` | 670 | OS-agnostic command executor — profile loader (base `os/` fragment + per-module merge) |
 | `config.py` | 686 | YAML configuration manager |
 | `reconcile.py` | 546 | Desired-vs-current diff + apply |
 | `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
+| `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
 | `backup_manager.py` | 276 | ZFS snapshot lifecycle |
 | `package_manager.py` | 186 | Abstract package install/remove |
-| `modules/storage.py` | 65 | ZFS pool health check |
-| `modules/network.py` | 57 | Interface availability check |
-| `modules/shares.py` | 81 | SMB/NFS service health check |
-| `modules/users.py` | 64 | Configured user existence check |
-| `modules/updates.py` | 49 | Topgrade configuration check |
+| `modules/storage/` | 71 (`module.py`) | ZFS pool health check — `{module.py, manifest.json, __init__.py}` |
+| `modules/network/` | 57 (`module.py`) | Interface availability check — same layout |
+| `modules/shares/` | 81 (`module.py`) | SMB/NFS service health check — same layout |
+| `modules/users/` | 64 (`module.py`) | Configured user existence check — same layout |
+| `modules/updates/` | 49 (`module.py`) | Topgrade configuration check — same layout, no dedicated profile fragment |
+
+**Module/plugin refactor (2026-09-02):** `modules/` moved from flat `.py`
+files to `modules/<name>/{module.py, manifest.json, __init__.py}`,
+discovered at runtime instead of hand-imported — see
+[Orchestrator](../architecture/orchestrator.md). This is what makes a
+community module purely additive: its own repo/`.deb`, zero edits to
+`freedomnas-core`, `freedomnas-profiles`, or `freedomnas-webui`.
 
 ### freedomnas-profiles — COMPLETE (Debian/FreeBSD/Arch); Void/Artix scaffolded
 
+Split per module (2026-09-02) — see [Profile System Overview](../profiles/overview.md).
+
 | Type | Files |
 |------|-------|
-| OS profiles | `debian.json` (146 lines), `arch.json` (128), `freebsd.json` (131) — each now includes `zfs` (pool creation, encrypted-pool actions, key status) and a `media` category (removable-device listing for USB keyslot unlock) |
-| OS profiles (Phase 3, not runtime-reachable) | `artix.json` (121), `void.json` (121) — profile scaffolding only; `engine.py`'s `SUPPORTED_OS` still only lists `debian`/`freebsd`/`arch`, so these are not loadable yet |
-| Init profiles | `systemd.json`, `openrc.json`, `runit.json`, `s6.json`, `dinit.json`, `bsd_rc.json` (~16 lines each) |
-| Package categories | `MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` |
+| Shared OS fragments | `os/os-debian.json`, `os/os-arch.json`, `os/os-freebsd.json` — packages, bootloader, system, `os_name`/`os_family`/`os_version`/`init_system` |
+| Per-module fragments | `storage/storage-<os>.json` (zfs incl. encrypted-pool actions, media, btrfs), `network/network-<os>.json`, `shares/shares-<os>.json` (samba, nfs), `users/users-<os>.json` — one file per module per OS |
+| OS fragments (Phase 3, not runtime-reachable) | `os/os-artix.json`, `os/os-void.json` plus matching `artix`/`void` fragments in every module directory — profile scaffolding only; `engine.py`'s `SUPPORTED_OS` still only lists `debian`/`freebsd`/`arch`, so these are not loadable yet |
+| Init profiles | `init/init-systemd.json`, `init/init-openrc.json`, `init/init-runit.json`, `init/init-s6.json`, `init/init-dinit.json`, `init/init-bsd_rc.json` (renamed from `init/<name>.json`, ~16 lines each) |
+| Package categories | `packages/MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` — untouched by the module split, see [Package Categories](../profiles/packages.md) |
 
 ### freedomnas-installer — COMPLETE, PARKED
 
@@ -97,7 +108,8 @@ Functional and unchanged in shape, but superseded — see the note above and
 
 | File | Lines | Endpoints |
 |------|-------|-----------|
-| `api/main.py` | 157 | FastAPI app, 9 page routes, first-run guard middleware |
+| `api/main.py` | 157 | FastAPI app, 9 page routes, first-run guard middleware, mounts community-module routes discovered below |
+| `api/module_discovery.py` | 121 | Community-module WebUI discovery — mirrors `module_loader.py` but only for modules with a `webui` manifest block; core routes/templates are untouched |
 | `api/deps.py` | 45 | Engine singleton, config singleton, PAM auth |
 | `api/routes/system.py` | 78 | `/api/system/*` |
 | `api/routes/storage.py` | 84 | `/api/storage/*` |

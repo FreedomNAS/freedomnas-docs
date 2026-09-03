@@ -13,8 +13,9 @@ other UNIX-like system — without code modifications.
 > **The software adapts to the system. The system never adapts to the software.**
 
 Every OS-specific command lives in a JSON translation profile. Python code never
-contains a native system command. When you run FreedomNAS on Debian, it reads
-`debian.json`. On FreeBSD, it reads `freebsd.json`. Nothing else changes.
+contains a native system command. When you run FreedomNAS on Debian, it merges
+`os/os-debian.json` with each module's own `storage-debian.json`/`network-debian.json`/etc.
+On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing else changes.
 
 ---
 
@@ -71,7 +72,7 @@ contains a native system command. When you run FreedomNAS on Debian, it reads
 |---------|------|--------|
 | **Debian** | Debian trixie | Official — maximum hardware compatibility |
 | **FreeBSD** | FreeBSD 14+ | Official — native ZFS, robust network stack |
-| **Arch** | Arch Linux | Official — runtime-supported (`arch.json`, in `engine.py`'s `SUPPORTED_OS`) |
+| **Arch** | Arch Linux | Official — runtime-supported (`os/os-arch.json` + module fragments, in `engine.py`'s `SUPPORTED_OS`) |
 | **Artix, Void** | Arch (OpenRC) / independent (runit) | Scaffolded, not yet runtime-reachable — profiles exist but `SUPPORTED_OS` doesn't list them yet |
 | **Alpine, Gentoo, …** | Any | Community — via the profile system, no core changes, once a profile is written |
 

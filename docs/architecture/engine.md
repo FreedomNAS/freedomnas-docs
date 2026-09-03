@@ -7,7 +7,10 @@ OS-specific shell commands using JSON profiles. It is implemented as a
 ## Responsibilities
 
 - Detect the running OS and init system at startup
-- Load the correct JSON profile and merge the init profile's `services` section
+- Load the shared `os/os-<os>.json` base fragment, merge in every module's
+  own `<module>/<module>-<os>.json` fragment (see
+  [Profile System Overview](../profiles/overview.md)), then merge the init
+  profile's `services` section last
 - Translate abstract action names into shell command strings
 - Execute commands safely (no `shell=True` unless the profile command requires it)
 - Provide introspection: list available categories and actions
@@ -60,8 +63,9 @@ this order:
 | `/etc/rc.d` exists + FreeBSD | `bsd_rc` |
 | none of the above | read `init_system` from OS profile, or default `systemd` |
 
-The init profile (`init/{name}.json`) is loaded separately. Its `services`
-section **replaces** the OS profile's `services` section at runtime.
+The init profile (`init/init-{name}.json`) is loaded separately, last. Its
+`services` section **replaces** the merged profile's `services` section at
+runtime.
 
 ## Profile Search Path
 

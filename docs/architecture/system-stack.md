@@ -4,34 +4,42 @@
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                       USER                           │
+│  Image Builder (offline, CI) → flash → USER           │
 ├──────────────┬───────────────────────┬───────────────┤
 │  Installer   │        WebUI          │   fnas-cli    │
-│ (dialog TUI) │      (FastAPI)        │  (deferred)   │
+│ [PARKED]     │      (FastAPI)        │  (deferred)   │
 ├──────────────┴───────────────────────┴───────────────┤
 │                   CORE LIBRARY                       │
 │  ┌──────────┬──────────┬────────────┬─────────────┐  │
-│  │engine.py │config.py │reconcile.py│ modules/*.py │  │
+│  │engine.py │config.py │reconcile.py│ keymgmt.py  │  │
 │  └──────────┴──────────┴────────────┴─────────────┘  │
 │  ┌──────────────────────────────────────────────────┐ │
-│  │         orchestrator.py  (heartbeat + CB)        │ │
+│  │  module_loader.py → orchestrator.py (heartbeat)  │ │
+│  │  modules/{storage,network,shares,users,updates}/ │ │
 │  └──────────────────────────────────────────────────┘ │
 ├──────────────────────────────────────────────────────┤
 │              JSON/YAML TRANSLATOR LAYER              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │ debian.json │  │freebsd.json │  │  arch.json  │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  │
+│  ┌─────────────┐  ┌──────────────────────────────┐  │
+│  │  os/os-*.json│  │ storage/ · network/ · shares/ │  │
+│  │ (shared base)│  │ users/ — per-module fragments │  │
+│  └─────────────┘  └──────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────┐ │
-│  │  init/ systemd · openrc · runit · s6 · dinit    │ │
+│  │  init/ init-systemd · init-openrc · init-runit …│ │
 │  └──────────────────────────────────────────────────┘ │
 ├──────────────────────────────────────────────────────┤
 │                 KERNEL + FILESYSTEM                  │
-│  ┌──────────────────┐  ┌──────────────────────────┐  │
-│  │  Root: Btrfs/ZFS │  │  Data: ZFS Pool          │  │
-│  │  (OS snapshots)  │  │  (datasets, config)      │  │
-│  └──────────────────┘  └──────────────────────────┘  │
+│  ┌──────────────────────┐  ┌────────────────────────┐│
+│  │  Root: ZFS (rpool)   │  │  Data: ZFS Pool        ││
+│  │  UKI on ESP (dracut) │  │  (datasets, config)    ││
+│  └──────────────────────┘  └────────────────────────┘│
 └──────────────────────────────────────────────────────┘
 ```
+
+The primary install path is a pre-built, flashable image from
+`freedomnas-image-builder` (bootable on both UEFI and BIOS from the same
+file) — see [Getting Started → Installation](../getting-started/installation.md).
+The dialog-TUI installer still exists and works but is **parked**, no
+longer the recommended path.
 
 ## The Golden Rule
 
@@ -57,7 +65,7 @@ Three interfaces reach FreedomNAS:
 | Interface | Technology | Purpose |
 |-----------|-----------|---------|
 | **WebUI** | FastAPI + Jinja2 + vanilla JS | Daily management via browser |
-| **Installer** | Python + `dialog` TUI | Full system provisioning |
+| **Installer** | Python + `dialog` TUI — **parked**, superseded by pre-built images | Full system provisioning |
 | **fnas-cli** | Python CLI (deferred) | Terminal management |
 
 All three communicate with the core library — never directly with the OS.
@@ -70,28 +78,34 @@ All three communicate with the core library — never directly with the OS.
 | `config.py` | YAML configuration manager — shadow copy on ZFS dataset |
 | `reconcile.py` | Diff and apply changes (used by installer) |
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
+| `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
 | `backup_manager.py` | ZFS snapshot lifecycle and scheduling |
 | `package_manager.py` | Abstract package install/remove via profiles |
 | `keymgmt.py` | Encrypted-pool keyslot wrapping/unwrapping and boot-time unlock |
-| `modules/*.py` | Health check implementations (storage, network, shares, users, updates) |
+| `modules/<name>/module.py` | Health check implementations (storage, network, shares, users, updates), each in its own `modules/<name>/` subpackage with a `manifest.json` |
 
 ### JSON/YAML translator layer
 
-The profile layer has zero Python logic. It is pure data:
+The profile layer has zero Python logic. It is pure data, split per module
+(2026-09-02) — see [Profile System Overview](../profiles/overview.md):
 
-- **OS profiles** (`debian.json`, `freebsd.json`, `arch.json`): map abstract
-  actions to OS-specific commands for users, network, packages, ZFS, media, Samba, NFS, system
-- **Init profiles** (`init/systemd.json`, `init/openrc.json`, …): map service
+- **Shared OS fragment** (`os/os-debian.json`, `os/os-freebsd.json`, `os/os-arch.json`):
+  primitives no module owns — packages, bootloader, system info
+- **Per-module fragments** (`storage/storage-<os>.json`, `network/network-<os>.json`,
+  `shares/shares-<os>.json`, `users/users-<os>.json`): each module's own
+  commands — ZFS/media/btrfs, network, Samba/NFS, users respectively
+- **Init profiles** (`init/init-systemd.json`, `init/init-openrc.json`, …): map service
   management actions (start, stop, enable, …) for each init system
 - **Package categories** (`packages/samba-cifs.json`, …): map feature IDs to
-  OS-specific package and service names
+  OS-specific package and service names — a different thing from the
+  per-module fragments above, see [Package Categories](../profiles/packages.md)
 
 ### Kernel + filesystem
 
 | Layer | Debian | FreeBSD |
 |-------|--------|---------|
 | Root filesystem | ZFS (`rpool/ROOT/debian`) | ZFS (Boot Environments via `bectl`) |
-| Boot | UKI on ESP via efibootmgr (UEFI) or Clover (BIOS) | Native ZFS boot |
+| Boot | UKI on ESP via efibootmgr (UEFI) or Clover (BIOS) — both from the same image, see [Installation](../getting-started/installation.md) | Native ZFS-aware boot (`gptzfsboot`/`loader.efi`), no UKI/Clover needed |
 | Data pool | ZFS (datapool) | ZFS (datapool) |
 | Config persistence | ZFS dataset `.freedomnas` | ZFS dataset `.freedomnas` |
 
@@ -104,23 +118,39 @@ The profile layer has zero Python logic. It is pure data:
 │       ├── engine.py
 │       ├── config.py
 │       ├── reconcile.py
-│       ├── orchestrator.py
 │       ├── keymgmt.py
+│       ├── orchestrator.py
+│       ├── module_loader.py
 │       └── modules/
+│           ├── storage/  {module.py, manifest.json, __init__.py}
+│           ├── network/  (same layout)
+│           ├── shares/   (same layout)
+│           ├── users/    (same layout)
+│           └── updates/  (same layout)
 ├── profiles/               ← freedomnas-profiles package
-│   ├── debian.json
-│   ├── freebsd.json
-│   ├── arch.json
-│   ├── init/
+│   ├── os/          os-debian.json, os-freebsd.json, os-arch.json, …
+│   ├── storage/      storage-<os>.json
+│   ├── network/      network-<os>.json
+│   ├── shares/        shares-<os>.json
+│   ├── users/         users-<os>.json
+│   ├── assets/       boot-chain assets (Clover, zz-dracut-uki) — shared by
+│   │                  the parked installer and freedomnas-image-builder
+│   ├── init/          init-systemd.json, init-openrc.json, …
 │   └── packages/
-├── installer/              ← freedomnas-installer package
+├── installer/              ← freedomnas-installer package [PARKED]
 │   ├── setup.py
 │   └── lib/
 └── webui/                  ← freedomnas-webui package
     ├── api/
+    │   └── module_discovery.py   community-module WebUI mounting
     ├── websocket/
     └── frontend/
 ```
+
+`freedomnas-image-builder` isn't installed onto the appliance itself — it
+vendors `freedomnas-core`/`freedomnas-profiles`/`freedomnas-webui` wholesale
+into the pre-built image at build time. See
+[Getting Started → Installation](../getting-started/installation.md).
 
 ## Python Import Resolution
 

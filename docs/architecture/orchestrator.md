@@ -4,6 +4,47 @@
 It runs a background heartbeat thread that periodically calls `health_check()`
 on every registered module and applies a circuit breaker on repeated failures.
 
+**Populated by `module_loader.py` (2026-09-02)**, not hand-wired: modules
+live in `modules/<name>/{module.py, manifest.json, __init__.py}` (see
+[Profile System Overview](../profiles/overview.md) for the matching profile
+split), and `ModuleLoader` scans `modules/*/manifest.json`, filters by
+`supported_os`, and calls `orchestrator.register()` for each match. This is
+the first real caller of `Orchestrator` — before this refactor it was
+fully defined but never instantiated anywhere. `python -m freedomnas serve`
+builds the engine/config/orchestrator, runs `ModuleLoader.load_all()`, then
+`orchestrator.start_all()` and blocks until `SIGINT`/`SIGTERM`.
+
+A community module (its own repo/`.deb`, dropped into `modules/<id>/` at
+install time) is discovered the exact same way, with zero changes to this
+file, `engine.py`, or `freedomnas-webui`'s routing — see the `manifest.json`
+schema below.
+
+## `manifest.json`
+
+```json
+{
+  "id": "storage",
+  "name": "Storage",
+  "version": "1.0.0",
+  "type": "core",
+  "entry_point": "module:StorageModule",
+  "supported_os": ["debian", "freebsd", "arch"],
+  "depends_on": [],
+  "webui": null
+}
+```
+
+`entry_point` (`"<file_stem>:<ClassName>"`) is loaded from
+`{module_dir}/{file_stem}.py` **by file path**
+(`importlib.util.spec_from_file_location`), not Python's package import
+machinery — that's what lets a module live in a totally separate repo with
+zero wiring into `freedomnas-core`. A module is silently skipped (not an
+error) if the running OS isn't in `supported_os`. `webui` is `null` for
+every core module today; a community module with a WebUI component sets it
+to an object naming its `api_routes.py`, route prefix, and template/static
+directories — see `freedomnas-webui/api/module_discovery.py`, which mounts
+those the same way, independently of this file.
+
 ## Classes
 
 ```python

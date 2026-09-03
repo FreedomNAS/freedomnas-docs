@@ -1,18 +1,20 @@
 # Init Profiles
 
-Init profiles live in `init/{name}.json` and contain **only** the `services`
-category. OS profiles never include a `services` key.
+Init profiles live in `init/init-{name}.json` (renamed from `init/{name}.json`)
+and contain **only** the `services` category. No other profile fragment
+(`os/`, or any per-module fragment — see [OS Profiles](os-profiles.md)) ever
+includes a `services` key.
 
 ## Available Init Profiles
 
 | File | Init system | Used on |
 |------|-------------|---------|
-| `init/systemd.json` | systemd | Debian, Ubuntu, Arch, Fedora, … |
-| `init/openrc.json` | OpenRC | Artix (openrc), Alpine, Gentoo, … |
-| `init/runit.json` | runit | Void Linux, Artix (runit), … |
-| `init/s6.json` | s6 | Artix (s6), … |
-| `init/dinit.json` | dinit | Artix (dinit), … |
-| `init/bsd_rc.json` | bsd_rc (rc.d) | FreeBSD, DragonFlyBSD |
+| `init/init-systemd.json` | systemd | Debian, Ubuntu, Arch, Fedora, … |
+| `init/init-openrc.json` | OpenRC | Artix (openrc), Alpine, Gentoo, … |
+| `init/init-runit.json` | runit | Void Linux, Artix (runit), … |
+| `init/init-s6.json` | s6 | Artix (s6), … |
+| `init/init-dinit.json` | dinit | Artix (dinit), … |
+| `init/init-bsd_rc.json` | bsd_rc (rc.d) | FreeBSD, DragonFlyBSD |
 
 ## Structure
 
@@ -48,12 +50,15 @@ category. OS profiles never include a `services` key.
 
 At engine startup:
 
-1. OS profile is loaded (e.g. `debian.json`)
-2. Init system is detected (e.g. `systemd`)
-3. `init/systemd.json` is loaded
-4. The `services` key from the init profile is injected into the OS profile dict
-5. `engine.execute("services", "start", service_name="smbd")` now works
+1. `os/os-<name>.json` is loaded as the base (e.g. `os/os-debian.json`)
+2. Every other profile subdirectory is scanned and its `<dir>-<name>.json`
+   fragment merged in (see [OS Profiles](os-profiles.md))
+3. Init system is detected (e.g. `systemd`)
+4. `init/init-systemd.json` is loaded
+5. The `services` key from the init profile is injected into the merged
+   profile dict, last
+6. `engine.execute("services", "start", service_name="smbd")` now works
 
 This separation means:
-- One OS profile can be used with any compatible init system
+- One set of OS/module fragments can be used with any compatible init system
 - Adding a new init system only requires one new JSON file

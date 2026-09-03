@@ -76,10 +76,13 @@ system.
 ## Architecture in Brief
 
 ```
-WebUI (FastAPI)  →  Core Engine  →  JSON Profile  →  OS
-                                      debian.json
-                                      freebsd.json
-                                      arch.json
+WebUI (FastAPI)  →  Core Engine  →  JSON Profiles (merged)  →  OS
+                                      os/os-debian.json  (shared base)
+                                      + storage/storage-debian.json
+                                      + network/network-debian.json
+                                      + shares/shares-debian.json
+                                      + users/users-debian.json
+                                      + init/init-systemd.json
 ```
 
 The WebUI never calls OS commands directly. Everything routes through the

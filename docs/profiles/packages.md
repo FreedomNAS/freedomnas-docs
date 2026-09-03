@@ -29,22 +29,21 @@ and service names. They decouple `config.yaml` from any specific OS.
 
 ## Category Structure
 
+**Edition names are top-level keys**, not values nested under a shared
+`"packages"`/`"services"` key:
+
 ```json
 {
-  "category_id": "samba-cifs",
-  "category_name": "Samba/CIFS",
-  "packages": {
-    "debian":  ["samba", "samba-common-bin"],
-    "freebsd": ["net/samba419"],
-    "arch":    ["samba"]
-  },
-  "services": {
-    "debian":  ["smbd", "nmbd"],
-    "freebsd": ["smbd"],
-    "arch":    ["smb"]
-  }
+  "id": "samba-cifs",
+  "debian":  { "packages": ["samba", "samba-common-bin"], "services": ["smbd", "nmbd"], "config_paths": ["/etc/samba/smb.conf"] },
+  "freebsd": { "packages": ["samba416"], "services": ["samba_server"], "config_paths": ["/usr/local/etc/smb4.conf"] },
+  "arch":    { "packages": ["samba"], "services": ["smbd"], "config_paths": ["/etc/samba/smb.conf"] }
 }
 ```
+
+`PackageManager._load_category()` reads `category[edition]["packages"]` —
+the flat alternative (`{"packages": {"debian": [...]}, "services": {"debian": [...]}}`)
+is **not** what it reads, even though it looks equally plausible at a glance.
 
 ## Available Categories
 

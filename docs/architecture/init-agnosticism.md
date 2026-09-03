@@ -32,9 +32,12 @@ done
 
 ## Service Management via Profiles
 
-Init-system-specific service commands live in `init/{name}.json`.
-The engine detects the running init system at startup and loads the
-appropriate profile automatically.
+Init-system-specific service commands live in `init/init-{name}.json`
+(renamed from `init/{name}.json`) — a category of its own, entirely
+separate from the per-module profile fragments described in
+[Profile System Overview](../profiles/overview.md). The engine detects the
+running init system at startup and loads the appropriate profile
+automatically, merging it in last, after the OS + per-module fragments.
 
 === "systemd"
 
@@ -98,11 +101,12 @@ The engine checks filesystem markers at startup in this order:
 
 | Marker | Init system |
 |--------|-------------|
-| `/run/systemd/private` | systemd |
-| `/run/openrc/started` | openrc |
-| `/run/runit` | runit |
-| `/run/s6` | s6 |
-| `/run/dinit` | dinit |
-| `/etc/rc.conf` | bsd_rc |
+| `/run/systemd/system` exists | systemd |
+| `/sbin/openrc` or `/usr/sbin/openrc` exists | openrc |
+| `/sbin/runit` or `/run/runit` exists | runit |
+| `/usr/bin/s6-svscan` exists | s6 |
+| `/usr/bin/dinit` exists | dinit |
+| `/etc/rc.d` exists + FreeBSD | bsd_rc |
 
-Falls back to the `init_system` field in the OS profile. Defaults to `systemd`.
+Falls back to the `init_system` field in the shared `os/os-<os>.json`
+fragment. Defaults to `systemd`.
