@@ -33,7 +33,7 @@ Unless the user says to proceed autonomously ("fai tutto", "vai avanti"):
 4. **Plan** — step-by-step implementation plan
 5. **STOP** — wait for explicit approval before implementing
 
-After approval: implement, then summarize what changed.
+After approval: implement, then summarize what changed and update all the .md files inside freedomnas-docs with the work that has been done.
 
 ## Autonomous Mode
 
