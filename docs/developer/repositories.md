@@ -84,10 +84,10 @@ Split per module (2026-09-02) — see [Profile System Overview](../profiles/over
 |------|-------|
 | Shared OS fragments | `os/os-debian.json`, `os/os-arch.json`, `os/os-freebsd.json` — packages, bootloader, system, `os_name`/`os_family`/`os_version`/`init_system` |
 | Per-module fragments | `storage/storage-<os>.json` (zfs incl. encrypted-pool actions, media, btrfs), `network/network-<os>.json`, `shares/shares-<os>.json` (samba, nfs), `users/users-<os>.json` — one file per module per OS |
-| OS fragments (Phase 3, not runtime-reachable) | `os/os-artix.json`, `os/os-void.json` plus matching `artix`/`void` fragments in every module directory — profile scaffolding only; `engine.py`'s `SUPPORTED_OS` still only lists `debian`/`freebsd`/`arch`, so these are not loadable yet |
+| Community OS fragments | `os/os-gentoo.json`, `os/os-artix.json`, `os/os-void.json` plus matching fragments in every module directory — all reachable at runtime since 2026-09-04 (`_DISTRO_IDS` + `SUPPORTED_OS` in `engine.py`) |
 | Init profiles | `init/init-systemd.json`, `init/init-openrc.json`, `init/init-runit.json`, `init/init-s6.json`, `init/init-dinit.json`, `init/init-bsd_rc.json` (renamed from `init/<name>.json`, ~16 lines each) |
 | Package categories | `packages/MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` — untouched by the module split, see [Package Categories](../profiles/packages.md) |
-| Installer fragments | `installer/installer-debian.json`, `-void.json`, `-artix.json`, `-arch.json`, `-freebsd.json` — read only by `freedomnas-installer`, see [Installer Profiles](../profiles/installer-profiles.md) |
+| Installer fragments | `installer/installer-debian.json`, `-gentoo.json`, `-void.json`, `-artix.json`, `-arch.json`, `-freebsd.json` — read only by `freedomnas-installer`, see [Installer Profiles](../profiles/installer-profiles.md) |
 
 ### freedomnas-installer — REWRITTEN, profile-driven (2026-09-04)
 

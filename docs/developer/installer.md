@@ -123,7 +123,7 @@ Bootstrapping an OS runs that OS's own tooling, and `debootstrap`,
 The installer therefore offers only editions whose `os_family` matches its
 host's:
 
-- a **Linux** installer environment installs Debian, Void, Artix, Arch
+- a **Linux** installer environment installs Debian, Gentoo, Void, Artix, Arch
 - installing **FreeBSD** requires a **FreeBSD** installer environment
 
 This is a data check on `os_family` in `profiles/os/os-{edition}.json`, not a

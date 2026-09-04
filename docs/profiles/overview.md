@@ -70,8 +70,9 @@ is a plain `dict.update()` per fragment, with nothing to resolve.
 ### Adding a new OS requires (almost) zero Python changes
 
 To support Alpine Linux, create `os/os-alpine.json` plus an `alpine`
-fragment in each module directory that needs one, and add `"alpine"` to
-`engine.py`'s `SUPPORTED_OS` list. No branching, no new classes — see
+fragment in each module directory that needs one, then add its
+`/etc/os-release` id to `engine.py`'s `_DISTRO_IDS` map and its name to
+`SUPPORTED_OS`. No branching, no new classes — see
 [Adding a New OS](adding-os.md).
 
 ### Adding a new module is purely additive

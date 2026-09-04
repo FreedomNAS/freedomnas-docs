@@ -15,16 +15,16 @@ regardless of which file it physically lives in.
 | `os/os-debian.json` | Debian trixie (and compatible) | Official |
 | `os/os-freebsd.json` | FreeBSD 14+ | Official |
 | `os/os-arch.json` | Arch Linux | Community |
-| `os/os-artix.json` | Artix Linux (OpenRC) | Scaffolded — Phase 3, not yet reachable |
-| `os/os-void.json` | Void Linux (runit) | Scaffolded — Phase 3, not yet reachable |
+| `os/os-gentoo.json` | Gentoo (OpenRC) | Community |
+| `os/os-artix.json` | Artix Linux (OpenRC) | Community |
+| `os/os-void.json` | Void Linux (runit) | Community |
 
 !!! note
-    `os-artix.json` and `os-void.json` exist and are filled in (along with
-    matching `artix-<os>.json`/`void-<os>.json` fragments in every module
-    directory, and matching `artix`/`void` sections in the package category
-    files) — but `engine.py`'s `SUPPORTED_OS` still only lists `debian`,
-    `freebsd`, and `arch`. Artix and Void are profile scaffolding for a
-    future phase, not yet selectable at runtime.
+    All five Linux editions are reachable at runtime: the engine maps
+    `/etc/os-release`'s `ID` field to a profile through `_DISTRO_IDS`, and
+    lists them in `SUPPORTED_OS`. Matching per-module fragments and package
+    category sections exist for each. "Community" means the profile is not
+    exercised by the project's own CI images, not that it is inert.
 
 ## Where Each Category Lives
 

@@ -20,12 +20,12 @@ and service names. They decouple `config.yaml` from any specific OS.
 ```
 
 !!! note
-    `artix` and `void` are listed in `supported_editions` and each category
-    file (`core.json`, `containers.json`, `nfs.json`, `samba-cifs.json`,
-    `virtualization.json`) has `artix`/`void` package entries — but
-    `engine.py`'s `SUPPORTED_OS` still only contains `debian`, `freebsd`,
-    `arch`. This is Phase 3 profile scaffolding, not a runtime-selectable
-    edition yet.
+    Every category file (`core.json`, `containers.json`, `nfs.json`,
+    `samba-cifs.json`, `virtualization.json`) carries an entry per edition
+    listed in `supported_editions`: `debian`, `freebsd`, `arch`, `artix`,
+    `void` and `gentoo`. Gentoo's entries use full `category/name` atoms —
+    the form Portage expects and the only unambiguous way to name a package
+    there.
 
 ## Category Structure
 

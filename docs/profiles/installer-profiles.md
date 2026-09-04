@@ -11,6 +11,7 @@ never appears in the installer's menu.
 ```
 profiles/installer/
 ├── installer-debian.json
+├── installer-gentoo.json    (community)
 ├── installer-void.json      (community)
 ├── installer-artix.json     (community)
 ├── installer-arch.json      (community)
@@ -130,7 +131,10 @@ Copy the closest existing fragment:
 
 - **has a bootstrapper reachable from other distros** → start from
   `installer-debian.json`
-- **only ships a rootfs tarball** → start from `installer-void.json`
+- **only ships a rootfs tarball** → start from `installer-void.json`, or
+  `installer-gentoo.json` for the fuller worked example (stage3, plus
+  Portage's `make.conf`, `package.use` and binary host written as profile
+  file contents)
 - **native ZFS boot, BSD tooling** → start from `installer-freebsd.json`
 
 Then check the whole install resolves without touching a disk:

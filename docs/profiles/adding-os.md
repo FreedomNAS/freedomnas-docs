@@ -7,14 +7,11 @@ else is JSON files, split per module (2026-09-02) — see
 
 !!! note
     Artix Linux and Void Linux are worked examples of steps 1-4 below:
-    `os/os-artix.json`/`os/os-void.json` exist, along with matching
-    `artix-<os>.json`/`void-<os>.json` fragments in every module directory,
-    `MANIFEST.json`'s `supported_editions` lists both, and the package
-    category files have matching `artix`/`void` sections. Neither is
-    selectable yet, though — `engine.py`'s `SUPPORTED_OS` constant (and its
-    OS auto-detection logic) has not been extended to recognize them, so
-    this JSON-only groundwork is not yet reachable at runtime (step 5,
-    below). That gap is tracked as Phase 3 scaffolding.
+    Debian, FreeBSD, Arch, Gentoo, Artix and Void all ship complete
+    profiles — shared `os/` fragment, per-module fragments, package
+    category sections — and all are reachable at runtime. Gentoo is the
+    most recent addition and the worked example to copy: it is the one
+    edition whose install is a rootfs tarball (stage3) from end to end.
 
 ## Steps
 
@@ -101,10 +98,17 @@ values nested under a shared `"packages"`/`"services"` key:
 
 ### 5. Wire the edition into the engine
 
-Add `"{os-name}"` to `engine.py`'s `SUPPORTED_OS` list. This is the one
-Python change in the whole procedure — the profile files alone aren't
-enough to make a new edition reachable (this is exactly the gap Artix/Void
-are stuck behind today).
+Two entries in `engine.py`, and they are the only Python in the whole
+procedure:
+
+1. `_DISTRO_IDS` — map the distribution's `/etc/os-release` `ID` (and any
+   derivative id that should reuse the same profile) to the profile name.
+   **This is the actual gate**: without it, auto-detection refuses the OS.
+2. `SUPPORTED_OS` — add the name so error messages list it.
+
+Matching on `ID` rather than searching the file for a substring is what
+keeps a derivative from silently inheriting its parent's profile — Artix
+declares `ID_LIKE=arch` but needs its own OpenRC profile, not Arch's.
 
 ### 6. (Optional) Make it installable
 
@@ -137,7 +141,7 @@ first-run wizard selecting the new edition.
 - Do not add `if os == "alpine"` branches in Python
 - Do not hardcode Alpine package names in `package_manager.py`
 - Do not modify `config.py`, or add OS-specific logic to `engine.py` beyond
-  the one-line `SUPPORTED_OS` addition in step 5
+  the two table entries in step 5
 - Do not use the flat `{"packages": {"debian": [...]}}` structure for
   package categories — edition names are top-level keys (see step 4);
   `PackageManager._load_category()` does not read that format

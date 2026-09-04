@@ -35,7 +35,7 @@ the environment it is running in:
 
 | Installer environment | Can install |
 |-----------------------|-------------|
-| Linux live/rescue | Debian, Void, Artix, Arch |
+| Linux live/rescue | Debian, Gentoo, Void, Artix, Arch |
 | FreeBSD live/rescue | FreeBSD |
 
 Within a family, an edition whose native bootstrapper isn't present on the

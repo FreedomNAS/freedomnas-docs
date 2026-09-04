@@ -72,9 +72,10 @@ On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing els
 |---------|------|--------|
 | **Debian** | Debian trixie | Official — maximum hardware compatibility |
 | **FreeBSD** | FreeBSD 14+ | Official — native ZFS, robust network stack |
-| **Arch** | Arch Linux | Official — runtime-supported (`os/os-arch.json` + module fragments, in `engine.py`'s `SUPPORTED_OS`) |
-| **Artix, Void** | Arch (OpenRC) / independent (runit) | Scaffolded, not yet runtime-reachable — profiles exist but `SUPPORTED_OS` doesn't list them yet |
-| **Alpine, Gentoo, …** | Any | Community — via the profile system, no core changes, once a profile is written |
+| **Arch** | Arch Linux | Community — runtime-supported |
+| **Gentoo** | Gentoo (OpenRC) | Community — stage3 + Portage, official binary host enabled |
+| **Artix, Void** | Arch (OpenRC) / independent (runit) | Community — runtime-supported |
+| **Alpine, …** | Any | Add a profile; no core change beyond one `_DISTRO_IDS` entry |
 
 ---
 
