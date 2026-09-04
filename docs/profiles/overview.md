@@ -31,6 +31,7 @@ strings. The shell runs the resulting command.
 | Shared OS fragment | `os/os-debian.json`, `os/os-freebsd.json`, `os/os-arch.json` (`os-artix.json`, `os-void.json` also exist as Phase 3 scaffolding — see [OS Profiles](os-profiles.md)) | Primitives no module owns: packages, bootloader, system info |
 | Per-module fragment | `storage/storage-<os>.json`, `network/network-<os>.json`, `shares/shares-<os>.json`, `users/users-<os>.json` | One file per module per OS — the categories that module owns |
 | Init profile | `init/init-systemd.json`, `init/init-openrc.json`, … | Maps service management commands for one init system |
+| Installer fragment | `installer/installer-debian.json`, … | How an edition gets *installed*: partitioning, root pool, bootstrap, chroot, config-file contents — read only by `freedomnas-installer`, see [Installer Profiles](installer-profiles.md) |
 | Package category | `packages/samba-cifs.json`, … | Maps abstract feature IDs to OS-specific package names — **not** the same thing as the per-module fragments above, see [Package Categories](packages.md) |
 | Manifest | `packages/MANIFEST.json` | Declares all available package categories |
 
@@ -97,5 +98,6 @@ editing one JSON file — not searching Python code.
 
 - [OS Profiles](os-profiles.md) — full profile structure and category reference
 - [Init Profiles](init-profiles.md) — service management commands
+- [Installer Profiles](installer-profiles.md) — how an edition is installed
 - [Package Categories](packages.md) — feature-to-package mapping
 - [Adding a New OS](adding-os.md) — step-by-step guide

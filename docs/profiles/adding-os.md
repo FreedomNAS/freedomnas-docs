@@ -106,12 +106,31 @@ Python change in the whole procedure — the profile files alone aren't
 enough to make a new edition reachable (this is exactly the gap Artix/Void
 are stuck behind today).
 
-### 6. Test
+### 6. (Optional) Make it installable
+
+Steps 1–5 make FreedomNAS *run* on the new OS. To let
+`freedomnas-install` also *install* it, add
+`installer/installer-{os-name}.json` — see
+[Installer Profiles](installer-profiles.md). Copy `installer-void.json` if
+your OS has no bootstrapper reachable from other distributions: it uses the
+rootfs-tarball method, which needs only `curl` and `tar` on the installer
+host.
+
+Remember the family rule: an installer environment can only bootstrap
+editions with the same `os_family`.
+
+### 7. Test
 
 Run `FreedomNASEngine(os_override="{os-name}")` and call `engine.execute()`
-for each category/action to verify substitution, then boot the new OS,
-install FreedomNAS packages, and run through the first-run wizard selecting
-the new edition.
+for each category/action to verify substitution. If you added an installer
+fragment, check the whole install resolves without touching a disk:
+
+```bash
+sudo freedomnas-install --dry-run --mode clean --target {os-name}
+```
+
+Then boot the new OS, install FreedomNAS packages, and run through the
+first-run wizard selecting the new edition.
 
 ## What You Must NOT Do
 

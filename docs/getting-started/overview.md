@@ -30,24 +30,37 @@ are early "exotic" community editions still being built out.
 Use this if you're installing FreedomNAS from scratch on a dedicated
 machine — it's the actively maintained path.
 
-### Option B — TUI Installer (parked, still functional)
+### Option B — Installer (clean install)
 
-The Python + dialog installer handles everything automatically:
+The profile-driven installer, run from any live/rescue environment of the
+same OS family as the edition you want:
 
 - Detects UEFI or BIOS boot mode
-- Partitions the target disk
-- Creates a single `rpool` (no separate boot pool)
-- Installs the base OS via debootstrap
-- Configures hostname, timezone, users
+- Partitions the target disk and creates a single `rpool` (no boot pool)
+- Installs the base OS with the edition's own bootstrapper, or from a
+  rootfs tarball
+- Configures hostname, timezone, users, and the optional features
+  (Samba, NFS, containers, …) you select
 - Builds a dracut Unified Kernel Image and registers it via `efibootmgr`
-  (UEFI) or vendored Clover (BIOS) — there is no GRUB step
-- Sets up the WebUI with automatic restart
+  (UEFI) or vendored Clover (BIOS) — there is no GRUB step; FreeBSD uses
+  its own native loader instead
+- Installs FreedomNAS itself and sets up the WebUI with automatic restart
 
-This installer is **parked** — superseded by the pre-built-image path
-above (ADR-002) — but still works if you need to install onto a live/
-running system by hand rather than flashing an image.
+Use it when flashing an image isn't an option — hardware that can't be
+flashed, or a console/ISO install.
 
 [Installer guide →](installation.md)
+
+### Option B2 — Installer (in-place)
+
+Already running a supported OS? The same installer can turn *that* system
+into a FreedomNAS without touching a disk: it installs the missing
+packages, enables their services through the init profile, wires up the
+WebUI, and records the configuration for later disaster recovery.
+
+```bash
+sudo freedomnas-install --mode inplace
+```
 
 ### Option C — WebUI First-Run (existing system)
 

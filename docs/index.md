@@ -25,8 +25,8 @@ On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing els
 
 -   :material-rocket-launch: **Getting Started**
 
-    Install FreedomNAS from a pre-built image (recommended), via the parked
-    TUI installer, or use the WebUI first-run wizard on an existing system.
+    Install FreedomNAS from a pre-built image (recommended), with the
+    installer (clean or in-place), or use the WebUI first-run wizard.
 
     [Get started →](getting-started/overview.md)
 

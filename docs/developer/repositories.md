@@ -5,8 +5,8 @@
 ```
 codeberg.org/FreedomNAS/
 ├── freedomnas-core          Engine + Config + Reconciler + Orchestrator + Modules
-├── freedomnas-profiles      JSON translation profiles (OS + init + packages)
-├── freedomnas-installer     TUI installer (Python + dialog)          [PARKED]
+├── freedomnas-profiles      JSON translation profiles (OS + init + installer + packages)
+├── freedomnas-installer     Profile-driven installer (clean + in-place)
 ├── freedomnas-image-builder Pre-built OS images — primary install path
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
 ├── freedomnas-docs          This documentation site
@@ -14,10 +14,13 @@ codeberg.org/FreedomNAS/
 └── freedomnas-iso           ISO build system                     [deferred]
 ```
 
-`freedomnas-installer` is parked — superseded by `freedomnas-image-builder`
-(ADR-002, `IMAGE-BASED-INSTALLATION.md`). It is still functional (prints a
-startup warning) but not the recommended install path; see
-[Installer Flow](installer.md).
+`freedomnas-image-builder` produces the primary install path (ADR-002).
+`freedomnas-installer` is the secondary one, for hardware that can't be
+flashed, console/ISO installs, and in-place installs onto a running system
+— rewritten profile-driven per ADR-002's 2026-09-04 follow-up; see
+[Installer Flow](installer.md). The two repos stay separate: the image
+builder is not refactored to call the installer, and both produce the same
+on-disk layout deliberately.
 
 ## Dependency Graph
 
@@ -32,12 +35,11 @@ freedomnas-core       (depends on profiles at runtime via profile search paths)
         ├──────────────────┬──────────────────────┐
         ▼                  ▼                       ▼
 freedomnas-installer  freedomnas-webui   freedomnas-image-builder
-   [PARKED]
 ```
 
 `freedomnas-image-builder` doesn't import `freedomnas-core` at Python level
 — its `build.sh` scripts install the packaged core/profiles into the image
-non-interactively, the same way the (parked) installer does.
+non-interactively, the same way the installer does.
 
 ## Repository Scope
 
@@ -85,22 +87,31 @@ Split per module (2026-09-02) — see [Profile System Overview](../profiles/over
 | OS fragments (Phase 3, not runtime-reachable) | `os/os-artix.json`, `os/os-void.json` plus matching `artix`/`void` fragments in every module directory — profile scaffolding only; `engine.py`'s `SUPPORTED_OS` still only lists `debian`/`freebsd`/`arch`, so these are not loadable yet |
 | Init profiles | `init/init-systemd.json`, `init/init-openrc.json`, `init/init-runit.json`, `init/init-s6.json`, `init/init-dinit.json`, `init/init-bsd_rc.json` (renamed from `init/<name>.json`, ~16 lines each) |
 | Package categories | `packages/MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` — untouched by the module split, see [Package Categories](../profiles/packages.md) |
+| Installer fragments | `installer/installer-debian.json`, `-void.json`, `-artix.json`, `-arch.json`, `-freebsd.json` — read only by `freedomnas-installer`, see [Installer Profiles](../profiles/installer-profiles.md) |
 
-### freedomnas-installer — COMPLETE, PARKED
+### freedomnas-installer — REWRITTEN, profile-driven (2026-09-04)
 
-Functional and unchanged in shape, but superseded — see the note above and
+Two modes (`clean`, `inplace`) plus `recovery`. No OS-specific command and no
+OS-specific file content remains in its Python — see
 [Installer Flow](installer.md).
 
-| File | Lines | Responsibility |
-|------|-------|----------------|
-| `setup.py` | 327 | Orchestrator — 20-step install flow |
-| `lib/installer_modules.py` | 307 | Logger, DialogManager, Configuration, run_command |
-| `lib/disk_installer.py` | 182 | lsblk, sgdisk UEFI/BIOS, mkfs.vfat |
-| `lib/zfs_installer.py` | 117 | bpool/rpool creation, dataset layout |
-| `lib/system_installer.py` | 209 | Boot mode, mirrors, debootstrap, chroot |
-| `lib/users_installer.py` | 163 | Admin password, additional users, chpasswd |
-| `lib/packages_installer.py` | 129 | apt in chroot, supervisor.sh |
-| `lib/bootloader_installer.py` | 252 | GRUB UEFI/BIOS, update-grub |
+| File | Responsibility |
+|------|----------------|
+| `setup.py` | Mode/edition selection, host-family gate, recovery |
+| `lib/corelink.py` | freedomnas-core import shim (installed vs dev checkout) |
+| `lib/context.py` | ExecutionContext — host/stage/target engines, profile-declared files |
+| `lib/installer_modules.py` | Logger, DialogManager, Configuration, file I/O |
+| `lib/disk_installer.py` | Disk menu, partitioning, ESP format via `partitioning.*` |
+| `lib/zfs_installer.py` | Root pool and dataset tree via `rootpool.*` |
+| `lib/system_installer.py` | Firmware, prompts, bootstrap, `files.*`, chroot mounts |
+| `lib/users_installer.py` | Accounts; passwords via `users.set_password_stdin` |
+| `lib/packages_installer.py` | Category selection, install, `services.enable` |
+| `lib/core_installer.py` | core/profiles/webui into the target + first-boot wiring |
+| `lib/bootloader_installer.py` | UKI + Clover, or the edition's native loader |
+| `lib/state_installer.py` | `config.yaml` shadow copy on `.freedomnas` |
+| `lib/target_installer.py` | Clean-install orchestration |
+| `lib/inplace_installer.py` | In-place orchestration |
+| `tests/dryrun_smoke.py` | End-to-end dry run of both modes, no root needed |
 
 ### freedomnas-webui — COMPLETE
 

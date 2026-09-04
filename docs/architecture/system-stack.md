@@ -7,7 +7,7 @@
 │  Image Builder (offline, CI) → flash → USER           │
 ├──────────────┬───────────────────────┬───────────────┤
 │  Installer   │        WebUI          │   fnas-cli    │
-│ [PARKED]     │      (FastAPI)        │  (deferred)   │
+│(profile-driven)│    (FastAPI)        │  (deferred)   │
 ├──────────────┴───────────────────────┴───────────────┤
 │                   CORE LIBRARY                       │
 │  ┌──────────┬──────────┬────────────┬─────────────┐  │
@@ -24,6 +24,9 @@
 │  │ (shared base)│  │ users/ — per-module fragments │  │
 │  └─────────────┘  └──────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────┐ │
+│  │  installer/ installer-*.json (install-time only) │ │
+│  └──────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────┐ │
 │  │  init/ init-systemd · init-openrc · init-runit …│ │
 │  └──────────────────────────────────────────────────┘ │
 ├──────────────────────────────────────────────────────┤
@@ -38,8 +41,10 @@
 The primary install path is a pre-built, flashable image from
 `freedomnas-image-builder` (bootable on both UEFI and BIOS from the same
 file) — see [Getting Started → Installation](../getting-started/installation.md).
-The dialog-TUI installer still exists and works but is **parked**, no
-longer the recommended path.
+The installer is the secondary path, for hardware that can't be flashed,
+console/ISO installs, and turning an already-running system into a NAS
+in place. It is profile-driven end to end — see
+[Installer Flow](../developer/installer.md).
 
 ## The Golden Rule
 
@@ -51,7 +56,8 @@ This rule is non-negotiable. It applies to:
 
 - The core library (`engine.py`, `config.py`, …)
 - The WebUI routes (`api/routes/*.py`)
-- The installer (`setup.py`, `lib/*.py`)
+- The installer (`setup.py`, `lib/*.py`) — commands *and* OS-specific
+  file contents both come from profiles
 - Any future component
 
 If a command belongs to a specific OS, it belongs in a JSON profile — not in Python.
@@ -65,7 +71,7 @@ Three interfaces reach FreedomNAS:
 | Interface | Technology | Purpose |
 |-----------|-----------|---------|
 | **WebUI** | FastAPI + Jinja2 + vanilla JS | Daily management via browser |
-| **Installer** | Python + `dialog` TUI — **parked**, superseded by pre-built images | Full system provisioning |
+| **Installer** | Python + `dialog` TUI, profile-driven — clean install or in-place | Full system provisioning |
 | **fnas-cli** | Python CLI (deferred) | Terminal management |
 
 All three communicate with the core library — never directly with the OS.
@@ -76,7 +82,7 @@ All three communicate with the core library — never directly with the OS.
 |--------|---------------|
 | `engine.py` | Translates abstract actions → OS commands via JSON profiles |
 | `config.py` | YAML configuration manager — shadow copy on ZFS dataset |
-| `reconcile.py` | Diff and apply changes (used by installer) |
+| `reconcile.py` | Diff and apply changes (installer recovery mode, firstboot) |
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
 | `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
 | `backup_manager.py` | ZFS snapshot lifecycle and scheduling |
@@ -133,13 +139,16 @@ The profile layer has zero Python logic. It is pure data, split per module
 │   ├── network/      network-<os>.json
 │   ├── shares/        shares-<os>.json
 │   ├── users/         users-<os>.json
-│   ├── assets/       boot-chain assets (Clover, zz-dracut-uki) — shared by
-│   │                  the parked installer and freedomnas-image-builder
+│   ├── installer/    installer-<os>.json — partitioning, rootpool,
+│   │                  bootstrap, chroot, file contents
+│   ├── assets/       boot-chain assets (Clover, zz-dracut-uki) and
+│   │                  boot-time scripts (firstboot.sh, supervisor.sh) —
+│   │                  shared by the installer and freedomnas-image-builder
 │   ├── init/          init-systemd.json, init-openrc.json, …
 │   └── packages/
-├── installer/              ← freedomnas-installer package [PARKED]
+├── installer/              ← freedomnas-installer package
 │   ├── setup.py
-│   └── lib/
+│   └── lib/           context.py + the per-step modules
 └── webui/                  ← freedomnas-webui package
     ├── api/
     │   └── module_discovery.py   community-module WebUI mounting

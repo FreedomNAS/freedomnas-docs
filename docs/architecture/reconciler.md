@@ -1,7 +1,7 @@
 # Reconciliation Engine
 
-`reconcile.py` is used by the (parked) **installer** and by
-`freedomnas-image-builder`'s baked-in `firstboot.sh` — via
+`reconcile.py` is used by the **installer** (recovery mode) and by the
+`firstboot.sh` baked into every install and every image — via
 `python -m freedomnas reconcile --mode {hybrid,declarative,disaster_recovery}`,
 which exposes it on the CLI — to apply configuration during provisioning,
 first boot, or disaster recovery. **Never called directly by the WebUI.**

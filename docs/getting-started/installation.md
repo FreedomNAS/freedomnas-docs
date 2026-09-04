@@ -1,215 +1,268 @@
-# Installation (TUI Installer)
+# Installation (Installer)
 
-!!! warning "Parked — pre-built images are now the recommended install path"
-    The TUI installer described on this page is **parked**: superseded by
-    `freedomnas-image-builder`'s pre-built, flash-and-go OS images (ADR-002).
-    It is still functional (it now prints a startup warning when run) and
-    the flow below remains accurate, but it is no longer actively developed
-    — new install-time features (such as encrypted-pool creation) are not
-    guaranteed to land here. Prefer flashing a pre-built image where one is
-    available for your edition; use this installer only if you specifically
-    need to install onto a live/running system by hand.
+!!! info "Pre-built images are the recommended path"
+    Flashing a pre-built image from `freedomnas-image-builder` is the
+    primary way to install FreedomNAS (ADR-002) — flash and go, no
+    questions asked. Use the installer described here when an image is not
+    an option: hardware that can't be flashed, a console/ISO install, or a
+    machine that already runs a supported OS and should be turned into a
+    NAS in place.
 
-The FreedomNAS TUI installer provisions a complete ZFS-on-root system using
-Python and the `dialog` tool. It requires no prior OS installation.
+The installer is profile-driven: every OS command it runs comes from
+`freedomnas-profiles` through `freedomnas-core`'s engine. It therefore
+installs **any edition its host can bootstrap**, not just Debian.
 
-!!! warning "Data loss"
-    The installer will partition the selected disk. All data on that disk
-    will be destroyed. Use a dedicated disk.
+## Modes
+
+| Mode | What it does | What it touches |
+|------|--------------|-----------------|
+| **Clean install** | Provisions an edition onto a dedicated disk | The selected disk — erased completely |
+| **In-place install** | Turns the running system into a FreedomNAS | Packages, services and config only |
+| **Recovery** | Reapplies an existing `.freedomnas` configuration | Whatever the reconciler restores |
+
+Recovery appears automatically when an importable pool already carries a
+`.freedomnas` dataset.
+
+!!! warning "Data loss (clean install only)"
+    A clean install partitions the selected disk. Everything on it is
+    destroyed. Use a dedicated disk.
+
+## Which editions can be installed
+
+Bootstrapping an OS runs that OS's own tooling, which does not cross the
+Linux/BSD divide. The installer offers only editions whose family matches
+the environment it is running in:
+
+| Installer environment | Can install |
+|-----------------------|-------------|
+| Linux live/rescue | Debian, Void, Artix, Arch |
+| FreeBSD live/rescue | FreeBSD |
+
+Within a family, an edition whose native bootstrapper isn't present on the
+host is installed from a **rootfs tarball** instead — see below.
 
 ## Prerequisites
 
-- Bootable Debian live environment (or any Linux live system)
-- FreedomNAS installer package installed (`freedomnas-installer`)
-- Internet connection (for `debootstrap` and package download)
-- Target disk with at least 16 GB
+- A live/rescue environment of the right family (any Linux distribution for
+  the Linux editions)
+- `freedomnas-installer`, plus its hard dependencies **`freedomnas-core`**
+  and **`freedomnas-profiles`**
+- `dialog` (or `whiptail`), and the host tools the edition needs —
+  `gdisk`, `dosfstools`, ZFS user-space tools, `curl`, optionally
+  `debootstrap`
+- An internet connection
+- A target disk of at least 16 GB (clean install)
 
-## Running the Installer
+## Running the installer
 
 ```bash
-sudo freedomnas-install
+sudo freedomnas-install                        # menu-driven
+sudo freedomnas-install --mode inplace         # skip the mode menu
+sudo freedomnas-install --mode clean --target void
+sudo freedomnas-install --dry-run              # print every command, run none
 ```
 
-The installer runs entirely in dialog TUI — no desktop required.
+`--dry-run` needs neither root nor a disk: it resolves and prints every
+command the run would execute. It is the safest way to see what an install
+will actually do before committing to it.
 
-## Installation Steps
+---
 
-The installer executes these 19 steps automatically, pausing only for
-user input where necessary:
+## Clean install
 
-### Step 1 — Root check
-Verifies the installer is running as root.
+Everything is asked first, confirmed once, and only then executed. Nothing
+destructive happens before the confirmation screen.
 
-### Step 2 — Boot mode detection
-Checks `/sys/firmware/efi` to determine UEFI or BIOS/Legacy mode.
-This controls how the boot chain is configured (efibootmgr vs Clover).
+### Phase 1 — Interview
 
-### Step 3 — Mirror selection
-Presents a menu of 14 Debian mirror countries plus a custom URL option.
-The selected mirror is used for `debootstrap` and `apt`.
+| Question | Notes |
+|----------|-------|
+| Edition | Only editions this host can bootstrap; community editions are marked |
+| Disk | Listed by the profile's `list_disks`; resolved to a stable `/dev/disk/by-id/` path where the platform has one |
+| Bootstrap method | Native bootstrapper or rootfs tarball — only methods whose tool exists on the host |
+| Mirror | From the edition's own mirror list, or a custom URL |
+| Hostname, timezone | Defaults `freedomnas` / `UTC` |
+| Optional features | Samba/CIFS, NFS, containers, virtualization — from `packages/MANIFEST.json` |
+| Administrator | Username plus a double-prompt password (minimum 8 characters) |
+| Additional users | Optional, each with optional administrative access |
 
-### Step 4 — Hostname
-Dialog input box. Letters, digits, and hyphens only. Example: `freedomnas`.
+Firmware (UEFI vs BIOS) is detected, never asked.
 
-### Step 5 — Disk selection
-Lists available disks via `lsblk`. Resolves the selected device to its
-`/dev/disk/by-id/` path (stable across reboots).
+### Phase 2 — Execution
 
-!!! tip
-    Always prefer `/dev/disk/by-id/` paths for ZFS pools. Device names
-    like `/dev/sda` are not stable and can change after a reboot.
+#### 1. Partitioning
 
-### Step 6 — Disk partitioning
-Uses `sgdisk` to create a **unified 2-partition layout**, identical for
-both UEFI and BIOS firmware:
+A **unified 2-partition layout**, identical for UEFI and BIOS:
 
 | # | Size | Type | Purpose |
 |---|------|------|---------|
-| 1 | 512 MiB | EFI System (EF00) | ESP — holds the UKI and boot chain |
-| 2 | Remaining | Solaris/ZFS (BF00) | `rpool` |
+| 1 | 512 MiB | EFI System | ESP — holds the UKI and boot chain |
+| 2 | Remaining | ZFS | the root pool |
 
 !!! note "No bpool, no BIOS-boot partition"
     There is no feature-limited `bpool` and no separate 1 MiB BIOS-boot
-    partition. The Clover BIOS boot stages (`boot0`/`boot1`) write into the
-    MBR gap and the ESP's own boot sector — they need no partition of their
-    own. Nothing at boot time reads ZFS directly, so a feature-restricted
-    pool has no purpose.
+    partition. Clover's BIOS stages write into the MBR gap and the ESP's own
+    boot sector — they need no partition of their own. Nothing at boot time
+    reads ZFS with a restricted feature set, so a second pool has no purpose.
 
-### Step 7 — Partition formatting
-Formats the EFI partition (part 1) as FAT32 (`mkfs.vfat -F32 -n EFI`).
-The rpool partition is not formatted here — ZFS handles its own on-disk format.
+Partition 1 is then formatted FAT32 with the label `EFI`.
 
-### Step 8 — ZFS pool creation
-Creates a single, full-featured `rpool` on partition 2.
+#### 2. Root pool
 
-Dataset layout:
+A single, full-featured pool on partition 2:
 
 ```
 rpool/
 ├── ROOT/
-│   └── debian       canmount=noauto, mountpoint=/    ← bootfs property set
+│   └── <edition>    canmount=noauto, mountpoint=/    ← bootfs
 ├── home             setuid=off
 ├── var/
 │   └── log          atime=on
 └── .freedomnas      canmount=noauto, mountpoint=/etc/freedomnas/state
 ```
 
-`/boot` is a plain directory inside `rpool/ROOT/debian` — the kernel and
+`/boot` is a plain directory inside `rpool/ROOT/<edition>` — the kernel and
 initramfs live in the UKI on the ESP, not in ZFS.
 
-### Step 9 — Base system installation
-Runs `debootstrap trixie /mnt` using the selected mirror.
+#### 3. Bootstrap
 
-### Step 10 — System configuration
-- Writes `/etc/hostname`
-- Writes `/etc/hosts`
-- Generates `/etc/fstab` (ESP entry only — ZFS is mounted by the initramfs)
-- Configures `apt` sources for Debian trixie
-- Sets timezone
+| Method | What runs | Needs on the host |
+|--------|-----------|-------------------|
+| native | `debootstrap`, `pacstrap`, `basestrap`, `xbps-install -r` | that bootstrapper |
+| tarball | fetch + unpack a rootfs tarball | `curl`/`fetch` and `tar` |
 
-### Step 11 — Chroot bind mounts
-Binds `/dev`, `/dev/pts`, `/proc`, `/sys`, `/run` into `/mnt` for `chroot` use.
+The tarball can be the distro's own `rootfs.tar.gz` / `base.txz`, or an
+exported container rootfs. Where the distro's filename is date-stamped, the
+installer asks for the URL rather than guessing.
 
-### Step 12 — Admin password
-Double-prompt password box for the `admin` user. The password is passed to
-`chpasswd` via stdin — never in the command string.
+#### 4. Configuration files
 
-### Step 13 — Additional users (optional)
-Looping dialog: ask whether to add another user. Each user gets a username,
-password (double-prompt), and optional additional groups.
+Written from the edition's profile: hostname, `hosts`, `fstab` (the ESP by
+UUID where the platform can report one), the package sources, timezone —
+and on FreeBSD `rc.conf` and `loader.conf` instead. Their *contents* live in
+the profile, not in the installer's Python.
 
-### Step 14 — Package installation
-Runs `apt install` inside the chroot for all core packages defined in
-`packages/core.json`. This includes `dracut` and `linux-image-amd64`,
-which are required by step 15.
+#### 5. Chroot
 
-### Step 15 — Boot chain
+The pseudo-filesystems the edition declares are bind-mounted into the target
+and `/etc/resolv.conf` is copied in, so the chroot has working DNS.
 
-The boot chain is built around a **dracut Unified Kernel Image (UKI)** —
-a single PE binary (`debian-uki.efi`) that bundles the kernel, initramfs,
-and kernel command line. How it is loaded depends on firmware:
+#### 6. Users
+
+Created **before** packages, so PAM and Samba find the accounts already there
+when those services are first configured. Passwords are piped to stdin —
+never in a command line, never in the log.
+
+#### 7. Packages and services
+
+The selected categories are installed with the target's own package manager,
+then their services are enabled through the **init profile** — the same code
+path under systemd, OpenRC, runit, s6, dinit or bsd_rc.
+
+#### 8. FreedomNAS itself
+
+`freedomnas-core`, `freedomnas-profiles` and `freedomnas-webui` are copied
+into the target under `/usr/lib/freedomnas/`, together with `firstboot.sh`,
+`supervisor.sh` and the cron `@reboot` hook that starts the WebUI.
+
+#### 9. Boot chain
+
+Built around a **dracut Unified Kernel Image (UKI)** — one PE binary
+bundling kernel, initramfs and cmdline — for editions that need it;
+FreeBSD's own loader reads ZFS directly and is installed instead.
 
 === "UEFI"
 
-    1. ESP is mounted at `/mnt/boot/efi`
-    2. `dracut` is invoked inside the chroot to build the UKI:
+    1. The ESP is mounted at `<target>/boot/efi`
+    2. `dracut` builds the UKI inside the chroot:
        ```
        dracut --force --uefi \
-           --kernel-cmdline "root=ZFS=rpool/ROOT/debian rw" \
-           /boot/efi/EFI/Linux/debian-uki.efi <kernel-version>
+           --kernel-cmdline "root=ZFS=rpool/ROOT/<edition> rw" \
+           /boot/efi/EFI/Linux/<edition>-uki.efi <kernel-version>
        ```
-    3. `efibootmgr` registers the UKI as a UEFI boot entry:
-       ```
-       efibootmgr --create --disk <disk> --part 1 \
-           --loader "\EFI\Linux\debian-uki.efi" --label "FreedomNAS"
-       ```
-    4. The `zz-dracut-uki` post-install hook is deployed to
-       `/etc/kernel/postinst.d/` so future kernel updates rebuild the UKI
-       automatically.
+       plus a recovery UKI with `ro single`
+    3. `efibootmgr` registers the UKI as a UEFI boot entry
+    4. The `zz-dracut-uki` hook is deployed to `/etc/kernel/postinst.d/` so
+       future kernel updates rebuild both UKIs automatically
 
 === "BIOS/Legacy"
 
-    1. ESP is mounted at `/mnt/boot/efi`
-    2. `dracut` builds the UKI exactly as in UEFI mode (same file, same path)
-    3. The `zz-dracut-uki` hook is deployed
-    4. **Clover** (vendored, release 5173) bridges BIOS → UEFI emulation → UKI:
-        - `boot0ss` (440 bytes) is written to the disk's MBR bootstrap area,
-          preserving the partition table
-        - `boot1f32alt` is written to the ESP's VBR, merging the original
-          FAT32 BPB (bytes 3–89) so the volume stays valid
-        - `boot7` (DUET/BiosBlockIO firmware) is copied to `ESP/boot/`
-        - `CLOVERX64.efi` is copied to `EFI/CLOVER/`
-        - `BOOTX64.efi` is copied to `EFI/BOOT/` (generic UEFI fallback)
-        - `config.plist` is written to `EFI/CLOVER/` — configures
-          Clover to load `\EFI\Linux\debian-uki.efi` with `Timeout=0`
+    1–2. Identical to UEFI: same UKI, same path, same hook
+    3. **Clover** (vendored, release 5173) bridges BIOS → UEFI emulation → UKI:
+        - `boot0ss` (440 bytes) into the MBR bootstrap area, partition table preserved
+        - `boot1f32alt` into the ESP's VBR, merging the original FAT32 BPB (bytes 3–89)
+        - `boot7` (DUET/BiosBlockIO) → `ESP/boot/`
+        - `CLOVERX64.efi` → `EFI/CLOVER/`, `BOOTX64.efi` → `EFI/BOOT/`
+        - `config.plist` → `EFI/CLOVER/`, loading the UKI with `Timeout=0`
           and `IgnoreNVRAMBoot=true`
 
-**ESP contents after step 15:**
+**ESP contents afterwards:**
 
 ```
 ESP/
 ├── EFI/
 │   ├── Linux/
-│   │   ├── debian-uki.efi          ← active UKI
-│   │   ├── debian-uki-previous.efi ← previous UKI (populated by zz-dracut-uki on later updates)
-│   │   └── debian-recovery.efi    ← recovery UKI (ro single, built alongside active)
-│   ├── CLOVER/                     ← BIOS only
+│   │   ├── <edition>-uki.efi          ← active UKI
+│   │   ├── <edition>-uki-previous.efi ← rotated in by zz-dracut-uki later
+│   │   └── <edition>-recovery.efi     ← recovery UKI (ro single)
+│   ├── CLOVER/                        ← BIOS only
 │   │   ├── CLOVERX64.efi
 │   │   └── config.plist
-│   ├── BOOT/                       ← BIOS only
+│   ├── BOOT/
 │   │   └── BOOTX64.efi
 │   └── FreedomNAS/
-│       └── boot.state              ← tries-left counter (set by zz-dracut-uki)
-└── boot/                           ← BIOS only
+│       └── boot.state                 ← tries-left counter
+└── boot/                              ← BIOS only
     └── boot7
 ```
 
 !!! note "Clover version is pinned"
-    The vendored Clover binaries are fixed at release 5173. Release 5163
-    is a known regression on some hardware. Do not bump the version without
-    re-running hardware validation. See `assets/clover/README.md`.
+    The vendored Clover binaries are fixed at release 5173. Release 5163 is
+    a known regression on some hardware. Do not bump the version without
+    re-running hardware validation — see `assets/clover/README.md`.
 
-### Step 16 — Firstboot WebUI service
-Writes the WebUI supervisor script and an `@reboot` cron entry so the
-WebUI starts automatically after the first boot. The supervisor uses a
-5-failure circuit breaker:
+#### 10. Save the configuration
+
+`config.yaml` is written to the `.freedomnas` dataset
+(`/etc/freedomnas/state/config.yaml`), recording hostname, timezone, users,
+the pool and the installed features. This file survives reinstallation and is
+what disaster recovery reads.
+
+#### 11. Cleanup and reboot
+
+The ESP and every bind mount are unmounted, the pool is exported cleanly, and
+a summary is shown with an optional reboot.
+
+---
+
+## In-place install
+
+For a machine that already runs a supported OS. Nothing is partitioned,
+nothing is bootstrapped, and the boot chain is left alone.
+
+1. Choose the optional features to install.
+2. Optionally create a dedicated FreedomNAS administrator account — or keep
+   the accounts the system already has.
+3. Choose which existing ZFS pool should hold the `.freedomnas`
+   configuration dataset. Without a pool, the configuration is stored under
+   `/etc/freedomnas/` instead.
+4. Confirm.
+
+The installer then installs the missing packages with the system's own
+package manager (the operation is idempotent, so only what's missing is
+pulled in), enables their services through the init profile, deploys
+`firstboot.sh` + `supervisor.sh` with the cron `@reboot` hook, and writes
+`config.yaml`.
+
+The WebUI starts at the next boot, or immediately with:
 
 ```bash
-uvicorn api.main:app --host 0.0.0.0 --port 8080
+/usr/lib/freedomnas/webui/bin/firstboot.sh &
 ```
 
-### Step 17 — Save configuration
-Writes the initial `config.yaml` to the `.freedomnas` ZFS dataset
-(`/etc/freedomnas/state/config.yaml`). This file survives OS reinstallation.
+---
 
-### Step 18 — Cleanup
-Unmounts the ESP (`/mnt/boot/efi`), all chroot bind mounts, and exports
-the ZFS pools cleanly.
-
-### Step 19 — Completion
-Shows a summary (hostname, username) and offers an optional reboot.
-
-## Post-Installation
+## Post-installation
 
 After rebooting, the WebUI is available at:
 

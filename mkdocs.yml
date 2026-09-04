@@ -88,6 +88,7 @@ nav:
     - Overview: profiles/overview.md
     - OS Profiles: profiles/os-profiles.md
     - Init Profiles: profiles/init-profiles.md
+    - Installer Profiles: profiles/installer-profiles.md
     - Package Categories: profiles/packages.md
     - Adding a New OS: profiles/adding-os.md
   - API Reference:

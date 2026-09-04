@@ -35,10 +35,36 @@ class FreedomNASEngine:
     def list_actions(self, category) -> list
 
 def get_engine(profile_dir=None) -> FreedomNASEngine   # singleton accessor
+
+    # Installer only — a non-singleton engine bound to another OS
+    @classmethod
+    def for_target(cls, os_type, root=None, profile_dir=None,
+                   init_system=None, chroot_prefix=None) -> FreedomNASEngine
 ```
 
 Always use `get_engine()` (from `api/deps.py` in the WebUI) — never instantiate
 `FreedomNASEngine` directly in application code.
+
+### Target engines
+
+The singleton describes the machine the process is running on. That is right
+for the WebUI and the modules, and useless for an installer provisioning a
+*different* edition into a chroot, so `for_target()` returns a fresh,
+non-singleton engine bound to another profile:
+
+```python
+target = FreedomNASEngine.for_target("void", root="/mnt")
+target.execute("packages", "install", package_name="zfs")
+# -> chroot /mnt xbps-install -y zfs
+```
+
+- `root=None` (or `"/"`) means "run on the host" — what the in-place install
+  mode wants.
+- With a `root`, every command is prefixed with the profile's
+  `chroot.exec_prefix`.
+- The target's init system comes from its own profile declaration; a target
+  engine never probes the running host for it.
+- The singleton is untouched: `get_engine()` still returns the host's engine.
 
 ## OS Detection
 
@@ -88,6 +114,11 @@ controlled by the profile author — not by application code.
 Before template substitution, `_sanitize_kwargs()` strips the characters
 `;|&$\`` from all kwargs values to limit injection risk even in `shell=True`
 paths.
+
+A **target engine with a chroot prefix never uses `shell=True`**: the prefix
+argv is prepended, and a command that needs a shell is handed to `sh -c`
+*inside* the chroot as a single argument, so quoting inside it can never
+escape into the host's shell.
 
 ## Sensitive Data
 
