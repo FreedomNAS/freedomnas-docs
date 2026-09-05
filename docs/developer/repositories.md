@@ -9,6 +9,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-installer     Profile-driven installer (clean + in-place)
 ├── freedomnas-image-builder Pre-built OS images — primary install path
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
+├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
 ├── freedomnas-debian        Debian APT packaging                 [deferred]
 └── freedomnas-iso           ISO build system                     [deferred]

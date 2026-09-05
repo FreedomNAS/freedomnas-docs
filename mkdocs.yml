@@ -65,6 +65,7 @@ nav:
     - Overview: getting-started/overview.md
     - Installation (Installer): getting-started/installation.md
     - First-Run Setup (WebUI): getting-started/first-run.md
+    - Gentoo Overlay: getting-started/gentoo-overlay.md
   - User Guide:
     - Dashboard: user-guide/dashboard.md
     - Storage (ZFS): user-guide/storage.md
