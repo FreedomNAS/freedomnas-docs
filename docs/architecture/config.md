@@ -7,7 +7,7 @@ This configuration survives OS reinstallation and enables cross-OS migration.
 
 | Priority | Path | Notes |
 |----------|------|-------|
-| Primary | `/mnt/zpool/.freedomnas/config.yaml` | Default (legacy) |
+| Primary | `/etc/freedomnas/state/config.yaml` | Where the `.freedomnas` dataset mounts |
 | Active | `/etc/freedomnas/state/config.yaml` | Mounted ZFS dataset `rpool/.freedomnas` |
 | Fallback | `/etc/freedomnas/config.yaml` | Backup copy |
 
