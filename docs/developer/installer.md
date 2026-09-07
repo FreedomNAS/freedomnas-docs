@@ -248,6 +248,19 @@ Then firmware decides the entry point:
 The filenames come from `installer_meta.uki_name` /
 `installer_meta.uki_recovery_name`.
 
+Building a UKI needs the systemd EFI stub, which dracut looks for at
+`/usr/lib/systemd/boot/efi/linuxx64.efi.stub` — a separate package on most
+editions, and easy to miss because dracut only complains at the very end of an
+install:
+
+| Edition | Provides the stub |
+|---------|-------------------|
+| Debian | `systemd-boot-efi` |
+| Void | `systemd-boot-efistub` |
+| Gentoo | `sys-apps/systemd-utils` with `USE=boot` |
+| Artix | **nothing in its own repositories** — dracut's `--uefi` cannot work there without Arch's `extra` (`artix-archlinux-support`) |
+| Arch | `systemd`, already a dependency — and Arch boots via GRUB here anyway |
+
 `EFI/Linux` is created **after** the ESP is mounted. The ESP has just been
 formatted, so it is empty; a directory made under `/boot/efi` before the mount
 lives on the root dataset and is hidden the moment the ESP goes on top, and
