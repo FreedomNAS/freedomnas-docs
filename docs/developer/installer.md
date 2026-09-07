@@ -172,7 +172,7 @@ Two profile-side measures keep that from happening at all on Debian, where
 
 | Measure | Where | What it prevents |
 |---------|-------|------------------|
-| `env DEBIAN_FRONTEND=noninteractive` on the apt commands | `bootstrap.*`, `repositories.*` | debconf falling back to its readline frontend and blocking on stdin |
+| `env DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8 LANG=C.UTF-8` on the apt commands | `bootstrap.*`, `repositories.*` | debconf falling back to its readline frontend and blocking on stdin; and the host's locale, which does not exist inside a fresh chroot, reaching maintainer scripts |
 | `files.policy_rc` → `/usr/sbin/policy-rc.d` returning 101, removed again by `chroot.finalize` | `files`, `chroot` | `invoke-rc.d` starting daemons inside the chroot. A daemon started there inherits the capture pipe and never closes it, so the installer keeps reading long after `dpkg` has exited — the symptom is a `<defunct>` `dpkg` and a frozen installer |
 
 The same pattern is how Debian's own image builders (`live-build`,
@@ -272,6 +272,11 @@ Coloured terminal output plus `/var/log/freedomnas-install.log` (falls back
 to a tempfile when that path isn't writable). `Logger.command()` prints every
 resolved profile command before it runs — and, under `--dry-run`, instead of
 running it.
+
+The same file handler is attached to the core's `FreedomNAS` logger, so the
+**full** stdout and stderr of a command that failed are in the log. The
+exception — and therefore the error dialog — carries only the last dozen
+lines of each, which is where a package manager states why it gave up.
 
 ### DialogManager
 
