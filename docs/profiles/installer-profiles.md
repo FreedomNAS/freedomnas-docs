@@ -44,6 +44,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `exec_prefix` | `{root}` | **Required** for chroot installs. Prepended as argv to every command run inside the target — `chroot {root}`, or a `systemd-nspawn -D {root}` style prefix |
 | `mount` | `{root}` | Command **sequence** binding the pseudo-filesystems |
 | `unmount` | `{root}` | Sequence, reverse order, run with `check=False` |
+| `finalize` | — | Optional sequence, run **inside the target** before the unmount, with `check=False`. For what only existed to make the chroot behave — Debian removes `/usr/sbin/policy-rc.d` here |
 
 ## `partitioning`
 
@@ -89,6 +90,32 @@ root is still empty at that point. The exceptions are `update_cache`,
 | `update_cache` | — | In-target |
 | `install_base` | `{package_list}` | Space-separated; the recommends-free variant |
 | `locale_gen` | — | Optional |
+
+## `repositories`
+
+Optional. Third-party package repositories a feature category needs, keyed by
+the category name from `packages/MANIFEST.json`. The installer runs the entry
+for each selected category inside the target, between two cache refreshes, and
+skips the step entirely on editions that declare none.
+
+```json
+"repositories": {
+  "containers": [
+    "env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl",
+    "install -m 0755 -d /etc/apt/keyrings",
+    "curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc",
+    "chmod a+r /etc/apt/keyrings/docker.asc",
+    "printf 'Types: deb\\nURIs: …\\nSuites: {suite}\\nArchitectures: {arch}\\n…' > /etc/apt/sources.list.d/docker.sources"
+  ]
+}
+```
+
+`{suite}` and `{arch}` are the ones the installer actually bootstrapped with,
+not values re-derived inside the target.
+
+Only Debian needs this today: Docker Inc. ships `docker-ce` and `containerd.io`
+from its own repository, while Arch, Artix, Void and Gentoo carry Docker in
+theirs.
 
 ## `files`
 

@@ -85,11 +85,11 @@ before that confirmation.
 | 6 | Write the edition's config files | `files.*` |
 | 7 | Bind-mount the chroot | `chroot.mount` |
 | 8 | Create users — **before** packages, so PAM/Samba find them | `users.*` |
-| 9 | Packages, locales, service enablement | `packages/*.json`, `bootstrap.install_base`, `services.enable` |
+| 9 | Third-party repositories, packages, locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `services.enable` |
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
 | 11 | Boot chain | `bootloader.*` |
 | 12 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
-| 13 | Unmount, export the pool | `chroot.unmount`, `rootpool.export` |
+| 13 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export` |
 
 The resulting layout — ESP + `rpool/ROOT/<edition>` + `rpool/.freedomnas` —
 is deliberately identical to what `freedomnas-image-builder` produces: an
@@ -144,6 +144,11 @@ The tarball method takes the distro's own `rootfs.tar.gz` / `base.txz`, or an
 exported container rootfs. It is what makes supporting a new edition cheap,
 and what lets a Debian live environment install Void.
 
+Debian's `debootstrap` line carries `--include=ca-certificates`: the bootstrap
+itself downloads with the *host's* trust store, but the fresh chroot has none,
+and any mirror that redirects to HTTPS (many do) makes the first `apt-get` in
+the target fail with `certificate verify failed`.
+
 ## OS-specific file contents
 
 `sources.list`, `fstab`, `hosts`, `rc.conf`, `loader.conf` and the cron hook
@@ -154,6 +159,24 @@ what stops `if edition == "debian"` from reappearing in the code.
 
 See [Profile System → Installer Profiles](../profiles/installer-profiles.md)
 for the schema.
+
+## Nothing may ask a question
+
+Every command the installer runs has its output captured and its standard
+input on `/dev/null` (`_run_safe()` in the engine). A package script that
+prompts therefore gets EOF and fails, instead of waiting on a question written
+into a pipe nobody is reading while `dialog` owns the screen.
+
+Two profile-side measures keep that from happening at all on Debian, where
+`apt-get -y` silences apt but not debconf:
+
+| Measure | Where | What it prevents |
+|---------|-------|------------------|
+| `env DEBIAN_FRONTEND=noninteractive` on the apt commands | `bootstrap.*`, `repositories.*` | debconf falling back to its readline frontend and blocking on stdin |
+| `files.policy_rc` → `/usr/sbin/policy-rc.d` returning 101, removed again by `chroot.finalize` | `files`, `chroot` | `invoke-rc.d` starting daemons inside the chroot. A daemon started there inherits the capture pipe and never closes it, so the installer keeps reading long after `dpkg` has exited — the symptom is a `<defunct>` `dpkg` and a frozen installer |
+
+The same pattern is how Debian's own image builders (`live-build`,
+`mmdebstrap`) treat a chroot.
 
 ## Recovery mode
 

@@ -120,6 +120,12 @@ argv is prepended, and a command that needs a shell is handed to `sh -c`
 *inside* the chroot as a single argument, so quoting inside it can never
 escape into the host's shell.
 
+`_run_safe()` also runs every command with **stdin on `/dev/null`**. Output is
+captured, so a command that decides to prompt would write its question into a
+pipe and then wait forever on a terminal it does not own; with `/dev/null` it
+reads EOF and fails visibly. Commands that legitimately need input use
+`execute_with_stdin()`.
+
 ## Sensitive Data
 
 `execute_with_stdin()` pipes passwords and other sensitive values to the process
