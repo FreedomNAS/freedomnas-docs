@@ -178,6 +178,34 @@ Two profile-side measures keep that from happening at all on Debian, where
 The same pattern is how Debian's own image builders (`live-build`,
 `mmdebstrap`) treat a chroot.
 
+## ZFS version skew between host and target
+
+The pool is created by the **installer host's** ZFS — on a Gentoo host, 2.4.x —
+but every command a package script runs inside the chroot speaks to that same
+2.4.x kernel module with the *target's* userland, and after the reboot the
+installed system has to import a pool it did not create.
+
+Debian stable ships 2.3.x, so the Debian edition takes the whole `zfs-linux`
+source package from backports (2.4.3 at the time of writing):
+
+```
+Package: src:zfs-linux
+Pin: release n={suite}-backports
+Pin-Priority: 990
+```
+
+written as `files.apt_pin_zfs`, with the matching `-backports` line in
+`files.package_sources`. Backports is `NotAutomatic`, so nothing else on the
+system moves to it. The kernel stays on stable: `zfs-dkms` 2.4.3 builds against
+6.12 and `linux-headers-amd64` pulls the headers for exactly the kernel that
+gets installed.
+
+A pool created by 2.4 has three features an older implementation does not know
+— `block_cloning_endian`, `dynamic_gang_header`, `physical_rewrite`. They start
+`enabled`, not `active`, which an older ZFS can still import; the risk is the
+day one of them activates, since `dynamic_gang_header` is not read-only
+compatible. Matching the versions avoids the question entirely.
+
 ## Recovery mode
 
 When an importable pool carries a `.freedomnas` dataset, the installer
