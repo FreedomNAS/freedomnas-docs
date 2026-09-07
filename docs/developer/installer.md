@@ -248,6 +248,11 @@ Then firmware decides the entry point:
 The filenames come from `installer_meta.uki_name` /
 `installer_meta.uki_recovery_name`.
 
+`EFI/Linux` is created **after** the ESP is mounted. The ESP has just been
+formatted, so it is empty; a directory made under `/boot/efi` before the mount
+lives on the root dataset and is hidden the moment the ESP goes on top, and
+dracut then refuses with `Can't write to /boot/efi/EFI/Linux`.
+
 ### zz-dracut-uki hook
 
 Deployed to `/etc/kernel/postinst.d/` from `freedomnas-profiles/assets/`. On
