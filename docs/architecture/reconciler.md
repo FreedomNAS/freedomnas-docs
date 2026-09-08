@@ -74,6 +74,21 @@ simply are not mounted yet and any reconciliation steps depending on them
 will not converge correctly until it is unlocked manually. See
 [Security](security.md#encrypted-pool-keyslots) for the unlock mechanism.
 
+## Already in the target state
+
+Reconciliation is not installation: it runs against a system that may already
+be half-configured, and reaching the desired state by other means is not a
+failure. Two actions check before acting, and report `skipped` rather than a
+failure the admin has to read past:
+
+| Action | Check | Reported as |
+|--------|-------|-------------|
+| `zfs.pool_import` | the pool is in `zfs.pool_list` | `skipped -- already imported` |
+| `users.create` | `users.get_user_info` returns a line | `skipped -- user already exists` |
+
+The root pool is the obvious case for the first: disaster-recovery mode runs
+from a config that describes the very pool the system booted from.
+
 ## Constraints
 
 - **Idempotent**: safe to re-run; applying the same config twice has the same result as applying it once

@@ -363,6 +363,10 @@ On every boot `firstboot.sh` imports pools, unlocks encrypted ones
 existing `.freedomnas` config or leaves the WebUI's first-run wizard to take
 over, before exec'ing the supervisor.
 
+It sets `PATH` itself, and has to: cron's `@reboot` environment carries
+neither `sbin` directory, while `useradd`, `zpool` and `rc-service` all live
+in one of them. The supervisor inherits it through the `exec`.
+
 ## installer_modules.py — base infrastructure
 
 ### Logger
