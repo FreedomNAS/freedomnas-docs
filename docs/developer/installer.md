@@ -152,6 +152,12 @@ The tarball method takes the distro's own `rootfs.tar.gz` / `base.txz`, or an
 exported container rootfs. It is what makes supporting a new edition cheap,
 and what lets a Debian live environment install Void.
 
+Every Linux edition installs its kernel firmware package alongside the kernel
+(`firmware-linux` on Debian, `linux-firmware` elsewhere), and it has to be
+installed **before** the UKI is built: dracut copies the blobs it finds into
+the initramfs, so a firmware package added afterwards is invisible to a UKI
+that is not rebuilt.
+
 Debian's `debootstrap` line carries `--include=ca-certificates`: the bootstrap
 itself downloads with the *host's* trust store, but the fresh chroot has none,
 and any mirror that redirects to HTTPS (many do) makes the first `apt-get` in
