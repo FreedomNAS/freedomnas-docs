@@ -281,6 +281,25 @@ every kernel install or update it:
 It never aborts `dpkg`'s kernel install over a UKI or ZFS failure — it logs
 and exits 0.
 
+The hook is a plain asset shared by every edition, so it holds no pool name,
+no edition and no filenames of its own. It reads them from
+`/etc/freedomnas/uki.conf`, written by the installer:
+
+```
+ROOT_DATASET="tank/ROOT/debian"
+UKI_NAME="debian-uki.efi"
+UKI_RECOVERY_NAME="debian-recovery.efi"
+```
+
+Without a readable config it logs and exits 0 rather than guessing — a wrong
+`root=ZFS=` in a rebuilt UKI is an unbootable machine.
+
+`files.dracut_uki` writes `/etc/dracut.conf.d/uki.conf` with `hostonly="no"`,
+which both the installer's first build and every later rebuild pick up. It
+matters most on Gentoo, whose `01-gentoo.conf` sets `hostonly="yes"`: inside
+a chroot, dracut's "this host" is the installer's machine, not the one being
+installed.
+
 ### Vendored Clover assets
 
 | File | Role |
