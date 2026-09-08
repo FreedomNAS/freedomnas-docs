@@ -89,7 +89,15 @@ before that confirmation.
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
 | 11 | Boot chain | `bootloader.*` |
 | 12 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
-| 13 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export` |
+| 13 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export`, `rootpool.export_force` |
+
+Step 13's export is the one step of the cleanup that must not fail quietly.
+A pool left imported keeps the **installer host's** hostid in its label, and
+the machine that was just installed then refuses to import its own root pool
+at boot — a finished installation that does not boot. `rootpool.export`
+unmounts the pool's own datasets by itself, so it is tried first on its own
+merits, then `rootpool.export_force`, and a failure after that is reported as
+an error naming the command the admin has to run before rebooting.
 
 The resulting layout — ESP + `rpool/ROOT/<edition>` + `rpool/.freedomnas` —
 is deliberately identical to what `freedomnas-image-builder` produces: an
