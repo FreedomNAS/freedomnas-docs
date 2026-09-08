@@ -94,10 +94,16 @@ before that confirmation.
 Step 13's export is the one step of the cleanup that must not fail quietly.
 A pool left imported keeps the **installer host's** hostid in its label, and
 the machine that was just installed then refuses to import its own root pool
-at boot — a finished installation that does not boot. `rootpool.export`
-unmounts the pool's own datasets by itself, so it is tried first on its own
-merits, then `rootpool.export_force`, and a failure after that is reported as
-an error naming the command the admin has to run before rebooting.
+at boot with *"pool was previously in use from another system"* — a finished
+installation that does not boot.
+
+The exit code is not taken as proof, because the chroot is torn down with
+lazy unmounts that may still be settling when the export runs: after each
+attempt the pool is looked for in `rootpool.list_pools`. `rootpool.export`
+first (it unmounts the pool's own datasets by itself), then a three-second
+wait, then `rootpool.export_force`. If the pool is still listed after that,
+the completion dialog says so and **does not offer a reboot** — it gives the
+`zpool export` command to run first.
 
 The resulting layout — ESP + `rpool/ROOT/<edition>` + `rpool/.freedomnas` —
 is deliberately identical to what `freedomnas-image-builder` produces: an
