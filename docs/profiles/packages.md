@@ -80,6 +80,28 @@ Docker or Podman container runtime for running containerised applications.
 
 KVM/QEMU virtual machines.
 
+## The core's own runtime
+
+`core.json` carries the Python stack the FreedomNAS core and WebUI import, and
+it has to be complete per edition: nothing pulls these in by itself. Debian's
+`python3-fastapi`, for one, depends on pydantic, starlette, uvicorn and
+typing-extensions — **not** on Jinja2, which `api/main.py` needs at import
+time.
+
+| Module imported | Debian | Gentoo | Arch / Artix | Void | FreeBSD |
+|---|---|---|---|---|---|
+| interpreter | `python3` | `dev-lang/python` | `python` | `python3` | `python3` |
+| `yaml` | `python3-yaml` | `dev-python/pyyaml` | `python-yaml` | `python3-yaml` | `py312-pyyaml` |
+| `pam` | `python3-pam` | `dev-python/python-pam` | `python-pam` | `python3-pam` | `py312-python-pam` |
+| `jinja2` | `python3-jinja2` | `dev-python/jinja2` | `python-jinja` | `python3-Jinja2` | `py312-Jinja2` |
+| `cryptography` | `python3-cryptography` | `dev-python/cryptography` | `python-cryptography` | `python3-cryptography` | `py312-cryptography` |
+| `fastapi` | `python3-fastapi` | `dev-python/fastapi` | `python-fastapi` | `python3-fastapi` | `py312-fastapi` |
+| `uvicorn` | `python3-uvicorn` | `dev-python/uvicorn` | `uvicorn` | `python3-uvicorn` | `py312-uvicorn` |
+
+Note the two names that break the pattern: Arch and Artix ship uvicorn
+unprefixed, and FreeBSD's prefix tracks its default interpreter, so it moves
+with the ports tree.
+
 ## How Feature IDs Are Used
 
 `config.yaml` stores feature IDs, not package names:
