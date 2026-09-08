@@ -294,6 +294,27 @@ UKI_RECOVERY_NAME="debian-recovery.efi"
 Without a readable config it logs and exits 0 rather than guessing — a wrong
 `root=ZFS=` in a rebuilt UKI is an unbootable machine.
 
+### Getting a shell when boot fails
+
+A FreedomNAS appliance has no root password — the admin user has passwordless
+sudo instead — and `sulogin`, which every rescue console goes through, refuses
+a locked root account with *"the root account is locked"*. Taken literally that
+makes the recovery UKI useless: the one path meant for a machine that will not
+boot is the one that cannot open.
+
+Two settings undo that, and both are needed because they act at different
+stages:
+
+| Stage | Setting | Where |
+|-------|---------|-------|
+| initramfs (dracut) | `SYSTEMD_SULOGIN_FORCE=1` on the kernel command line — `dracut-emergency` reads it with `getargbool` | `bootloader.build_uki_recovery` |
+| real root (systemd) | `Environment=SYSTEMD_SULOGIN_FORCE=1` — systemd does not take it from the command line | `files.rescue_sulogin`, `files.emergency_sulogin` |
+
+Only the **recovery** UKI carries it. A normal boot stays strict, and the
+trade-off is the one an appliance already makes: whoever can pick a boot entry
+from the firmware menu can reach a root shell — as they could anyway by
+replacing a UKI on an unencrypted ESP.
+
 `files.dracut_uki` writes `/etc/dracut.conf.d/uki.conf` with `hostonly="no"`,
 which both the installer's first build and every later rebuild pick up. It
 matters most on Gentoo, whose `01-gentoo.conf` sets `hostonly="yes"`: inside
