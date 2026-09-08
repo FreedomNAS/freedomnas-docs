@@ -77,7 +77,7 @@ before that confirmation.
 
 | # | Step | Comes from |
 |---|------|------------|
-| 1 | Interview — disk, bootstrap method, mirror, hostname, timezone, features, users | `installer_meta`, `packages/MANIFEST.json` |
+| 1 | Interview — disk, bootstrap method, mirror, hostname, timezone, features, users | `installer_meta`, `packages/MANIFEST.json`, the host's tz database |
 | 2 | Single confirmation | — |
 | 3 | Partition + format the ESP | `partitioning.*` |
 | 4 | Root pool + datasets | `rootpool.*` |
@@ -179,6 +179,20 @@ what stops `if edition == "debian"` from reappearing in the code.
 
 See [Profile System → Installer Profiles](../profiles/installer-profiles.md)
 for the schema.
+
+### Timezone
+
+The timezone is chosen, never typed: region, then zone, then a confirmation
+that shows the current time there. The list comes from the host's own tz
+database through `zoneinfo.available_timezones()` — plain data, not an OS
+command — and only regions that contain zones are offered, plus `UTC`. The
+legacy single-name aliases (`Factory`, `W-SU`, `Eire`) are left out; their
+canonical names are in the lists.
+
+A typed name that does not exist would reach the target as an
+`/etc/localtime` symlink pointing at nothing, and the first sign of it would
+be a clock that is wrong. If the host has no tz database at all, the prompt
+falls back to asking for the name.
 
 ## Nothing may ask a question
 
