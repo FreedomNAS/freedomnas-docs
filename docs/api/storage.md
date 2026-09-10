@@ -112,3 +112,62 @@ Both fields are required; `422` is returned if either is missing.
 |------|--------|
 | 422 | `dataset` or `snap_name` missing |
 | 500 | ZFS command failed (dataset doesn't exist, pool degraded, etc.) |
+
+
+---
+
+## `GET /api/storage/snapshot-policies`
+
+The scheduled-snapshot policies, as stored in `config.yaml`.
+
+**Auth required:** yes
+
+**Response:**
+
+```json
+{ "policies": [
+  { "dataset": "tank/home", "hourly": 24, "daily": 7, "weekly": 4, "monthly": 0 }
+] }
+```
+
+---
+
+## `PUT /api/storage/snapshot-policies/{dataset}`
+
+Set how many snapshots of each interval to keep for one dataset. The dataset
+goes in the path with its slashes intact (`/api/storage/snapshot-policies/tank/home`).
+
+**Auth required:** yes
+
+**Request:**
+
+```json
+{ "hourly": 24, "daily": 7, "weekly": 4, "monthly": 12 }
+```
+
+An interval left out counts as `0`, meaning "do not take these". The route
+writes the policy and nothing else — cron runs
+`freedomnas snapshot-run --interval <interval>` and the scheduler in core
+takes and prunes. Nothing here talks to ZFS, so a policy can be set for a
+dataset that is temporarily unavailable.
+
+**Errors:**
+
+| Code | Detail |
+|------|--------|
+| 422 | a count is not a whole number, or every count is zero (remove the policy instead) |
+
+---
+
+## `DELETE /api/storage/snapshot-policies/{dataset}`
+
+Stop taking scheduled snapshots of a dataset. **Existing snapshots are left
+alone** — the scheduler only ever destroys what it is still asked to manage.
+
+**Auth required:** yes
+
+**Errors:**
+
+| Code | Detail |
+|------|--------|
+| 404 | no policy for that dataset |

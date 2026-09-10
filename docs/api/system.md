@@ -100,3 +100,47 @@ The response is sent before the command executes.
 ```json
 { "detail": "Shutting down" }
 ```
+
+
+---
+
+## `GET /api/system/config`
+
+Download this appliance's configuration as YAML.
+
+**Auth required:** yes
+
+Returns `config.yaml` as an attachment named `<hostname>-config.yaml`
+(`application/x-yaml`). It is the same desired state the reconciler reads at
+first boot: hostname, timezone, users, shares, pools, features and snapshot
+policies.
+
+---
+
+## `POST /api/system/config`
+
+Load a configuration back and apply it.
+
+**Auth required:** yes
+
+The body is the YAML itself (no form encoding). What happens, in order:
+
+1. the YAML is parsed — `422` if it is not valid YAML or not a mapping;
+2. it is validated and saved by `ConfigurationManager.save()`, which refuses
+   a file missing required sections — `422`, and **the running configuration
+   is put back** untouched;
+3. `ReconciliationEngine.reconcile(mode="declarative")` applies it, in a
+   worker thread so the event loop keeps serving.
+
+**Response:**
+
+```json
+{
+  "applied": ["system.hostname_set", "users.create"],
+  "skipped": ["zfs.pool_import"],
+  "failed":  []
+}
+```
+
+This is restore-by-re-applying, not restore-by-copying-files back: the same
+path the appliance uses when it finds a `.freedomnas` dataset at boot.
