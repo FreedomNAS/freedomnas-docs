@@ -31,7 +31,7 @@ regardless of which file it physically lives in.
 | File | Owns |
 |------|------|
 | `os/os-<name>.json` | `os_name`/`os_family`/`os_version`/`init_system`, `packages`, `bootloader`, `system` |
-| `storage/storage-<name>.json` | `zfs`, `media`, `btrfs` |
+| `storage/storage-<name>.json` | `zfs`, `media`, `zfs_properties` |
 | `network/network-<name>.json` | `network` |
 | `shares/shares-<name>.json` | `samba`, `nfs` |
 | `users/users-<name>.json` | `users` |
@@ -62,7 +62,7 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 {
   "zfs":   { ... },
   "media": { ... },
-  "btrfs": { ... }
+  "zfs_properties": { ... }
 }
 ```
 

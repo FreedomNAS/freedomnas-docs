@@ -62,7 +62,7 @@ engine.execute("samba", "create_share", share_name="docs", path="/mnt/data/docs"
 ```
 
 Each fragment owns its own top-level category key(s) — `storage/` owns
-`zfs`/`media`/`btrfs`, `shares/` owns `samba`/`nfs`, and so on — so merging
+`zfs`/`media`/`zfs_properties`, `shares/` owns `samba`/`nfs`, and so on — so merging
 is a plain `dict.update()` per fragment, with nothing to resolve.
 
 ## Why This Design

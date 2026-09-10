@@ -99,7 +99,7 @@ The profile layer has zero Python logic. It is pure data, split per module
   primitives no module owns — packages, bootloader, system info
 - **Per-module fragments** (`storage/storage-<os>.json`, `network/network-<os>.json`,
   `shares/shares-<os>.json`, `users/users-<os>.json`): each module's own
-  commands — ZFS/media/btrfs, network, Samba/NFS, users respectively
+  commands — ZFS/media/properties, network, Samba/NFS, users respectively
 - **Init profiles** (`init/init-systemd.json`, `init/init-openrc.json`, …): map service
   management actions (start, stop, enable, …) for each init system
 - **Package categories** (`packages/samba-cifs.json`, …): map feature IDs to

@@ -83,7 +83,7 @@ Split per module (2026-09-02) — see [Profile System Overview](../profiles/over
 | Type | Files |
 |------|-------|
 | Shared OS fragments | `os/os-debian.json`, `os/os-arch.json`, `os/os-freebsd.json` — packages, bootloader, system, `os_name`/`os_family`/`os_version`/`init_system` |
-| Per-module fragments | `storage/storage-<os>.json` (zfs incl. encrypted-pool actions, media, btrfs), `network/network-<os>.json`, `shares/shares-<os>.json` (samba, nfs), `users/users-<os>.json` — one file per module per OS |
+| Per-module fragments | `storage/storage-<os>.json` (zfs incl. encrypted-pool, cache/log and property actions, media, zfs_properties), `network/network-<os>.json`, `shares/shares-<os>.json` (samba, nfs), `users/users-<os>.json` — one file per module per OS |
 | Community OS fragments | `os/os-gentoo.json`, `os/os-artix.json`, `os/os-void.json` plus matching fragments in every module directory — all reachable at runtime since 2026-09-04 (`_DISTRO_IDS` + `SUPPORTED_OS` in `engine.py`) |
 | Init profiles | `init/init-systemd.json`, `init/init-openrc.json`, `init/init-runit.json`, `init/init-s6.json`, `init/init-dinit.json`, `init/init-bsd_rc.json` (renamed from `init/<name>.json`, ~16 lines each) |
 | Package categories | `packages/MANIFEST.json`, `core.json`, `samba-cifs.json`, `nfs.json`, `containers.json`, `virtualization.json` — untouched by the module split, see [Package Categories](../profiles/packages.md) |
