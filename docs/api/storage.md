@@ -116,6 +116,44 @@ Both fields are required; `422` is returned if either is missing.
 
 ---
 
+## `POST /api/storage/pools/{pool}/devices`
+
+Attach a cache (L2ARC) or log (SLOG) device to a pool that already exists.
+
+**Auth required:** yes
+
+```json
+{ "role": "cache", "devices": ["/dev/disk/by-id/ata-SSD_xxx"] }
+```
+
+`role` is `cache` or `log`; anything else is `422`. Several devices in one
+call become one `zpool add`.
+
+Neither kind holds data, which is why they are attached **after** the pool
+exists — the same endpoint serves "add the SSD I just bought" and "choose an
+SSD while creating the pool", because creation attaches them straight
+afterwards. An SSD that will not attach is reported and the pool is left as
+it was.
+
+The devices are recorded in `config.yaml` and come back in
+`GET /api/storage/pools`, which `zpool list` alone does not report.
+
+---
+
+## `DELETE /api/storage/pools/{pool}/devices?device=…`
+
+Detach one again. No data is lost: a cache or log device holds none.
+
+The device is a **query parameter, not a path segment** — `/dev/disk/by-id/…`
+inside a path loses its leading slash, and `zpool remove` would be handed a
+relative name meaning something else entirely.
+
+ZFS itself decides what may be removed: it accepts cache, log, spares and
+some data vdevs, and refuses the rest. That refusal comes back as `500` with
+its own message, which is the right place for it to come from.
+
+---
+
 ## `GET /api/storage/properties`
 
 The ZFS properties this edition supports, as a catalogue.
