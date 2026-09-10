@@ -116,6 +116,72 @@ Both fields are required; `422` is returned if either is missing.
 
 ---
 
+## `GET /api/storage/devices`
+
+The block devices this machine has, and what is already on them.
+
+**Auth required:** yes
+
+```json
+{ "devices": [
+  { "name": "/dev/sdb", "size": 2000398934016, "type": "disk",
+    "fstype": "", "mountpoint": "", "model": "WDC WD20", "in_use": false },
+  { "name": "/dev/sda1", "size": 500098400256, "type": "part",
+    "fstype": "zfs_member", "mountpoint": "", "model": "", "in_use": true }
+] }
+```
+
+`in_use` is true when the device carries a filesystem or is mounted — the
+pool form shows those greyed out, so nobody can pick the disk their system
+is running from.
+
+On Linux this is `lsblk -pbP` (key="value" pairs, which parse without
+guessing at column widths). FreeBSD has no lsblk: it answers with
+`sysctl -n kern.disks`, so the entries carry names and nothing else.
+
+---
+
+## `POST /api/storage/pools`
+
+Create a pool.
+
+**Auth required:** yes
+
+```json
+{
+  "name": "datapool",
+  "vdev_type": "raidz2",
+  "devices": ["/dev/sda", "/dev/sdb", "/dev/sdc", "/dev/sdd"],
+  "cache_devices": ["/dev/nvme0n1"],
+  "log_devices": [],
+  "encrypted": true,
+  "master_passphrase": "…"
+}
+```
+
+`vdev_type` is `""` (stripe), `mirror`, `raidz1`, `raidz2` or `raidz3`.
+
+This is the one operation in the WebUI that destroys what it touches, so it
+is deliberately literal:
+
+| Refused with `422` | Why |
+|---|---|
+| a name that is not `[A-Za-z][A-Za-z0-9_.:-]*` | ZFS would refuse it later, less clearly |
+| an empty device list | nothing to build on |
+| the same device in two roles | a disk is data, or cache, or log — not two |
+| `encrypted` with a passphrase under 12 characters | |
+
+**`-f` is never passed.** A disk that already carries somebody else's pool is
+refused by ZFS itself, and that refusal is better coming from ZFS than from a
+guess made here — it comes back as `500` with the original message.
+
+After the pool exists: cache and log are attached, the shadow dataset
+`<pool>/.freedomnas` is created, and the pool is recorded in `config.yaml`.
+A cache device that fails to attach does not fail the request — the pool is
+already there — and comes back in `warnings`.
+
+---
+
 ## `POST /api/storage/pools/{pool}/devices`
 
 Attach a cache (L2ARC) or log (SLOG) device to a pool that already exists.
