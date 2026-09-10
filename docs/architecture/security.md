@@ -90,6 +90,34 @@ Client-side, credentials are stored in `sessionStorage` (cleared on tab close),
 not in `localStorage` (which persists). They are sent as `Authorization: Basic
 <btoa(user:pass)>` on every API request.
 
+### Authentication is not authorisation
+
+PAM answers *who you are*, not *what you may do*. Every account that can
+authenticate used to reach every endpoint — including one created only to
+mount a share, which could then delete users or reboot the appliance.
+
+`is_administrator()` closes that: the account must be in the edition's admin
+group, read from `users.sudo_group` (`sudo` on Debian, `wheel` elsewhere) and
+compared against `users.list_groups` (`id -nG`). `root` always passes. The
+same check guards the updates WebSocket, which runs a system update as the
+caller. Wrong password gives 401, right password without the group gives 403.
+
+### Guessing limit
+
+Five failed attempts for one username inside 60 seconds lock that username
+out for 5 minutes, counted in memory and reset by a successful login. The
+trade-off is deliberate: whoever can reach the port can keep an administrator
+locked out by failing on purpose. On a LAN appliance a five-minute wait is
+the cheaper of the two risks, but it is a choice, not an oversight.
+
+### Still open: the transport
+
+The WebUI listens on plain HTTP (`0.0.0.0:8080`), so Basic auth carries the
+administrator's password — base64, not encrypted — on **every request**. This
+is the one part of the authentication story that is not solved: it wants
+either a self-signed certificate generated at first boot or a reverse proxy
+in front, and it is a decision that has not been taken yet.
+
 ## WebSocket Terminal
 
 The `/ws/updates/terminal` endpoint has no authentication check because browsers
