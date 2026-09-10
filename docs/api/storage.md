@@ -116,6 +116,79 @@ Both fields are required; `422` is returned if either is missing.
 
 ---
 
+## `GET /api/storage/properties`
+
+The ZFS properties this edition supports, as a catalogue.
+
+**Auth required:** yes
+
+The catalogue lives in the profile (`zfs_properties` in
+`storage/storage-<edition>.json`), because which properties exist and which
+values they take is an edition's business: `xattr=sa` and `acltype=posix` are
+Linux, `aclmode` and `aclinherit` are FreeBSD.
+
+```json
+{ "properties": {
+  "compression": {
+    "level": "assisted",
+    "type": "enum",
+    "values": ["off", "on", "lz4", "zstd", "…"],
+    "default": "lz4",
+    "help": "Transparent compression. lz4 is nearly free; …"
+  },
+  "dedup": { "level": "expert", "…": "…" },
+  "casesensitivity": { "level": "expert", "create_only": true, "…": "…" }
+} }
+```
+
+`level` is the UI level the property belongs to — `assisted`, `advanced` or
+`expert`. **The API always returns everything**; it is the WebUI that hides
+what is above the level in use, so a client that knows what it is doing is
+never locked out of its own storage.
+
+`create_only` marks what can only be chosen when the dataset is made
+(`casesensitivity`, `normalization`); those are refused by the `PUT`.
+
+---
+
+## `GET /api/storage/datasets/{dataset}/properties`
+
+What one dataset has those properties set to, and where each value comes
+from (`local`, `default`, `inherited from …`). Properties outside the
+catalogue are filtered out.
+
+```json
+{ "dataset": "tank/home",
+  "properties": {
+    "compression": { "value": "lz4", "source": "local" },
+    "recordsize":  { "value": "131072", "source": "default" }
+  } }
+```
+
+---
+
+## `PUT /api/storage/datasets/{dataset}/properties`
+
+Change one or more. The body is a flat mapping:
+
+```json
+{ "compression": "zstd", "quota": "100G" }
+```
+
+Every value is validated against the catalogue before anything runs: an
+unknown property, a value outside an enum, a malformed size or a
+`create_only` property all return `422` and **nothing is applied**.
+
+Each accepted property is then set with `zfs.dataset_set`. If some succeed
+and others fail the response is `207` with both lists — ZFS applies them one
+at a time and there is no way to roll back the ones that already took.
+
+```json
+{ "dataset": "tank/home", "applied": ["compression"], "failed": [] }
+```
+
+---
+
 ## `GET /api/storage/snapshot-policies`
 
 The scheduled-snapshot policies, as stored in `config.yaml`.
