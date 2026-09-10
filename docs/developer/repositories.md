@@ -62,7 +62,6 @@ When working on a specific repository:
 | `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
-| `backup_manager.py` | 276 | ZFS snapshot lifecycle |
 | `package_manager.py` | 186 | Abstract package install/remove |
 | `modules/storage/` | 71 (`module.py`) | ZFS pool health check — `{module.py, manifest.json, __init__.py}` |
 | `modules/network/` | 57 (`module.py`) | Interface availability check — same layout |

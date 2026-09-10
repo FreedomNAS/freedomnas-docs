@@ -106,8 +106,10 @@ pkgs = pm.get_packages_for_os("core", self.config.os_edition)
 run_in_chroot(["apt-get", "install", "-y"] + pkgs)
 ```
 
-`BackupManager` uses `get_config_paths()` to know which files to include in
-a category backup.
+`get_config_paths()` names the files a category owns (`smb.conf`,
+`/etc/exports`, …). Nothing consumes it today: FreedomNAS restores a system by
+re-applying the desired state from `config.yaml`, not by putting saved files
+back.
 
 ## Category Caching
 

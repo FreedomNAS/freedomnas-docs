@@ -267,7 +267,7 @@ The WebUI starts at the next boot, or immediately with:
 After rebooting, the WebUI is available at:
 
 ```
-http://<hostname>:8080
+https://<hostname>:8080
 ```
 
 Complete the first-run wizard to finish configuration.

@@ -85,8 +85,8 @@ All three communicate with the core library — never directly with the OS.
 | `reconcile.py` | Diff and apply changes (installer recovery mode, firstboot) |
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
 | `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
-| `backup_manager.py` | ZFS snapshot lifecycle and scheduling |
 | `package_manager.py` | Abstract package install/remove via profiles |
+| `tls.py` | The WebUI's self-signed certificate, created once at first boot |
 | `keymgmt.py` | Encrypted-pool keyslot wrapping/unwrapping and boot-time unlock |
 | `modules/<name>/module.py` | Health check implementations (storage, network, shares, users, updates), each in its own `modules/<name>/` subpackage with a `manifest.json` |
 

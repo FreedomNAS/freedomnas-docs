@@ -110,13 +110,25 @@ trade-off is deliberate: whoever can reach the port can keep an administrator
 locked out by failing on purpose. On a LAN appliance a five-minute wait is
 the cheaper of the two risks, but it is a choice, not an oversight.
 
-### Still open: the transport
+### The transport
 
-The WebUI listens on plain HTTP (`0.0.0.0:8080`), so Basic auth carries the
-administrator's password — base64, not encrypted — on **every request**. This
-is the one part of the authentication story that is not solved: it wants
-either a self-signed certificate generated at first boot or a reverse proxy
-in front, and it is a decision that has not been taken yet.
+Basic auth carries the administrator's password — base64, not encrypted — on
+**every request**, so the WebUI speaks TLS. `python -m freedomnas ensure-tls`
+runs from `firstboot.sh` and, the first time only, writes an EC P-256
+self-signed certificate to `/etc/freedomnas/tls` (key `0600`, ten years,
+SANs for the hostname, `localhost`, `127.0.0.1` and `::1`). The supervisor
+passes it to uvicorn, so the WebUI answers `https://<host>:8080`.
+
+The certificate is generated **once** and then left alone: one that changed
+at every boot would teach the admin to click through the warning, which is
+the opposite of the point. Its SHA-256 fingerprint is printed at first boot,
+to be compared with what the browser shows.
+
+What this does and does not buy: it stops anyone on the network from reading
+the password, and it does **not** prove the appliance's identity — no
+self-signed certificate can. An installation from before this existed keeps
+serving plain HTTP rather than refusing to start; it gains TLS as soon as the
+certificate is there.
 
 ## WebSocket Terminal
 

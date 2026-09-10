@@ -8,7 +8,7 @@
 ## Endpoint
 
 ```
-ws://<host>:8080/ws/updates/terminal
+wss://<host>:8080/ws/updates/terminal
 wss://<host>/ws/updates/terminal   (if TLS is terminated upstream)
 ```
 

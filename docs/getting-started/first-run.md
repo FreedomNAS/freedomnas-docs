@@ -8,7 +8,7 @@ setup wizard before granting access to the dashboard.
 Open a browser and navigate to:
 
 ```
-http://<hostname or IP>:8080
+https://<hostname or IP>:8080
 ```
 
 If the system is not yet initialized, the root URL automatically redirects

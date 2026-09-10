@@ -81,7 +81,6 @@ nav:
     - Configuration Manager: architecture/config.md
     - Orchestrator: architecture/orchestrator.md
     - Reconciliation Engine: architecture/reconciler.md
-    - Backup Manager: architecture/backup-manager.md
     - Package Manager: architecture/package-manager.md
     - Init System Agnosticism: architecture/init-agnosticism.md
     - Security: architecture/security.md
