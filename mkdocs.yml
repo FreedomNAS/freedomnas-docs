@@ -81,7 +81,7 @@ nav:
     - Configuration Manager: architecture/config.md
     - Orchestrator: architecture/orchestrator.md
     - Reconciliation Engine: architecture/reconciler.md
-    - Scheduled Snapshots: architecture/snapshots.md
+    - Scheduled Work: architecture/snapshots.md
     - Package Manager: architecture/package-manager.md
     - Init System Agnosticism: architecture/init-agnosticism.md
     - Security: architecture/security.md
