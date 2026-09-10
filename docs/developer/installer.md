@@ -180,6 +180,19 @@ what stops `if edition == "debian"` from reappearing in the code.
 See [Profile System → Installer Profiles](../profiles/installer-profiles.md)
 for the schema.
 
+### Every edition must be able to boot
+
+`bootloader` is the one profile section whose absence is silent: every branch
+in `bootloader_installer.py` sits behind a `has()`, so an edition that
+declares nothing simply installs no boot chain, finishes successfully, and
+produces a machine that cannot start. Arch shipped exactly that.
+
+`tests/test_profile_coverage.py::test_every_edition_installs_a_boot_chain`
+now requires each edition to declare `build_uki` (dracut UKI: Debian, Gentoo,
+Artix, Void, Arch) or `install_efi_loader` (FreeBSD's own loader). The
+coverage test alone cannot catch it — a `has()`-guarded action is optional by
+construction, which is precisely the exemption that hid the hole.
+
 ### Timezone
 
 The timezone is chosen, never typed: region, then zone, then a confirmation
@@ -386,6 +399,13 @@ over, before exec'ing the supervisor.
 It sets `PATH` itself, and has to: cron's `@reboot` environment carries
 neither `sbin` directory, while `useradd`, `zpool` and `rc-service` all live
 in one of them. The supervisor inherits it through the `exec`.
+
+The search for a `.freedomnas` dataset starts at **the pool this system booted
+from** (`zfs list -H -o name /`), and only then walks the rest. A NAS can hold
+several pools carrying that dataset — an older install, a disk from another
+machine — and restoring a foreign configuration would create that machine's
+users and start its services here. When the configuration does come from
+another pool, the script says so in the log.
 
 ## installer_modules.py — base infrastructure
 
