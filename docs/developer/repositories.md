@@ -12,7 +12,15 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
 └── freedomnas-debian        Debian APT packaging                 [deferred]
+
+codeberg.org/sarahmeow86/
+└── zfs-dinit                dinit services for ZFS on Artix (checked out as artix-zfs)
 ```
+
+`zfs-dinit` is not a FreedomNAS repository, but the Artix edition depends on
+it: when Artix is installed with dinit, the installer clones it into the target
+and builds it with `makepkg`, the way it builds `zfs-openrc` from the AUR for
+OpenRC.
 
 `freedomnas-image-builder` produces the primary install path (ADR-002).
 `freedomnas-installer` is the secondary one, for hardware that can't be

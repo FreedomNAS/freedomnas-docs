@@ -36,6 +36,8 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `chroot_dirs` | Directories created before the chroot mounts |
 | `uki_name`, `uki_recovery_name` | UKI filenames on the ESP (UKI-booting editions) |
 | `community_maintained` | Marks the edition as community in the installer menu |
+| `init_systems` | Init systems the installer offers, default first — only when there is more than one (Artix: `["openrc", "dinit"]`) |
+| `init_packages` | `{init: packages}` passed to the bootstrap command as `{init_packages}` |
 
 ## `chroot`
 
@@ -166,22 +168,52 @@ Debian and the two pacman editions need one today:
   the pool is exported. On Artix, `chaotic-keyring`'s dependency
   `archlinux-keyring` comes from `galaxy`.
 
-## `aur`
+## `pkgbuild`
 
-Optional. How the edition builds a package from the AUR, for the names a
-category lists under `aur` in `packages/*.json`. `install` is a command
-sequence run inside the target with `{package_name}`, after the repository
-packages and before services are enabled. An edition that lists AUR packages
-without declaring `aur.install` stops the installation with an error rather
-than skipping them.
+Optional. How the edition builds a package from a PKGBUILD repository, for the
+`{name, git}` entries a category lists under `pkgbuilds` in `packages/*.json` —
+the AUR is just one git host among others. `install` is a command sequence run
+inside the target with `{package_name}` and `{git_url}`, after the repository
+packages and before services are enabled. An edition that lists PKGBUILD
+repositories without declaring `pkgbuild.install` stops the installation with
+an error rather than skipping them.
 
-Artix uses it for `zfs-openrc`: Chaotic-AUR's ZFS ships systemd units only,
-and the OpenRC scripts (`zfs-import`, `zfs-mount`, `zfs-load-key`,
-`zfs-share`, `zfs-zed`) come from that AUR package. `makepkg` refuses to run
-as root, so the sequence installs `git` and `base-devel`, creates a system
-user for the build, clones and builds as that user, installs the result with
-`pacman -U` and removes the user again. The package list names the `-git`
-ZFS explicitly because `zfs-openrc` depends on it.
+Artix uses it for the ZFS service scripts, since Chaotic-AUR's ZFS ships
+systemd units only:
+
+| Init | Repository | Services it provides |
+|------|------------|----------------------|
+| OpenRC | `https://aur.archlinux.org/zfs-openrc.git` | `zfs-import`, `zfs-mount`, `zfs-load-key`, `zfs-share`, `zfs-zed` |
+| dinit | `https://codeberg.org/sarahmeow86/zfs-dinit.git` | `zfs-mount`, `zfs-zvol`, `zfs-share`, `zed` |
+
+`makepkg` refuses to run as root, so the sequence installs `git` and
+`base-devel`, creates a `freedomnas-build` system user, clones and builds as
+that user, installs the result with `pacman -U` and removes the user again.
+Both packages depend on the `-git` ZFS, which is why the package list names it.
+
+## Choosing the init system
+
+An edition that can boot with more than one init lists them in
+`installer_meta.init_systems`; the first is the default, and the installer asks
+right after the edition is chosen. The choice rebuilds the target engine with
+that init (`FreedomNASEngine.for_target(init_system=...)`), so service commands
+come from `init/init-<name>.json`, and it selects:
+
+- `installer_meta.init_packages[<name>]`, passed to the bootstrap command as
+  `{init_packages}` — on Artix `openrc elogind-openrc` or
+  `dinit elogind-dinit`. Naming the elogind provider matters: `base` alone
+  lets pacman pick dinit's providers, and OpenRC then conflicts with them.
+- the `init.<name>` block of each category in `packages/*.json` — see
+  [Package Manager](../architecture/package-manager.md).
+
+An in-place install does not ask: it installs for the init the running system
+actually uses.
+
+Enabling a service happens inside the chroot of a system that has not booted,
+so `services.enable_offline` is used instead of `services.enable` when the init
+profile declares it. dinit needs it — plain `dinitctl enable` asks the running
+daemon — and gets `dinitctl --offline enable {service_name}`; OpenRC's
+`rc-update add` already works offline.
 
 ## `files`
 

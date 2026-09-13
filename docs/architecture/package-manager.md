@@ -69,9 +69,25 @@ profiles/packages/
 }
 ```
 
-An edition may also list `aur`: packages the installer builds from the AUR
-after the repository packages, through the installer profile's
-`aur.install`. `core.json` uses it for Artix's `zfs-openrc`.
+An edition may also list `pkgbuilds` — `{"name", "git"}` PKGBUILD
+repositories the installer clones and builds after the repository packages,
+through the installer profile's `pkgbuild.install`.
+
+Where an edition ships service scripts as separate packages per init — Artix's
+`openssh-openrc` and `openssh-dinit` — the per-init parts go under
+`init.<name>`, and are added to the edition-level lists when that init is
+asked for. Service names live there too, because they differ (`smb` under
+OpenRC, `smbd`/`nmbd`/`winbindd` under dinit):
+
+```json
+"artix": {
+  "packages": ["samba", "samba-support-tools"],
+  "init": {
+    "openrc": { "packages": ["samba-openrc"], "services": ["smb"] },
+    "dinit":  { "packages": ["samba-dinit"],  "services": ["smbd", "nmbd", "winbindd"] }
+  }
+}
+```
 
 ## Public API
 
@@ -87,7 +103,9 @@ pm.get_category_info("samba-cifs") # → single category metadata dict
 # Query packages / services / configs for an OS edition
 pm.get_packages_for_os("samba-cifs", "debian")   # → ["samba", "samba-common-bin"]
 pm.get_services_for_os("samba-cifs", "debian")   # → ["smbd", "nmbd"]
-pm.get_aur_packages_for_os("core", "artix")      # → ["zfs-openrc"]
+pm.get_services_for_os("samba-cifs", "artix", "dinit")  # → ["smbd", "nmbd", "winbindd"]
+pm.get_pkgbuilds_for_os("core", "artix", "dinit")
+# → [{"name": "zfs-dinit", "git": "https://codeberg.org/sarahmeow86/zfs-dinit.git"}]
 pm.get_config_paths("samba-cifs", "debian")       # → ["/etc/samba/smb.conf", ...]
 
 # Bulk query
