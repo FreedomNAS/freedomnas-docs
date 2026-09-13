@@ -151,9 +151,37 @@ skips the step entirely on editions that declare none.
 `{suite}` and `{arch}` are the ones the installer actually bootstrapped with,
 not values re-derived inside the target.
 
-Only Debian needs this today: Docker Inc. ships `docker-ce` and `containerd.io`
-from its own repository, while Arch, Artix, Void and Gentoo carry Docker in
-theirs.
+Debian and the two pacman editions need one today:
+
+- Debian's `containers`: Docker Inc. ships `docker-ce` and `containerd.io`
+  from its own repository.
+- Arch's and Artix's `core`: ZFS comes from [Chaotic-AUR](https://aur.chaotic.cx),
+  whose `zfs-dkms-git` and `zfs-utils-git` build the DKMS module against the
+  upstream kernel rather than only `linux-lts`, and ship the dracut module the
+  UKI needs. The entry is Chaotic-AUR's own procedure — `pacman-key --recv-key`
+  and `--lsign-key` for its key, `pacman -U` of `chaotic-keyring` and
+  `chaotic-mirrorlist`, a `[chaotic-aur]` section appended to `pacman.conf`
+  unless it is already there — followed by `gpgconf --kill all` on the
+  target's keyring, so no `dirmngr` is left holding the root dataset busy when
+  the pool is exported. On Artix, `chaotic-keyring`'s dependency
+  `archlinux-keyring` comes from `galaxy`.
+
+## `aur`
+
+Optional. How the edition builds a package from the AUR, for the names a
+category lists under `aur` in `packages/*.json`. `install` is a command
+sequence run inside the target with `{package_name}`, after the repository
+packages and before services are enabled. An edition that lists AUR packages
+without declaring `aur.install` stops the installation with an error rather
+than skipping them.
+
+Artix uses it for `zfs-openrc`: Chaotic-AUR's ZFS ships systemd units only,
+and the OpenRC scripts (`zfs-import`, `zfs-mount`, `zfs-load-key`,
+`zfs-share`, `zfs-zed`) come from that AUR package. `makepkg` refuses to run
+as root, so the sequence installs `git` and `base-devel`, creates a system
+user for the build, clones and builds as that user, installs the result with
+`pacman -U` and removes the user again. The package list names the `-git`
+ZFS explicitly because `zfs-openrc` depends on it.
 
 ## `files`
 
