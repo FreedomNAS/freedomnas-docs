@@ -304,7 +304,7 @@ install:
 |---------|-------------------|
 | Debian | `systemd-boot-efi` |
 | Void | `systemd-boot-efistub` |
-| Gentoo | `sys-apps/systemd-utils` with `USE=boot` |
+| Gentoo | `sys-apps/systemd-utils` with `USE="boot kernel-install"` — `boot` alone fails its `REQUIRED_USE` and emerge stops before installing anything |
 | Artix | **nothing in its own repositories** — dracut's `--uefi` cannot work there without Arch's `extra` (`artix-archlinux-support`) |
 | Arch | `systemd`, already a dependency — and Arch boots via GRUB here anyway |
 
