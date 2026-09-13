@@ -253,6 +253,12 @@ A pool created by 2.4 has three features an older implementation does not know
 day one of them activates, since `dynamic_gang_header` is not read-only
 compatible. Matching the versions avoids the question entirely.
 
+The live ISO makes this the common case rather than a Gentoo-host one: it
+carries a single ZFS (2.4.x from `::gentoo`) and creates the pool for every
+edition it installs, so each edition has to install a ZFS at least as new —
+or the pool has to be created with `-o compatibility=` set to what the
+target ships (`/usr/share/zfs/compatibility.d/openzfs-2.3-linux` and so on).
+
 ## Recovery mode
 
 When an importable pool carries a `.freedomnas` dataset, the installer

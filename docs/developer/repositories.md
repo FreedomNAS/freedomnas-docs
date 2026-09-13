@@ -7,12 +7,11 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-core          Engine + Config + Reconciler + Orchestrator + Modules
 ├── freedomnas-profiles      JSON translation profiles (OS + init + installer + packages)
 ├── freedomnas-installer     Profile-driven installer (clean + in-place)
-├── freedomnas-image-builder Pre-built OS images — primary install path
+├── freedomnas-image-builder Pre-built OS images (primary install path) + live installer ISO
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
-├── freedomnas-debian        Debian APT packaging                 [deferred]
-└── freedomnas-iso           ISO build system                     [deferred]
+└── freedomnas-debian        Debian APT packaging                 [deferred]
 ```
 
 `freedomnas-image-builder` produces the primary install path (ADR-002).

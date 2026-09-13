@@ -41,10 +41,39 @@ the environment it is running in:
 Within a family, an edition whose native bootstrapper isn't present on the
 host is installed from a **rootfs tarball** instead — see below.
 
+## The live ISO
+
+`freedomnas-live.iso`, built by `freedomnas-image-builder/live/build.sh`, is
+the Linux installer environment with everything already on it: ZFS,
+`dialog`, the installer, and the bootstrap tools of the other editions. It
+boots on UEFI and BIOS, from optical media or written to a USB stick:
+
+```bash
+sudo dd if=freedomnas-live.iso of=/dev/sdX bs=4M status=progress conv=fsync
+```
+
+Root is logged in automatically on the first console and
+`freedomnas-install` starts by itself; quitting it leaves a shell, where
+`freedomnas-install` runs it again. The network comes up over DHCP. SSH is
+installed but not started, because root has no password — set one with
+`passwd` and run `rc-service sshd start` to install remotely.
+
+What the ISO offers for each edition:
+
+| Edition | Bootstrap |
+|---------|-----------|
+| Debian | `debootstrap`, or tarball |
+| Void | `xbps-install` (Void's static build), or tarball |
+| Gentoo | stage3 tarball |
+| Arch, Artix | tarball only, for now |
+
+The pool is created by the ISO's ZFS (2.4), whichever edition is being
+installed — see [ZFS version skew](../developer/installer.md#zfs-version-skew-between-host-and-target).
+
 ## Prerequisites
 
-- A live/rescue environment of the right family (any Linux distribution for
-  the Linux editions)
+- A live/rescue environment of the right family: the FreedomNAS live ISO, or
+  any Linux distribution for the Linux editions
 - `freedomnas-installer`, plus its hard dependencies **`freedomnas-core`**
   and **`freedomnas-profiles`**
 - `dialog` (or `whiptail`), and the host tools the edition needs —
