@@ -211,7 +211,9 @@ actually uses.
 
 Enabling a service happens inside the chroot of a system that has not booted,
 so `services.enable_offline` is used instead of `services.enable` when the init
-profile declares it. dinit needs it — plain `dinitctl enable` asks the running
+profile declares it, and a category's `early_services` go through
+`services.enable_early` first (OpenRC: `sysinit`, where `zfs-import` and
+`zfs-mount` belong). dinit needs it — plain `dinitctl enable` asks the running
 daemon — and gets `dinitctl --offline enable {service_name}`; OpenRC's
 `rc-update add` already works offline.
 

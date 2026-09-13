@@ -69,6 +69,11 @@ profiles/packages/
 }
 ```
 
+Services that must be up before the rest — importing and mounting pools —
+go under `early_services` instead of `services`; the installer enables them
+first, through the init profile's `enable_early` where it has one (OpenRC:
+the `sysinit` runlevel).
+
 An edition may also list `pkgbuilds` — `{"name", "git"}` PKGBUILD
 repositories the installer clones and builds after the repository packages,
 through the installer profile's `pkgbuild.install`.
@@ -104,6 +109,7 @@ pm.get_category_info("samba-cifs") # → single category metadata dict
 pm.get_packages_for_os("samba-cifs", "debian")   # → ["samba", "samba-common-bin"]
 pm.get_services_for_os("samba-cifs", "debian")   # → ["smbd", "nmbd"]
 pm.get_services_for_os("samba-cifs", "artix", "dinit")  # → ["smbd", "nmbd", "winbindd"]
+pm.get_early_services_for_os("core", "gentoo")          # → ["zfs-import", "zfs-mount"]
 pm.get_pkgbuilds_for_os("core", "artix", "dinit")
 # → [{"name": "zfs-dinit", "git": "https://codeberg.org/sarahmeow86/zfs-dinit.git"}]
 pm.get_config_paths("samba-cifs", "debian")       # → ["/etc/samba/smb.conf", ...]

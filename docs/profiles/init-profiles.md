@@ -44,7 +44,17 @@ includes a `services` key.
 | stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6-svc -d /var/run/s6/services/{svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
 | restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6-svc -t /var/run/s6/services/{svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
 | enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6-rc-bundle-update add default {svc}` | `dinitctl enable {svc}` | `sysrc {svc}_enable=YES` |
+| enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
+| enable_offline | — | — | — | — | `dinitctl --offline enable {svc}` | — |
 | status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6-svstat /var/run/s6/services/{svc}` | `dinitctl status {svc}` | `service {svc} status` |
+
+`enable_early` and `enable_offline` are optional and used by the installer only.
+`enable_early` is for the services a package category lists under
+`early_services` — importing and mounting pools — and puts them in OpenRC's
+`sysinit` runlevel, as Gentoo does, so the pools are there before anything in
+`boot` or `default` starts. `enable_offline` is for enabling inside a chroot,
+where dinit has no running daemon to ask. An init without either key gets the
+plain `enable` for both.
 
 ## How Merging Works
 
