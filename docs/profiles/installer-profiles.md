@@ -77,6 +77,8 @@ which the storage module owns for data pools.
 | `mount_all`, `unmount_all`, `export_all`, `list_importable`, `list_pools` | — |
 | `mount_dataset`, `dataset_exists` | `{dataset}` |
 | `export` | `{pool_name}` |
+| `cachefile_set` | `{pool_name}`, `{cachefile}` — optional; with `cachefile_install`, gives the target a `zpool.cache` |
+| `cachefile_install` | `{cachefile}`, `{root}` — copies it to the target's cache path (Linux: `/etc/zfs/zpool.cache`) |
 
 ## `bootstrap`
 

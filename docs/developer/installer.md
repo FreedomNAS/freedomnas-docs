@@ -87,11 +87,25 @@ before that confirmation.
 | 8 | Create users — **before** packages, so PAM/Samba find them | `users.*` |
 | 9 | Third-party repositories, packages, locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `services.enable` |
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
-| 11 | Boot chain | `bootloader.*` |
-| 12 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
-| 13 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export`, `rootpool.export_force` |
+| 11 | The root pool's `zpool.cache` in the target | `rootpool.cachefile_set`, `rootpool.cachefile_install` |
+| 12 | Boot chain | `bootloader.*` |
+| 13 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
+| 14 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export`, `rootpool.export_force` |
 
-Step 13's export is the one step of the cleanup that must not fail quietly.
+Step 11 exists because a pool created with an altroot (`-R`) has
+`cachefile=none`: without it the installed system has no
+`/etc/zfs/zpool.cache`, the initramfs finds the root pool only by scanning,
+and boot services that import from the cache — `zfs-mount` from zfs-dinit,
+OpenZFS's `zfs-import-cache` — know nothing about it. The installer points the
+pool's `cachefile` at a throwaway file, copies that into the target's
+`/etc/zfs/zpool.cache` before the boot chain is built (dracut's `90zfs` module
+puts the cache into the initramfs, and so into the UKI), and leaves the host's
+own cache alone. Writing to the host's cache instead would be dangerous: an
+installation that stops before the export would leave the new pool there, and
+the host would import it at its next boot. The export removes the pool from the
+throwaway file only.
+
+Step 14's export is the one step of the cleanup that must not fail quietly.
 A pool left imported keeps the **installer host's** hostid in its label, and
 the machine that was just installed then refuses to import its own root pool
 at boot with *"pool was previously in use from another system"* — a finished
