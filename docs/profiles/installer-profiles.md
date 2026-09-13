@@ -84,12 +84,50 @@ root is still empty at that point. The exceptions are `update_cache`,
 
 | Key | Variables | Notes |
 |-----|-----------|-------|
-| *native method* | `{arch}`, `{suite}`, `{root}`, `{mirror}` | Key name must match its entry in `bootstrap_methods` |
+| *native method* | `{arch}`, `{suite}`, `{root}`, `{mirror}`, `{bootstrap_dir}` | Key name must match its entry in `bootstrap_methods`; may be a command sequence |
 | `fetch_tarball` | `{url}`, `{output}` | `curl` on Linux, `fetch` on FreeBSD |
 | `unpack_tarball` | `{tarball}`, `{root}` | |
 | `update_cache` | — | In-target |
 | `install_base` | `{package_list}` | Space-separated; the recommends-free variant |
 | `locale_gen` | — | Optional |
+
+## `bootstrap_files`
+
+Files a native bootstrapper reads **on the host** before the target root holds
+anything. The installer renders them into a temporary directory, passes its
+path to the bootstrap command as `{bootstrap_dir}`, and deletes it afterwards.
+`path` is relative to that directory; `content` takes `{mirror}`, `{arch}`,
+`{suite}`, `{root}` and `{bootstrap_dir}`.
+
+This is what lets pacstrap install Arch or Artix from a host that is not Arch
+— the live ISO in particular — without touching the host's `/etc`:
+
+```json
+"bootstrap": {
+  "pacstrap": [
+    "install -d -m 700 {bootstrap_dir}/gnupg",
+    "pacman-key --config {bootstrap_dir}/pacman.conf --init",
+    "pacman-key --config {bootstrap_dir}/pacman.conf --populate archlinux",
+    "pacstrap -K -M -C {bootstrap_dir}/pacman.conf {root} base linux linux-firmware",
+    "gpgconf --homedir {bootstrap_dir}/gnupg --kill all"
+  ]
+},
+"bootstrap_files": {
+  "pacman_conf": {
+    "path": "pacman.conf",
+    "content": "[options]\nGPGDir = {bootstrap_dir}/gnupg\n...\n[core]\nServer = {mirror}/$repo/os/$arch\n"
+  }
+}
+```
+
+`GPGDir` has to exist before `pacman-key` runs: `pacman-conf` refuses a path
+that does not resolve, and `pacman-key --init` reports it but still exits 0.
+`-M` keeps pacstrap from copying a host mirrorlist that a non-Arch host does
+not have, so the installed system gets its mirror from `files.pacman_mirrorlist`.
+
+On Artix, `base openrc` is not enough: `base`'s dependencies default to the
+dinit providers, and pacman installs dinit alongside OpenRC unless
+`elogind-openrc` is named too.
 
 ## `repositories`
 
