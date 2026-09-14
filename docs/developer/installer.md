@@ -70,6 +70,20 @@ same call therefore works against `/mnt` during a clean install and against
 | `lib/inplace_installer.py` | In-place orchestration |
 | `tests/dryrun_smoke.py` | End-to-end dry run of both modes, no root needed |
 
+## Dataset creation order
+
+`zfs create` mounts a `canmount=on` dataset the moment it exists. Created
+together with the boot environment, `home` and `var/log` would be mounted on
+the empty altroot, the root dataset then mounted over them, and `zfs mount -a`
+would find them already mounted: packages, logs and user homes would all be
+written into the root dataset, and at boot the real, empty `home` and
+`var/log` would hide them — services failing with *opening log file: No such
+file or directory* and users logging in without a home. The boot environment
+(`rootpool.create_boot_environment`) is therefore created and mounted first,
+and only then the rest (`rootpool.create_datasets`), each mounting on top of
+the root dataset. `freedomnas-image-builder/common/zfs-layout.sh` follows the
+same order.
+
 ## Disks that already carry a pool
 
 The disk menu shows, next to each disk, the pools found on it
@@ -100,7 +114,7 @@ before that confirmation.
 | 1 | Interview — disk, bootstrap method, mirror, hostname, timezone, features, users | `installer_meta`, `packages/MANIFEST.json`, the host's tz database |
 | 2 | Single confirmation | — |
 | 3 | Partition + format the ESP | `partitioning.*` |
-| 4 | Root pool + datasets | `rootpool.*` |
+| 4 | Root pool, boot environment, root mounted, then the other datasets | `rootpool.create`, `create_boot_environment`, `set_bootfs`, `mount_root`, `create_datasets`, `mount_all` |
 | 5 | Bootstrap the base system | `bootstrap.<method>` |
 | 6 | Write the edition's config files | `files.*` |
 | 7 | Bind-mount the chroot | `chroot.mount` |
