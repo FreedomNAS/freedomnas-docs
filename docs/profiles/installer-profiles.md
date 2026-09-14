@@ -55,7 +55,9 @@ Runs on the host, with the host's tools.
 | Key | Variables | Notes |
 |-----|-----------|-------|
 | `list_disks` | — | **Output contract:** one disk per line, `<name> <size-in-bytes> <model...>` |
+| `disk_pools` | `{disk}` | Optional. **Output contract:** one device per line, `<device> [<fstype> [<label>]]`, spaces in a label escaped as `\x20` (`lsblk -nrpo NAME,FSTYPE,LABEL`); a `zfs_member` device's label is its pool's name |
 | `wipe` / `clear` | `{disk}` | Destroy the old table / create a new one |
+| `labelclear` | `{device}` | Optional; clears the ZFS label of an old pool's device before `wipe` |
 | `create_esp` | `{disk}`, `{esp_size}` | Partition 1, EFI System |
 | `create_root` | `{disk}` | Partition 2, rest of the disk |
 | `probe` / `settle` | `{disk}` | Optional — omit on platforms without an equivalent |
@@ -70,7 +72,8 @@ which the storage module owns for data pools.
 
 | Key | Variables |
 |-----|-----------|
-| `create` | `{ashift}`, `{compression}`, `{altroot}`, `{pool_name}`, `{device}` |
+| `create` | `{force}`, `{ashift}`, `{compression}`, `{altroot}`, `{pool_name}`, `{device}` — `{force}` is `-f` only when the chosen disk carried another pool and the admin agreed to destroy it |
+| `imported_devices` | — optional; output of `zpool status -LP`, from which the installer maps every device of an imported pool to its name |
 | `create_datasets` | `{pool_name}`, `{edition}` — a command **sequence** |
 | `create_state_dataset` | `{pool_name}` |
 | `set_bootfs`, `mount_root` | `{pool_name}`, `{edition}` |

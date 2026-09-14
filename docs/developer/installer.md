@@ -70,6 +70,26 @@ same call therefore works against `/mnt` during a clean install and against
 | `lib/inplace_installer.py` | In-place orchestration |
 | `tests/dryrun_smoke.py` | End-to-end dry run of both modes, no root needed |
 
+## Disks that already carry a pool
+
+The disk menu shows, next to each disk, the pools found on it
+(`partitioning.disk_pools`: libblkid reports every ZFS member device with its
+pool's name as label, imported or not). Choosing one is then handled by what
+that pool is:
+
+| The disk belongs to | What happens |
+|---------------------|--------------|
+| An **imported** pool | Refused, back to the menu. The pool is in use — most likely by the system running the installer. Matched by device, not by name, through `rootpool.imported_devices` (`zpool status -LP`), both sides compared as real paths so `/dev/mapper` names and `/dev/dm-N` agree: an exported pool on the target disk may be called `rpool` just like the host's. |
+| A pool that is **not imported** — exported, another system's, an older install | A default-no confirmation naming the pool and its devices. Accepted, those devices get `partitioning.labelclear` before `wipe`, and the root pool is created with `-f`. |
+| No pool | As before. |
+
+`labelclear` is not redundant with `wipe`: `sgdisk --zap-all` removes the
+partition table, not the ZFS labels inside the old partitions. Left there,
+they make `zpool create` refuse the new partition, and, where the new layout
+does not line up with the old, can surface as ghost pools in later scans such
+as `firstboot.sh`'s. FreeBSD declares neither action yet and keeps the old
+behaviour.
+
 ## Clean install order
 
 Everything is asked first and confirmed once; nothing destructive happens
