@@ -73,6 +73,7 @@ which the storage module owns for data pools.
 | Key | Variables |
 |-----|-----------|
 | `create` | `{force}`, `{ashift}`, `{compression}`, `{altroot}`, `{pool_name}`, `{device}` — `{force}` is `-f` only when the chosen disk carried another pool and the admin agreed to destroy it |
+| `unmount_target` | `{root}` — optional; lazy recursive unmount of the target root before the export |
 | `imported_devices` | — optional; output of `zpool status -LP`, from which the installer maps every device of an imported pool to its name |
 | `create_datasets` | `{pool_name}`, `{edition}` — a command **sequence** |
 | `create_state_dataset` | `{pool_name}` |

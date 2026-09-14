@@ -131,6 +131,16 @@ the machine that was just installed then refuses to import its own root pool
 at boot with *"pool was previously in use from another system"* — a finished
 installation that does not boot.
 
+Before exporting, `rootpool.unmount_target` (`umount -R -l <root>`) lazily
+detaches everything still mounted under the target root — the ESP, the state
+dataset, whatever a package left behind — since a plain unmount stops at the
+first busy mount and the export then finds the pool busy. Arch and Artix also
+stop the gpg-agent, dirmngr and keyboxd that `pacman-key` starts on the
+target's keyring: once from the host right after `pacstrap -K`, and once inside
+the chroot as `chroot.finalize`, for the agents the keyring packages' scriptlets
+start there. An agent left running keeps a handle on the pool, and the export
+fails.
+
 The exit code is not taken as proof, because the chroot is torn down with
 lazy unmounts that may still be settling when the export runs: after each
 attempt the pool is looked for in `rootpool.list_pools`. `rootpool.export`
