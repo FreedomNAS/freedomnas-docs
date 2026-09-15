@@ -163,6 +163,8 @@ inside the profile.
 | `smb_service` | string | Main Samba service name |
 | `nmb_service` | string | NetBIOS name service name |
 | `shares_dir` | string | Usershares directory path |
+| `usershare_path` | string | Where usershares live; written into `smb.conf` by the setup wizard when missing |
+| `usershare_prepare` | command | `{path}` — creates that directory (`install -d -m 1770`) |
 | `create_share` | command | Create a usershare |
 | `delete_share` | command | Delete a usershare |
 | `list_shares` | command | List current usershares |

@@ -69,10 +69,23 @@ target.execute("packages", "install", package_name="zfs")
 ## OS Detection
 
 On startup, the engine reads `/etc/os-release` on Linux or uses
-`platform.system()` for FreeBSD. Detection is automatic — no user selection.
+`platform.system()` for FreeBSD. Detection is automatic — no user selection;
+the first-run wizard's edition field only records the result.
 
-Supported: `debian` (also matches Ubuntu), `arch`, `freebsd`.
-Raises `OSNotSupportedException` for RHEL/CentOS and any unrecognised OS.
+`SUPPORTED_OS`: `debian`, `freebsd`, `arch`, `artix`, `void`, `gentoo`.
+
+On Linux, the `/etc/os-release` fields are matched against `_DISTRO_IDS`:
+
+| Step | Match | Result |
+|------|-------|--------|
+| 1 | `ID` is a key of `_DISTRO_IDS` (`debian`, `ubuntu`, `arch`, `artix`, `void`, `gentoo`) | That profile — `ubuntu` maps to `debian`, with a warning |
+| 2 | A word of `ID_LIKE` is a key of `_DISTRO_IDS` | The parent's profile, with a warning naming the unknown distribution |
+| 3 | `ID` is in `_KNOWN_UNSUPPORTED` (`fedora`, `rhel`, `centos`, `rocky`, `almalinux`) | `OSNotSupportedException` — "RHEL-based systems not yet supported" |
+| 4 | Anything else | `OSNotSupportedException` listing the supported ids |
+
+The exact `ID` is checked first so a derivative with its own profile (Artix,
+`ID_LIKE=arch`) never falls through to its parent's. Any other OS than Linux
+or FreeBSD raises `OSNotSupportedException`.
 
 ## Init System Detection
 

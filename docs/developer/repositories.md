@@ -11,6 +11,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
+├── freedomnas-website       Public project website (static HTML + CSS)
 └── freedomnas-debian        Debian APT packaging                 [deferred]
 
 codeberg.org/sarahmeow86/
@@ -126,27 +127,28 @@ OS-specific file content remains in its Python — see
 
 | File | Lines | Endpoints |
 |------|-------|-----------|
-| `api/main.py` | 157 | FastAPI app, 9 page routes, first-run guard middleware, mounts community-module routes discovered below |
-| `api/module_discovery.py` | 121 | Community-module WebUI discovery — mirrors `module_loader.py` but only for modules with a `webui` manifest block; core routes/templates are untouched |
-| `api/deps.py` | 45 | Engine singleton, config singleton, PAM auth |
-| `api/routes/system.py` | 78 | `/api/system/*` |
-| `api/routes/storage.py` | 84 | `/api/storage/*` |
+| `api/main.py` | 221 | FastAPI app, 10 page routes, first-run guard middleware, mounts community-module routes discovered below |
+| `api/module_discovery.py` | 120 | Community-module WebUI discovery — mirrors `module_loader.py` but only for modules with a `webui` manifest block; core routes/templates are untouched |
+| `api/deps.py` | 129 | Engine singleton, config singleton, PAM auth, administrator check |
+| `api/routes/system.py` | 148 | `/api/system/*` |
+| `api/routes/storage.py` | 427 | `/api/storage/*` — pools (incl. creation and cache/log devices), datasets, properties, snapshots, snapshot policies |
 | `api/routes/network.py` | 65 | `/api/network/interfaces*` |
-| `api/routes/users.py` | 68 | `/api/users/*` |
+| `api/routes/users.py` | 121 | `/api/users/*` |
 | `api/routes/shares.py` | 170 | `/api/shares/smb*` + `/api/shares/nfs*` |
-| `api/routes/updates.py` | 63 | `/api/updates/*` |
-| `api/routes/setup.py` | 136 | `/api/setup/*`, including the optional encrypted-`pool` field on `POST /api/setup/initialize` |
-| `websocket/terminal.py` | — | `/ws/updates/terminal` — **not yet created** |
+| `api/routes/updates.py` | 126 | `/api/updates/*` |
+| `api/routes/setup.py` | 191 | `/api/setup/*` — `detected_edition` in status, edition validated against the detected OS, optional encrypted-`pool` field on `POST /api/setup/initialize` |
+| `websocket/terminal.py` | 171 | `/ws/updates/terminal` — first-frame auth, administrator only, Topgrade streaming |
 
 **Frontend:**
 
 | File | Purpose |
 |------|---------|
 | `frontend/templates/base.html` | Layout: sidebar, topbar, SVG icon sprite |
-| `frontend/templates/login.html` | Login page |
-| `frontend/templates/setup/wizard.html` | 3-step first-run wizard |
+| `frontend/templates/index.html` | Redirect to `/dashboard/` |
+| `frontend/templates/auth.html` | Login page |
+| `frontend/templates/setup.html` | 3-step first-run wizard |
 | `frontend/templates/dashboard.html` | Stat cards + module health grid |
-| `frontend/templates/storage.html` | ZFS pools/datasets/snapshots |
+| `frontend/templates/storage.html` | ZFS pools (create, cache/log), datasets, properties, snapshots |
 | `frontend/templates/shares.html` | SMB/NFS shares management |
 | `frontend/templates/network.html` | Interface list + IP editing |
 | `frontend/templates/users.html` | User table + create/delete |
@@ -155,12 +157,11 @@ OS-specific file content remains in its Python — see
 | `frontend/static/css/main.css` | Complete CSS design system |
 | `frontend/static/js/main.js` | Shared utilities: api(), Auth, toast(), Theme, UILevel |
 | `frontend/static/js/auth.js` | Login form + PAM credential check |
-| `frontend/static/js/setup.js` | Wizard state machine |
+| `frontend/static/js/setup.js` | Wizard state machine, detected-edition preselection |
 | `frontend/static/js/dashboard.js` | System info + module health |
-| `frontend/static/js/storage.js` | Pool/dataset listing + snapshot CRUD (no pool-creation UI; see `keymgmt.py`/`setup.py` for how pools are created) |
+| `frontend/static/js/storage.js` | Pool creation, cache/log attach/detach, dataset properties, snapshot creation |
 | `frontend/static/js/shares.js` | SMB/NFS CRUD |
 | `frontend/static/js/network.js` | Interface list + IP modal |
 | `frontend/static/js/users.js` | User table + create/delete |
-| `frontend/static/js/updates.js` | Topgrade runner, status polling |
-| `frontend/static/js/terminal.js` | WebSocket terminal: connect, stream lines, display |
+| `frontend/static/js/updates.js` | Topgrade runner, status polling, WebSocket terminal |
 | `frontend/static/js/system.js` | Hostname save, reboot/shutdown |

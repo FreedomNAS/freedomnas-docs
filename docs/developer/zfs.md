@@ -149,14 +149,14 @@ Converting an *existing* unencrypted pool to encrypted is not supported —
 `PoolProvisioner` only handles pool creation, and the reconciler does not
 support pool modification at all (see the reconciler's constraints).
 
-!!! note "No first-run wizard UI yet"
-    `POST /api/setup/initialize` accepts an optional `pool` body field that
-    drives `PoolProvisioner` during first-run setup, but
-    `wizard.html`/`setup.js` have not been updated to expose it — there is
-    no button or step in the WebUI for creating an encrypted pool today.
-    Exercising this requires calling the API directly. See
-    [First-Run Setup](../getting-started/first-run.md) and
-    [Storage](../user-guide/storage.md).
+!!! note "Where encrypted pools are created"
+    Both `POST /api/storage/pools` (the **Storage → Create Pool** form, with
+    **Encrypt this pool** ticked) and the optional `pool` field of
+    `POST /api/setup/initialize` go through `PoolProvisioner`. The Storage
+    form only collects the Master Passphrase — the USB keyslot's
+    `usb_devices` is API-only — and the first-run wizard has no pool step at
+    all. See [Storage](../user-guide/storage.md#creating-a-pool) and
+    [First-Run Setup](../getting-started/first-run.md).
 
 ## Snapshots
 

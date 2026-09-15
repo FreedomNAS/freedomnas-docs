@@ -132,9 +132,14 @@ certificate is there.
 
 ## WebSocket Terminal
 
-The `/ws/updates/terminal` endpoint has no authentication check because browsers
-cannot set custom headers on WebSocket connections. This is an accepted limitation.
-The terminal only shows topgrade output — it cannot be used as an interactive shell.
+Browsers cannot set an `Authorization` header on a WebSocket, so
+`/ws/updates/terminal` takes the Basic credentials as its first frame
+(`{"auth": "<base64(user:pass)>"}`) and checks them with PAM and
+`is_administrator()` before anything runs: no frame within 10 seconds or bad
+credentials close with `4401`, a non-administrator with `4403`. The update
+then runs as that user (`su - {username}` in the profile). The terminal only
+shows Topgrade output — it cannot be used as an interactive shell. See
+[WebSocket Terminal](../api/websocket.md).
 
 ## Threat Model
 
@@ -144,6 +149,6 @@ The terminal only shows topgrade output — it cannot be used as an interactive 
 | Password exposure in logs/ps | `execute_with_stdin()` for all password operations |
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
 | Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
-| Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes |
+| Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes; administrator group required; first-frame auth on the updates WebSocket |
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |
 | XSS via Jinja2 | Jinja2 auto-escaping enabled (default) |

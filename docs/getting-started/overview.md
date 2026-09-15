@@ -68,8 +68,7 @@ If FreedomNAS packages are already installed on a running system, open the
 WebUI and complete the first-run wizard. It configures:
 
 - Hostname and timezone
-- OS edition (Debian, FreeBSD, Arch…)
-- Initial admin setup
+- OS edition — preselected from what the engine detected
 
 Use this after manually installing the `.deb` packages on an existing Debian
 system.

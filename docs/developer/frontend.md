@@ -11,7 +11,7 @@ All JS files live in `freedomnas-webui/frontend/static/js/`.
 | `auth.js` | `/auth/` (login) | Login form, credential validation, redirect logic |
 | `setup.js` | `/setup/` (wizard) | 3-step first-run wizard |
 | `dashboard.js` | `/dashboard/` | System info cards, update badge, module health grid |
-| `storage.js` | `/storage/` | ZFS pools/datasets/snapshots with tabbed view |
+| `storage.js` | `/storage/` | Pool creation, cache/log devices, dataset properties, snapshots — tabbed view |
 | `shares.js` | `/shares/` | SMB and NFS share management with tabbed view |
 | `users.js` | `/users/` | User list, add/delete with modal |
 | `network.js` | `/network/` | Interface list, static IP configuration modal |
@@ -123,13 +123,15 @@ spinner while loading, restores on done.
 Three-step wizard. No `initShared()` — runs unauthenticated.
 
 - **Step 1**: hostname (validated: letters/digits/hyphens) + timezone
-- **Step 2**: edition selector (`debian`/`freebsd`)
+- **Step 2**: edition selector (`debian`/`freebsd`/`arch`/`gentoo`/`artix`/`void`),
+  preselected from `detected_edition`; the hint under it shows `Detected: <edition>.`
 - **Step 3**: summary display → **Initialize** button calls
   `POST /api/setup/initialize` (no auth header) → shows success panel with
   link to `/auth/`
 
 On load: checks `GET /api/setup/status`; if already initialized, redirects
-to `/dashboard/`.
+to `/dashboard/`, otherwise preselects `detected_edition`. The review step
+shows the edition's label, not its id.
 
 ---
 
@@ -154,8 +156,20 @@ Tab-based view with three panels: **Pools**, **Datasets**, **Snapshots**.
   (colour: green <70%, orange <85%, red ≥85%)
 - **Datasets panel**: table with name, used, avail, refer, mountpoint
 - **Snapshots panel**: table with name, creation, used
-- **Create Snapshot** button (visible only on Snapshots tab): modal with
-  dataset datalist (pre-filled from loaded pools) and snapshot name input
+- The **Snapshots** tab and its **Create Snapshot** button are
+  `advanced-only`: modal with dataset datalist (pre-filled from loaded
+  pools) and snapshot name input, sent as `snap_name`
+- **Create Pool** button → `openPoolForm()`: loads `GET /api/storage/devices`,
+  greys out devices that are `in_use`, fills the cache/log selects with free
+  devices; the log select is `advanced-only`. `submitPool()` asks a final
+  `confirm()` listing the devices, then `POST /api/storage/pools`; a cache or
+  log device that failed to attach comes back as a warning toast
+- Pool cards (`advanced-only` block): attached cache/log devices with a
+  detach **×** (`DELETE /api/storage/pools/{pool}/devices?device=…`) and
+  **Add cache or log device** (`POST /api/storage/pools/{pool}/devices`)
+- Datasets panel **Properties** button (`advanced-only`) → modal built from
+  `GET /api/storage/properties` + the dataset's current values; each property
+  is gated by its `level`, `create_only` ones are left out
 
 ---
 
@@ -212,8 +226,10 @@ Tab-based view: **SMB** and **NFS**.
     - `{"exit_code": 0}` — update finished; re-poll status if success
 - Lines are classified by content (`error`/`fail` → red, `warn` → orange,
   `✓`/`success`/`done` → green, `==>` → info)
-- WebSocket terminal endpoint `api/websocket/terminal.py` is **not yet
-  implemented** — the button will fail to connect on current builds
+- On open, sends `{"auth": Auth.get()}` as the first frame — a WebSocket
+  carries no `Authorization` header. The server closes with `4401` (bad or
+  missing credentials) or `4403` (not an administrator); see
+  [WebSocket Terminal](../api/websocket.md)
 
 ---
 

@@ -163,12 +163,19 @@ into the pre-built image at build time. See
 
 ## Python Import Resolution
 
-The core is importable as `from freedomnas.engine import …` via a `.pth` file:
+The core lives in `/usr/lib/freedomnas/core`, on no interpreter's default
+path. Everything FreedomNAS starts puts it there itself: `firstboot.sh`,
+`supervisor.sh` (and so the WebUI) and the scheduled jobs in cron all set
+`PYTHONPATH=/usr/lib/freedomnas/core`. That holds on every edition and across
+Python upgrades — site-packages is `/usr/lib/python3/dist-packages` only on
+Debian, and elsewhere its name carries the Python version.
 
-```
-/usr/lib/python3/dist-packages/freedomnas-core.pth
-→ /usr/lib/freedomnas/core
-```
+For running `python3 -m freedomnas` by hand, the installer also writes
+`freedomnas-core.pth` into the directory the target's own `python3` reports
+(`python.site_dir` in the installer profile), and the packages do the same:
+`dh_python3` on Debian, `python_domodule` in the Gentoo overlay. After a
+Python upgrade on a rolling edition that file may be left in the old
+directory; the services are unaffected.
 
 In development, the engine searches for profiles in this order:
 

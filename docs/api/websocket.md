@@ -1,9 +1,7 @@
 # WebSocket Terminal
 
-!!! warning "Not yet implemented"
-    `api/websocket/terminal.py` has not been created. The endpoint is
-    specified here and the frontend (`terminal.js`) is ready, but the
-    Python handler is pending. See [WebUI Development](../developer/webui.md).
+Implemented in `freedomnas-webui/websocket/terminal.py` and consumed by
+`frontend/static/js/updates.js`.
 
 ## Endpoint
 
@@ -14,17 +12,34 @@ wss://<host>/ws/updates/terminal   (if TLS is terminated upstream)
 
 ## Authentication
 
-!!! note
-    This endpoint has no authentication check. Browsers cannot set custom
-    headers on WebSocket connections, making HTTP Basic Auth impossible.
-    This is a known limitation — the terminal only streams Topgrade output
-    and cannot accept input.
+Browsers cannot set an `Authorization` header on a WebSocket, so the client
+sends the same Basic blob the REST calls carry as its **first frame**:
+
+```json
+{"auth": "<base64(username:password)>"}
+```
+
+Nothing runs before that frame is checked:
+
+| Condition | Server sends | Close code |
+|-----------|--------------|------------|
+| No frame within 10 seconds, or a malformed one | `{"stream": "stderr", "line": "Authentication required"}` | `4401` |
+| PAM rejects the credentials | `{"stream": "stderr", "line": "Invalid credentials"}` | `4401` |
+| Valid account, not in the edition's admin group | `{"stream": "stderr", "line": "This account is not an administrator"}` | `4403` |
+
+The administrator check is the same `is_administrator()` that guards the REST
+routes — see [Security](../architecture/security.md#authentication-is-not-authorisation).
 
 ## Protocol
 
-### Server → Client Messages
+### Client → Server
 
-All messages are JSON objects:
+Only the authentication frame above. Nothing else is read; the terminal is
+not an interactive shell.
+
+### Server → Client
+
+All messages are JSON objects.
 
 **Output line:**
 
@@ -41,56 +56,44 @@ All messages are JSON objects:
 
 `exit_code` of `0` means success. Any other value means failure.
 
-### Client → Server
+## Behaviour
 
-The client sends no messages. The connection is unidirectional (server push only).
-
-## Implementation
-
-```python
-# websocket/terminal.py
-@app.websocket("/ws/updates/terminal")
-async def terminal(websocket: WebSocket):
-    await websocket.accept()
-
-    # Get command from profile (never hardcoded)
-    cmd = engine.get_command("updates", "run_topgrade")
-
-    # Pre-update snapshot if configured
-    if config.get("updates.topgrade.auto_snapshot"):
-        engine.execute("zfs", "create_snapshot", dataset="datapool", snapshot_name=f"pre-update-{date}")
-
-    # Stream via asyncio subprocess (not subprocess.run — blocking)
-    proc = await asyncio.create_subprocess_exec(
-        *shlex.split(cmd),
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-
-    # Read stdout and stderr concurrently, send each line as JSON
-    ...
-
-    await websocket.send_json({"exit_code": proc.returncode})
-```
+1. Authenticate the first frame (above)
+2. `engine.get_command("updates", "run_topgrade", username=<user>)` — the
+   profile wraps Topgrade in `su - {username}`, because Topgrade refuses to
+   run as root and calls `sudo` itself. A profile error, or a command
+   sequence instead of a single command, closes with `1011`
+3. If `updates.topgrade.auto_snapshot` is true (the default), take
+   `<pool>@pre-update-YYYYmmdd-HHMMSS` on every pool recorded in
+   `config.yaml` via `zfs.snapshot_create`, reporting each as a `stdout`
+   line. A failed snapshot is reported as a `stderr` warning and the update
+   still runs
+4. Launch the command with `asyncio.create_subprocess_exec`, stdin on
+   `/dev/null`
+5. Stream stdout and stderr line by line; both pipes keep being drained after
+   the client disconnects, so the update is never blocked halfway
+6. Send `{"exit_code": N}` and close
 
 ## JavaScript Consumer
 
 ```javascript
 // updates.js
 const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${proto}://${location.host}/ws/updates/terminal`);
+_ws = new WebSocket(`${proto}://${location.host}/ws/updates/terminal`);
 
-ws.onmessage = (ev) => {
+_ws.onopen = () => {
+    _ws.send(JSON.stringify({ auth: Auth.get() }));
+};
+
+_ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
     if (msg.exit_code !== undefined) {
-        showResult(msg.exit_code === 0 ? 'success' : 'failure');
+        done(msg.exit_code === 0);
         return;
     }
     const cls = msg.stream === 'stderr' ? 'err' : classifyLine(msg.line);
-    appendLine(terminalEl, cls, msg.line);
+    appendLine(termEl, cls, msg.line);
 };
-
-ws.onerror = () => toast('Connection to terminal lost', 'error');
 ```
 
 ## Constraints
@@ -99,3 +102,4 @@ ws.onerror = () => toast('Connection to terminal lost', 'error');
 - The command string always comes from `engine.get_command()` — never hardcoded
 - The process is launched with `asyncio.create_subprocess_exec` for non-blocking streaming
 - Lines are sent one by one as they are produced — no output buffering
+- A socket closed by the client mid-update is tolerated: the update runs to completion

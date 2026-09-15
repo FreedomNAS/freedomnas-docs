@@ -14,7 +14,8 @@ Returns whether the system has been initialized.
 ```json
 {
   "initialized": false,
-  "edition": null
+  "edition": null,
+  "detected_edition": "debian"
 }
 ```
 
@@ -23,9 +24,13 @@ After initialization:
 ```json
 {
   "initialized": true,
-  "edition": "debian"
+  "edition": "debian",
+  "detected_edition": "debian"
 }
 ```
+
+`detected_edition` is the profile the engine detected on the running system
+(`engine.os_type`). The wizard preselects it.
 
 ---
 
@@ -45,8 +50,11 @@ Run the first-run initialization.
 }
 ```
 
-`edition` is required (`debian` / `freebsd`). `hostname` defaults to
-`"freedomnas"`, `timezone` to `"UTC"`.
+`edition` is required and must be one of `engine.SUPPORTED_OS` (`debian`,
+`freebsd`, `arch`, `artix`, `void`, `gentoo`) **and** equal to the detected
+edition — the engine chooses profiles by detection, so a different value
+would only record a wrong label. `hostname` defaults to `"freedomnas"`,
+`timezone` to `"UTC"`.
 
 ### Optional: creating an encrypted pool during setup
 
@@ -92,14 +100,18 @@ API never returns a pool's passphrase; it is accepted only at creation time.
 3. `config.set_hostname(hostname)`
 4. `engine.execute("system", "timezone_set", timezone=...)`
 5. `config.set("system.timezone", timezone)`
-6. Writes Samba usershare stanza to `smb.conf` (path from `samba.config_file` profile key):
+6. Appends the Samba usershare stanza to `smb.conf` (`samba.config_file`) —
+   **only if** the file has no `usershare path` yet, which is the case when
+   the installer wrote a complete `smb.conf` (Arch, Artix, Gentoo):
    ```
    [global]
-      usershare path = /var/lib/samba/usershares
+      usershare path = <samba.usershare_path>
       usershare max shares = 100
       usershare allow guests = no
    ```
-7. Creates `/var/lib/samba/usershares/` directory
+7. Creates the usershare directory through the profile:
+   `samba.usershare_prepare` with `{path}` = `samba.usershare_path`
+   (`/var/lib/samba/usershares`, `/var/db/samba4/usershares` on FreeBSD)
 8. If `pool` was given: `PoolProvisioner.create_encrypted_pool(...)` creates
    the pool and provisions both keyslots, writing `freedomnas.key` to each
    `usb_devices` entry, then `config.add_pool({"name", "vdev_type",
@@ -122,7 +134,7 @@ API never returns a pool's passphrase; it is accepted only at creation time.
 | Code | Detail |
 |------|--------|
 | 409 | System already initialized |
-| 422 | `edition` is missing, or `pool` is invalid (missing `name`/`devices`, or `master_passphrase` shorter than 12 characters) — checked before anything is created |
+| 422 | `edition` is missing, unknown, or differs from the detected edition; or `pool` is invalid (missing `name`/`devices`, or `master_passphrase` shorter than 12 characters) — checked before anything is created |
 | 500 | Engine, config, or keyslot operation failed partway through (`CommandExecutionError`, `CommandTranslationError`, `ConfigurationException`, `KeyManagementError`) |
 
 !!! note
@@ -132,8 +144,8 @@ API never returns a pool's passphrase; it is accepted only at creation time.
     dashboard if `initialized` is `true` — so the wizard page is skipped
     entirely on installer-provisioned systems.
 
-!!! warning "No wizard UI yet"
-    `setup.js`/`wizard.html` still implement only the original 3 steps
-    (hostname/timezone/edition). There is no wizard UI for the `pool` field
-    yet — encrypted pool creation during setup can currently only be
-    exercised by calling this endpoint directly.
+!!! warning "No wizard UI for `pool`"
+    `setup.js`/`setup.html` implement only the 3 steps
+    (hostname/timezone/edition). The `pool` field can only be exercised by
+    calling this endpoint directly. After setup, pools are created from the
+    Storage page through [`POST /api/storage/pools`](storage.md).

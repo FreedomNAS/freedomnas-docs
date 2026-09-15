@@ -224,6 +224,12 @@ profile declares it, and a category's `early_services` go through
 daemon — and gets `dinitctl --offline enable {service_name}`; OpenRC's
 `rc-update add` already works offline.
 
+## `python`
+
+| Key | Notes |
+|-----|-------|
+| `site_dir` | Run in the target; prints the directory its `python3` loads `.pth` files from. The installer writes `freedomnas-core.pth` there, for `python3 -m freedomnas` by hand — the services set `PYTHONPATH` themselves. |
+
 ## `files`
 
 The **contents** of OS-specific files. A distro's `sources.list` or `rc.conf`

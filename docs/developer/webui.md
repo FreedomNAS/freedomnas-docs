@@ -14,10 +14,10 @@ api/
 ├── deps.py               Engine singleton, config singleton, PAM auth
 └── routes/               API route handlers (one file per domain) — core
                           modules only, untouched by module_discovery.py
-websocket/            (not yet created — see below)
-└── terminal.py       Topgrade streaming — pending
+websocket/
+└── terminal.py       Topgrade streaming — see WebSocket Terminal
 frontend/
-├── templates/        10 Jinja2 templates
+├── templates/        11 Jinja2 templates
 └── static/
     ├── css/main.css  Complete CSS design system
     ├── js/           10 JS modules
@@ -29,12 +29,10 @@ add its own routes, page, and static assets without any file above being
 edited — see [Orchestrator](../architecture/orchestrator.md) for the
 `manifest.json` schema shared with `freedomnas-core`'s `module_loader.py`.
 
-!!! warning "websocket/terminal.py not yet implemented"
-    `api/websocket/terminal.py` does not exist yet. The `/ws/updates/terminal`
-    endpoint is documented in [WebSocket Terminal](../api/websocket.md) and
-    referenced by `frontend/static/js/terminal.js`, but the Python handler has
-    not been created. The import `from websocket import terminal` in `main.py`
-    must be resolved before the WebUI can start.
+`websocket/terminal.py` serves `/ws/updates/terminal`, included by `main.py`
+with `app.include_router(terminal.router)` and consumed by `updates.js`. See
+[WebSocket Terminal](../api/websocket.md) for its first-frame authentication
+and protocol.
 
 ## CSS Design System
 
@@ -160,7 +158,8 @@ All authenticated pages extend `base.html`:
 {% endblock %}
 ```
 
-`setup/wizard.html` and `login.html` are standalone (no sidebar needed).
+`setup.html` and `auth.html` are standalone (no sidebar needed);
+`index.html` only redirects to `/dashboard/`.
 
 ## Template Variable Reference
 

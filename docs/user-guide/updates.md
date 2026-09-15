@@ -33,17 +33,21 @@ Click **Check for Updates** to refresh the count.
 
 The WebUI connects to the WebSocket terminal (`/ws/updates/terminal`) and
 streams Topgrade output line by line. You can see exactly what is being
-updated in real time.
+updated in real time. Only administrator accounts can run updates; Topgrade
+runs as the logged-in user and calls `sudo` for the steps that need it.
+
+If you close the tab, the update keeps running to completion on the server.
 
 When the update finishes, the terminal shows a success or failure status.
 
 ### Pre-Update Snapshots
 
-If **auto-snapshot** is enabled in the configuration, FreedomNAS creates a
-ZFS snapshot of your datasets before running Topgrade:
+If **auto-snapshot** is enabled in the configuration (the default),
+FreedomNAS snapshots every pool recorded in `config.yaml` before running
+Topgrade, and prints each snapshot in the terminal:
 
 ```
-datapool@pre-update-YYYYMMDD
+datapool@pre-update-YYYYmmdd-HHMMSS
 ```
 
 This gives you a rollback point if an update causes problems.

@@ -160,6 +160,12 @@ Create a pool.
 ```
 
 `vdev_type` is `""` (stripe), `mirror`, `raidz1`, `raidz2` or `raidz3`.
+With `encrypted`, an optional `usb_devices` list writes a `freedomnas.key`
+USB keyslot too — the WebUI form does not expose it. Unencrypted pools also
+accept `ashift` (default `12`) and `compression` (default `lz4`).
+
+This endpoint backs the **Storage → Create Pool** form
+(`storage.js` → `submitPool()`).
 
 This is the one operation in the WebUI that destroys what it touches, so it
 is deliberately literal:

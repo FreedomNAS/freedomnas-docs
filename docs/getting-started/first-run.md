@@ -27,19 +27,25 @@ Click **Continue** to proceed.
 
 ## Step 2 — Edition
 
-Select the operating system edition that matches the OS currently running
-on this machine.
+Confirm the operating system edition. The wizard preselects the edition the
+engine detected on this machine (`detected_edition` from
+`GET /api/setup/status`) and shows it under the selector.
 
-| Edition | Select if… |
-|---------|-----------|
-| **Debian** | Running Debian trixie or compatible |
-| **FreeBSD** | Running FreeBSD 14+ |
-| **Arch Linux** | Running Arch Linux or compatible |
+| Edition | Running |
+|---------|---------|
+| **Debian** | Debian trixie, or Ubuntu |
+| **FreeBSD** | FreeBSD 14+ |
+| **Arch Linux** | Arch Linux |
+| **Gentoo** | Gentoo |
+| **Artix Linux** | Artix Linux |
+| **Void Linux** | Void Linux |
 
-!!! warning
-    This selection determines which JSON profile FreedomNAS loads for all
-    system commands. Choosing the wrong edition will cause errors. This
-    setting cannot be changed without re-running setup.
+!!! note
+    The selection does **not** choose which JSON profile is loaded — the
+    engine detects the running OS by itself. The edition is recorded in
+    `config.yaml`, so it must match: `POST /api/setup/initialize` returns
+    `422` for an unknown edition or one that differs from the detected OS.
+    It cannot be changed without re-running setup.
 
 ## Step 3 — Review
 
@@ -53,18 +59,14 @@ The wizard calls `POST /api/setup/initialize`, which:
 3. Marks the system as initialized in `config.yaml`
 4. Saves the configuration to the `.freedomnas` ZFS dataset
 
-!!! note "Encrypted data pool creation is API-only for now"
+!!! note "Creating a data pool"
+    The wizard has no pool step. After setup, create pools from
+    **Storage → Create Pool** — see [Storage](../user-guide/storage.md#creating-a-pool).
     `POST /api/setup/initialize` also accepts an optional `pool` field that
-    creates an encrypted ZFS data pool (name, devices, a ≥12-character
+    creates an encrypted pool during setup (name, devices, a ≥12-character
     Master Passphrase, and optionally USB devices to write a zero-touch
-    unlock key onto) as part of setup — see
-    [Encrypted Data Pools](../developer/zfs.md#encrypted-pools). The wizard
-    shown here has **no step for it yet**: `wizard.html`/`setup.js` still
-    only cover the 3 steps above, and there is currently no way to create a
-    pool — encrypted or not — from the WebUI at all (`/api/storage/*` only
-    lists pools/datasets and manages snapshots). To create a data pool
-    today you must call `POST /api/setup/initialize` with a `pool` field
-    directly, before or during first-run setup.
+    unlock key onto) — see [Encrypted Data Pools](../developer/zfs.md#encrypted-pools).
+    That field is API-only: `setup.html`/`setup.js` do not expose it.
 
 ## Done
 

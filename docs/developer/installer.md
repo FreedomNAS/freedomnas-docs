@@ -84,6 +84,15 @@ and only then the rest (`rootpool.create_datasets`), each mounting on top of
 the root dataset. `freedomnas-image-builder/common/zfs-layout.sh` follows the
 same order.
 
+## Editions whose Samba ships no smb.conf
+
+Arch, Artix and Gentoo package Samba without `/etc/samba/smb.conf` (Gentoo
+installs only `smb.conf.default`); `smbd`, `nmbd` and `winbindd` then exit
+with code 1 at every boot. Their installer profiles declare
+`files.samba_conf`: a standalone-server `[global]` section that already
+carries the usershare settings the setup wizard would otherwise append.
+Debian and Void ship a default `smb.conf` and keep it.
+
 ## Disks that already carry a pool
 
 The disk menu shows, next to each disk, the pools found on it
