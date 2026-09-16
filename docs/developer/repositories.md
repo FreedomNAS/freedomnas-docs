@@ -67,10 +67,12 @@ When working on a specific repository:
 | `engine.py` | 78 | Backend switch: `FREEDOMNAS_ENGINE` picks Python or Nim, exception classes are shared |
 | `engine_py.py` | 891 | OS-agnostic command executor in pure Python — profile loader (base `os/` fragment + per-module merge); the reference implementation |
 | `engine_native.py` | 332 | The same API over the Nim engine; see [Core Engine](../architecture/engine.md#two-implementations) |
-| `nim/src/fnas/` | 560 | The Nim engine: detection, profile merge, formatting, shlex, execution |
+| `nim/src/fnas/` | 1560 | The Nim core: detection, profile merge, formatting, shlex, execution, and a PyYAML-compatible reader/writer for config.yaml |
 | `nim/src/freedomnas_native.nim` | 160 | nimpy exports, GIL released around every command |
-| `nim/src/freedomnas_cli.nim` | 128 | `freedomnas status`, `check` and `version`, no interpreter needed |
-| `config.py` | 686 | YAML configuration manager |
+| `nim/src/freedomnas_cli.nim` | 190 | `freedomnas status`, `check`, `config show\|check\|path` and `version`, no interpreter needed |
+| `config.py` | 65 | Backend switch: `FREEDOMNAS_CONFIG`, following `FREEDOMNAS_ENGINE` when unset |
+| `config_py.py` | 738 | YAML configuration manager on PyYAML — the reference implementation |
+| `config_native.py` | 150 | The same manager with the YAML end in Nim; see [Configuration Manager](../architecture/config.md#two-implementations) |
 | `reconcile.py` | 546 | Desired-vs-current diff + apply |
 | `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |

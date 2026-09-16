@@ -81,7 +81,7 @@ All three communicate with the core library — never directly with the OS.
 | Module | Responsibility |
 |--------|---------------|
 | `engine.py` | Chooses the engine backend; `engine_py.py` and `engine_native.py` translate abstract actions → OS commands via JSON profiles |
-| `config.py` | YAML configuration manager — shadow copy on ZFS dataset |
+| `config.py` | Chooses the config backend; `config_py.py` and `config_native.py` are the YAML configuration manager — shadow copy on ZFS dataset |
 | `reconcile.py` | Diff and apply changes (installer recovery mode, firstboot) |
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
 | `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
@@ -126,6 +126,8 @@ The profile layer has zero Python logic. It is pure data, split per module
 │       ├── engine_native.py
 │       ├── freedomnas_native.so   (built from nim/, FREEDOMNAS_ENGINE=native)
 │       ├── config.py
+│       ├── config_py.py
+│       ├── config_native.py
 │       ├── reconcile.py
 │       ├── keymgmt.py
 │       ├── orchestrator.py
