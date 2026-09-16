@@ -1,8 +1,75 @@
 # Core Engine
 
-`engine.py` is the heart of FreedomNAS. It translates abstract actions into
+The engine is the heart of FreedomNAS. It translates abstract actions into
 OS-specific shell commands using JSON profiles. It is implemented as a
 **thread-safe singleton**.
+
+It exists twice — once in Python, once in Nim — behind one import. See
+[Two implementations](#two-implementations) below; everything else on this
+page describes both.
+
+## Two implementations
+
+`engine.py` no longer holds the engine: it chooses which one answers.
+
+| File | What it is |
+|------|-----------|
+| `engine.py` | The import everything uses, and the backend switch |
+| `engine_py.py` | The engine in pure Python — the reference implementation |
+| `engine_native.py` | The Python side of the Nim engine: singleton, attributes, exception classes |
+| `nim/src/fnas/` | The Nim engine itself, compiled into `freedomnas_native.so` |
+
+`FREEDOMNAS_ENGINE` picks the backend, and `engine.BACKEND` reports which
+one is live:
+
+| Value | Engine |
+|-------|--------|
+| `python` (default) | `engine_py.py` |
+| `native` | `engine_native.py`; `ImportError` if the extension was not built |
+| `auto` | native when the extension is importable, Python otherwise |
+
+Why: the appliance runs Python only because the engine does. Moving the
+engine to Nim first is what eventually allows a boot path — `unlock-pools`,
+`firstboot.sh`, the initramfs — with no interpreter at all, and it removes
+a dependency that is packaged differently on all six editions. It does not
+make anything faster: the engine spends its time waiting for `zfs` and the
+package manager, not computing.
+
+The two are held to identical behaviour by `tests/test_engine_parity.py`,
+which runs every command of every shipped profile through both backends and
+compares results, exception classes and message text. The suite runs twice
+in CI, once per backend.
+
+!!! note "One recorded difference"
+    `list_actions()` on a profile key that is a string rather than a section
+    (`os_name`) raises `AttributeError` in the Python engine and returns
+    `[]` in the native one. Nothing in FreedomNAS asks a scalar for its
+    actions; the difference is asserted in the parity suite rather than
+    hidden.
+
+### What lives on which side
+
+Profile search paths and reading `/etc/os-release` stay in Python; parsing
+that file, resolving the distribution, merging profiles, formatting
+commands, splitting argv and running processes are all in Nim. The native
+engine releases the GIL while a command runs, so a long `zpool create` never
+blocks the WebUI's other threads — a parity test asserts exactly that.
+
+### Building it
+
+```bash
+cd nim && nimble native   # -> freedomnas_native.so in the package root
+cd nim && nimble cli      # -> nim/freedomnas, the native CLI
+```
+
+`nimble native` needs Nim ≥ 2.0, a C compiler and, the first time, network
+access to fetch nimpy. Both the Debian and Arch packages run it before
+building the wheel, which is why `freedomnas-core` is no longer an
+architecture-independent package.
+
+The native CLI currently answers `status`, `check` and `version`. Everything
+that needs `config.yaml` or the keyslots — `reconcile`, `unlock-pools`,
+`serve`, `snapshot-run` — is still `python -m freedomnas`.
 
 ## Responsibilities
 
