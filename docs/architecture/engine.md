@@ -67,6 +67,19 @@ access to fetch nimpy. Both the Debian and Arch packages run it before
 building the wheel, which is why `freedomnas-core` is no longer an
 architecture-independent package.
 
+Both tasks build with `--tlsEmulation:off --passC:"-ftls-model=global-dynamic"`
+(see `nim/freedomnas.nimble`), needed for correctness, not performance: a
+thread the host process creates — `asyncio.to_thread`, `threading.Thread`,
+which the WebUI uses for `reconcile()` — and not Nim itself will segfault
+the first time it calls into the native engine, reliably once the process
+has done enough allocator activity (one scrypt-sized keyslot wrap is
+enough — see [Security](security.md#encrypted-pool-keyslots)), with
+either flag missing. Nim's emulated TLS only registers threads Nim
+creates; native TLS with the default (`initial-exec`) model assumes a
+static block that a `dlopen`'d library's late threads cannot always reach.
+`global-dynamic` resolves through `__tls_get_addr()` instead and has no
+such gap.
+
 The native CLI currently answers `status`, `check`, `config show|check|path`,
 `snapshot-run <interval>`, `shadow-sync` and `version`. Everything that
 needs the keyslots or the module runtime — `reconcile`, `unlock-pools`,

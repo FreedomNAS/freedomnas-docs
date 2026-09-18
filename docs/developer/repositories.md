@@ -67,8 +67,8 @@ When working on a specific repository:
 | `engine.py` | 78 | Backend switch: `FREEDOMNAS_ENGINE` picks Python or Nim, exception classes are shared |
 | `engine_py.py` | 891 | OS-agnostic command executor in pure Python — profile loader (base `os/` fragment + per-module merge); the reference implementation |
 | `engine_native.py` | 332 | The same API over the Nim engine; see [Core Engine](../architecture/engine.md#two-implementations) |
-| `nim/src/fnas/` | 2256 | The Nim core: detection, profile merge, formatting, shlex, execution, scheduled snapshots, pool cache/log attachment, the configuration's shadow copy, the reconciliation engine, and a PyYAML-compatible reader/writer for config.yaml |
-| `nim/src/freedomnas_native.nim` | 279 | nimpy exports, GIL released around every command |
+| `nim/src/fnas/` | 2728 | The Nim core: detection, profile merge, formatting, shlex, execution, scheduled snapshots, pool cache/log attachment, the configuration's shadow copy, the reconciliation engine, encrypted-pool keyslots, and a PyYAML-compatible reader/writer for config.yaml |
+| `nim/src/freedomnas_native.nim` | 353 | nimpy exports, GIL released around every command |
 | `nim/src/freedomnas_cli.nim` | 227 | `freedomnas status`, `check`, `config show\|check\|path`, `snapshot-run <interval>`, `shadow-sync` and `version`, no interpreter needed |
 | `config.py` | 65 | Backend switch: `FREEDOMNAS_CONFIG`, following `FREEDOMNAS_ENGINE` when unset |
 | `config_py.py` | 738 | YAML configuration manager on PyYAML — the reference implementation |
@@ -85,7 +85,9 @@ When working on a specific repository:
 | `reconcile.py` | 82 | Backend switch: `FREEDOMNAS_RECONCILE`, following `FREEDOMNAS_ENGINE` when unset |
 | `reconcile_py.py` | 600 | Desired-vs-current diff + apply, pure Python — the reference implementation |
 | `reconcile_native.py` | 76 | Same public API (`reconcile()` only — `_do_*`/`_apply_*` stay internal); diff/apply logic runs in Nim, calling the native engine's handle directly |
-| `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
+| `keymgmt.py` | 110 | Backend switch: `FREEDOMNAS_KEYMGMT`, following `FREEDOMNAS_ENGINE` when unset |
+| `keymgmt_py.py` | 456 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped) on `hashlib.scrypt` + `cryptography`'s AESGCM — the reference implementation; `python -m freedomnas unlock-pools` |
+| `keymgmt_native.py` | 136 | Same public API; scrypt/AES-256-GCM wrapping, keyslot persistence, discovery, USB/TTY unlock and provisioning all run in Nim, calling the native engine's handle directly |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
 | `package_manager.py` | 186 | Abstract package install/remove |

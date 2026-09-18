@@ -66,6 +66,19 @@ tampered or mismatched slot fails authentication (`SlotUnavailableError`)
 rather than silently returning a wrong key, and compromising one slot never
 exposes the other slot or the pool key.
 
+**Two implementations.** Like the [engine](engine.md#two-implementations),
+`keymgmt.py` exists twice: `keymgmt_py.py` wraps with `hashlib.scrypt` +
+`cryptography`'s `AESGCM` (above); `keymgmt_native.py` is the Python side
+of `nim/src/fnas/keymgmt.nim`, which wraps with `nimcrypto`'s scrypt
+(RFC 7914) and AES-256-GCM (NIST SP 800-38D) instead — chosen, and
+cross-checked byte-for-byte in `tests/test_keymgmt_parity.py`, specifically
+*because* both sides implement the same public, deterministic standards:
+a keyslot wrapped by one engine has to open with the other, since a pool
+created under one and booted under the other is an ordinary scenario, not
+an edge case. `FREEDOMNAS_KEYMGMT` (falling back to `FREEDOMNAS_ENGINE`)
+picks between them; the native side calls the native engine's handle
+directly, so it only makes sense paired with it.
+
 At boot, `PoolUnlocker` (invoked by `python -m freedomnas unlock-pools` from
 `firstboot.sh`) tries the USB slot first and falls back to the passphrase
 slot only if no USB key matches. The passphrase prompt disables local echo
