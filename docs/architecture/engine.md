@@ -78,7 +78,12 @@ either flag missing. Nim's emulated TLS only registers threads Nim
 creates; native TLS with the default (`initial-exec`) model assumes a
 static block that a `dlopen`'d library's late threads cannot always reach.
 `global-dynamic` resolves through `__tls_get_addr()` instead and has no
-such gap.
+such gap. `tests/test_native_threads.py` keeps it that way: it drives the
+engine, the configuration and key management from `threading.Thread` and
+`asyncio.to_thread` after scrypt-sized allocations, in a child interpreter
+so a crash fails the test rather than the suite. The segfault does not
+reproduce on every system (not on glibc 2.43 / GCC 15), so a green run
+there proves less than one on the machine where it was found.
 
 The native CLI currently answers `status`, `check`, `config show|check|path`,
 `snapshot-run <interval>`, `shadow-sync` and `version`. Everything that
@@ -95,10 +100,35 @@ reference implementations, `snapshots_native.py`/`pools_native.py`/
 `FREEDOMNAS_ENGINE`) pick between them. All three native sides call the
 native engine's handle directly — `engine._handle` — rather than going
 through `engine.execute()`, so none of them makes sense without the native
-engine. `tests/test_snapshots_parity.py`, `tests/test_pools_parity.py` and
+engine.
+
+!!! note "Native modules follow the engine back"
+    The modules whose logic runs in Nim — snapshots, pools, shadow,
+    reconcile, key management — switch to their Python implementation
+    whenever `FREEDOMNAS_ENGINE` is not `native`, whatever their own
+    variable says (with a warning if it said `native`). Setting
+    `FREEDOMNAS_ENGINE=python` is therefore always a complete rollback. The
+    opposite direction works too: under the native engine, any single
+    module can be pinned back with `FREEDOMNAS_<MODULE>=python`. Native code
+    handed a Python engine anyway raises a `TypeError` naming the problem
+    (`engine_native.native_handle()`). `tests/test_backend_selection.py`
+    checks every combination. `tests/test_snapshots_parity.py`, `tests/test_pools_parity.py` and
 `tests/test_shadow_parity.py` hold each pair to identical behaviour against
 a throwaway "zfs" profile whose actions read and write a plain file instead
 of talking to real ZFS.
+
+### Running the tests
+
+`tests/conftest.py` removes any installed `freedomnas-core` from
+`sys.path` before the tests import anything. Every module imports its
+siblings as `freedomnas.<name>` first; with `/usr/lib/freedomnas/core` on
+the path that finds the *installed* copy, whose exception classes are not
+the ones the tests raise — parity tests then fail or pass depending on what
+the machine has installed.
+
+CI runs the suite on pure Python, on Nim, on Nim with each module pinned
+back to Python in turn, and on the Python engine with every module asking
+for Nim.
 
 ## Responsibilities
 

@@ -87,6 +87,22 @@ answers in time, `unlock-pools` **fails open**: it logs a warning and returns
 non-zero, but `firstboot.sh` still boots the WebUI rather than blocking
 indefinitely — the pool simply stays locked until unlocked manually.
 
+The timeout bounds the *wait for input* itself (`select`/`poll` on the tty
+for the time remaining), not only the gap between attempts. Until
+2026-09-18 it did not: with nobody at the console the read never returned,
+and a headless appliance with a locked pool and no USB key stopped at
+`unlock-pools` for good. `test_tty_unlock_gives_up_when_nobody_answers` and
+its parity twin guard it.
+
+**Key material.** Raw keys, USB keys, salts and nonces come from the system
+RNG, and the native engine refuses to continue (`OSError`, as `os.urandom`
+does) if it delivers fewer bytes than asked — nimcrypto reports that with a
+short count rather than an exception, and on FreeBSD it reads
+`/dev/urandom`, which a chroot or jail without devfs does not have. Key
+files are written until every byte is out, and shredding unlinks the file
+even when the overwrite fails. The native engine also zeroes raw keys, USB
+keys, passphrases, wrapping keys and scrypt's working buffers once done.
+
 Secret material for the passphrase path never appears in argv or a
 subprocess pipe. The only place the unwrapped raw key ever touches disk is a
 `0600` file under `/run/freedomnas/` (tmpfs), written just long enough for

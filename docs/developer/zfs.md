@@ -137,7 +137,8 @@ passphrase prompt on `/dev/console` (local echo disabled), retrying for up
 to `--tty-timeout` seconds (default 300). If nobody answers in time,
 `unlock-pools` **fails open**: it logs a warning and returns non-zero, but
 boot continues to the WebUI with the pool left locked, rather than blocking
-indefinitely.
+indefinitely. The timeout bounds the wait for input itself, so a console
+nobody sits at fails open too — see [Security](../architecture/security.md).
 
 **Never** wrap or unwrap a keyslot with anything other than
 `keymgmt.wrap_key()`/`unwrap_key()`. No XOR, no unauthenticated ciphers, no

@@ -17,16 +17,30 @@ disaster-recovery order and every `_do_*` atomic call) and
 `reconcile_native.py` (the Python side of `nim/src/fnas/reconcile.nim`,
 where that same logic runs). `reconcile.py` picks between them —
 `FREEDOMNAS_RECONCILE`, following `FREEDOMNAS_ENGINE` when unset — and
-`tests/test_reconcile_parity.py` holds `reconcile()`'s output to identical
-behaviour end to end.
+`tests/test_reconcile_parity.py` holds the two to identical behaviour:
+`reconcile()` end to end (including seeded random current/desired pairs,
+compared in order), `compute_diff()` over a seeded corpus of random states,
+and `load_desired()`.
 
-The native side implements `reconcile()` alone — the internal
-`compute_diff`/`_do_*` split is pure-Python-only plumbing that nothing
-outside `reconcile_py.py` calls directly — and it calls the native engine's
-handle directly, so it only makes sense paired with the native engine.
-Either way, callers get back the same `ActionResult` objects
-(`reconcile_native.py` converts the native reply back into them), so
-`r.target_state`/`r.error` read identically regardless of backend.
+The native side implements the whole public API — `reconcile()`,
+`compute_diff()` and `load_desired()`; only the internal `_do_*` split is
+Python-only. `reconcile()` drives the native engine's handle, so under
+`FREEDOMNAS_ENGINE=python` `reconcile.py` uses the Python reconciler
+whatever `FREEDOMNAS_RECONCILE` says. Either way, callers get back the same
+`ActionResult` and `Change` objects, so `r.target_state`/`r.error` read
+identically regardless of backend.
+
+Group membership changes are applied in **sorted** order by both. The
+Python reconciler used to iterate a set difference, whose order depends on
+the interpreter's hash seed — the same run could add a user to `sudo` and
+`samba` in either order.
+
+!!! note "One recorded difference"
+    A users or shares entry without its key (`username`, `name`), or a
+    section that is `null`, makes the Python reconciler stop with whatever
+    Python error it hits first (`KeyError`, `TypeError`,
+    `AttributeError`); the native one leaves that entry out. Neither can
+    come from a `config.yaml` the managers wrote.
 
 ## Three Modes
 
