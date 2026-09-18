@@ -3,6 +3,18 @@
 Cron decides *when*, `config.yaml` decides *what*, and
 `freedomnas-core/snapshots.py` does the work.
 
+## Two implementations
+
+Like the [engine](engine.md#two-implementations), the scheduler exists
+twice: `snapshots_py.py` (pure Python, the reference) and
+`snapshots_native.py` (the Python side of `nim/src/fnas/snapshots.nim`,
+calling the native engine's handle directly). `snapshots.py` picks between
+them — `FREEDOMNAS_SNAPSHOTS`, following `FREEDOMNAS_ENGINE` when unset —
+and `tests/test_snapshots_parity.py` holds them to identical behaviour.
+
+Paired with the native engine, the whole job also runs with no Python
+interpreter at all: `freedomnas snapshot-run <hourly|daily|weekly|monthly>`.
+
 ## Why cron
 
 The scheduler computes nothing about time: four cron entries, one per

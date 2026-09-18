@@ -67,9 +67,20 @@ access to fetch nimpy. Both the Debian and Arch packages run it before
 building the wheel, which is why `freedomnas-core` is no longer an
 architecture-independent package.
 
-The native CLI currently answers `status`, `check` and `version`. Everything
-that needs `config.yaml` or the keyslots — `reconcile`, `unlock-pools`,
-`serve`, `snapshot-run` — is still `python -m freedomnas`.
+The native CLI currently answers `status`, `check`, `config show|check|path`,
+`snapshot-run <interval>` and `version`. Everything that needs the keyslots
+or the module runtime — `reconcile`, `unlock-pools`, `serve` — is still
+`python -m freedomnas`.
+
+Scheduled snapshots (`snapshots.py`) follow the engine's own split:
+`snapshots_py.py` is the reference implementation, `snapshots_native.py` is
+the Python side of `fnas/snapshots.nim`, and `FREEDOMNAS_SNAPSHOTS` (falling
+back to `FREEDOMNAS_ENGINE`) picks between them. The native scheduler calls
+the native engine's handle directly — `engine._handle` — rather than going
+through `engine.execute()`, so it only makes sense paired with the native
+engine. `tests/test_snapshots_parity.py` holds both to identical behaviour
+against a throwaway "zfs" profile whose snapshot actions read and write a
+plain file instead of talking to real ZFS.
 
 ## Responsibilities
 
