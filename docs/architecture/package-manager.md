@@ -5,6 +5,26 @@ IDs and OS-specific package names. It reads JSON category files from the
 `freedomnas-profiles/packages/` directory and exposes them as a structured
 API — it never calls `apt` or `pkg` directly.
 
+## Two implementations
+
+Like the [engine](engine.md#two-implementations), it exists twice:
+`package_manager_py.py` (pure Python, the reference) and
+`package_manager_native.py` (the Python side of `nim/src/fnas/packages.nim`,
+where MANIFEST.json and category JSON reading/querying run instead).
+`package_manager.py` picks between them — `FREEDOMNAS_PACKAGES`, following
+`FREEDOMNAS_ENGINE` when unset — and `tests/test_package_manager_parity.py`
+holds them to identical behaviour, against the real
+`freedomnas-profiles/packages/` tree rather than a throwaway fixture: the
+manifest/category shape *is* the contract.
+
+Unlike every other ported module, the native side opens no engine handle:
+this is pure, read-only JSON navigation with no `engine.execute()` call
+anywhere in it, so it works under either engine backend, or with none open
+yet. Resolving the default `packages_dir` (installed path, then the dev-tree
+sibling checkout) stays in Python on both sides — it depends on where the
+*Python module* lives, which has no Nim equivalent, the same reasoning that
+keeps the profile search path out of the engine's own Nim side.
+
 ## Class Overview
 
 ```python

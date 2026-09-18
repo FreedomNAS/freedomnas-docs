@@ -67,8 +67,8 @@ When working on a specific repository:
 | `engine.py` | 78 | Backend switch: `FREEDOMNAS_ENGINE` picks Python or Nim, exception classes are shared |
 | `engine_py.py` | 891 | OS-agnostic command executor in pure Python — profile loader (base `os/` fragment + per-module merge); the reference implementation |
 | `engine_native.py` | 332 | The same API over the Nim engine; see [Core Engine](../architecture/engine.md#two-implementations) |
-| `nim/src/fnas/` | 2728 | The Nim core: detection, profile merge, formatting, shlex, execution, scheduled snapshots, pool cache/log attachment, the configuration's shadow copy, the reconciliation engine, encrypted-pool keyslots, and a PyYAML-compatible reader/writer for config.yaml |
-| `nim/src/freedomnas_native.nim` | 353 | nimpy exports, GIL released around every command |
+| `nim/src/fnas/` | 2889 | The Nim core: detection, profile merge, formatting, shlex, execution, scheduled snapshots, pool cache/log attachment, the configuration's shadow copy, the reconciliation engine, encrypted-pool keyslots, package/category lookup, and a PyYAML-compatible reader/writer for config.yaml |
+| `nim/src/freedomnas_native.nim` | 427 | nimpy exports, GIL released around every command |
 | `nim/src/freedomnas_cli.nim` | 227 | `freedomnas status`, `check`, `config show\|check\|path`, `snapshot-run <interval>`, `shadow-sync` and `version`, no interpreter needed |
 | `config.py` | 65 | Backend switch: `FREEDOMNAS_CONFIG`, following `FREEDOMNAS_ENGINE` when unset |
 | `config_py.py` | 738 | YAML configuration manager on PyYAML — the reference implementation |
@@ -90,7 +90,9 @@ When working on a specific repository:
 | `keymgmt_native.py` | 136 | Same public API; scrypt/AES-256-GCM wrapping, keyslot persistence, discovery, USB/TTY unlock and provisioning all run in Nim, calling the native engine's handle directly |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
-| `package_manager.py` | 186 | Abstract package install/remove |
+| `package_manager.py` | 63 | Backend switch: `FREEDOMNAS_PACKAGES`, following `FREEDOMNAS_ENGINE` when unset |
+| `package_manager_py.py` | 217 | Reads MANIFEST.json and per-category JSON from freedomnas-profiles/packages/ — the reference implementation |
+| `package_manager_native.py` | 132 | Same public API; JSON navigation runs in Nim — the one ported module needing no engine handle at all, since it never calls `engine.execute()` |
 | `modules/storage/` | 71 (`module.py`) | ZFS pool health check — `{module.py, manifest.json, __init__.py}` |
 | `modules/network/` | 57 (`module.py`) | Interface availability check — same layout |
 | `modules/shares/` | 81 (`module.py`) | SMB/NFS service health check — same layout |
