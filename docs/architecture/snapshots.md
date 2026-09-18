@@ -83,6 +83,11 @@ The same cron file carries one more job, nightly:
 30 3 * * *  root  python3 -m freedomnas shadow-sync
 ```
 
+Like the scheduler, `shadow.py` exists twice — `shadow_py.py` (pure Python)
+and `shadow_native.py` (the Python side of `nim/src/fnas/shadow.nim`),
+picked by `FREEDOMNAS_SHADOW` — and paired with the native engine the job
+also runs with no interpreter at all: `freedomnas shadow-sync`.
+
 `config.yaml` is a backup of the system state, and a backup that lives only
 on the OS disk is not one. Every pool gets a `<pool>/.freedomnas` dataset —
 the installer makes it for the root pool, `shadow.ensure_dataset()` makes it

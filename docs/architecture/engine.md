@@ -68,21 +68,24 @@ building the wheel, which is why `freedomnas-core` is no longer an
 architecture-independent package.
 
 The native CLI currently answers `status`, `check`, `config show|check|path`,
-`snapshot-run <interval>` and `version`. Everything that needs the keyslots
-or the module runtime — `reconcile`, `unlock-pools`, `serve` — is still
-`python -m freedomnas`.
+`snapshot-run <interval>`, `shadow-sync` and `version`. Everything that
+needs the keyslots or the module runtime — `reconcile`, `unlock-pools`,
+`serve` — is still `python -m freedomnas`.
 
-Scheduled snapshots (`snapshots.py`) and pool cache/log attachment
-(`pools.py`) follow the engine's own split: `snapshots_py.py`/`pools_py.py`
-are the reference implementations, `snapshots_native.py`/`pools_native.py`
-are the Python side of `fnas/snapshots.nim`/`fnas/pools.nim`, and
-`FREEDOMNAS_SNAPSHOTS`/`FREEDOMNAS_POOLS` (each falling back to
-`FREEDOMNAS_ENGINE`) pick between them. Both native sides call the native
-engine's handle directly — `engine._handle` — rather than going through
-`engine.execute()`, so neither makes sense without the native engine.
-`tests/test_snapshots_parity.py` and `tests/test_pools_parity.py` hold each
-pair to identical behaviour against a throwaway "zfs" profile whose actions
-read and write a plain file instead of talking to real ZFS.
+Scheduled snapshots (`snapshots.py`), pool cache/log attachment
+(`pools.py`) and the configuration's shadow copy (`shadow.py`) follow the
+engine's own split: `snapshots_py.py`/`pools_py.py`/`shadow_py.py` are the
+reference implementations, `snapshots_native.py`/`pools_native.py`/
+`shadow_native.py` are the Python side of `fnas/snapshots.nim`/
+`fnas/pools.nim`/`fnas/shadow.nim`, and `FREEDOMNAS_SNAPSHOTS`/
+`FREEDOMNAS_POOLS`/`FREEDOMNAS_SHADOW` (each falling back to
+`FREEDOMNAS_ENGINE`) pick between them. All three native sides call the
+native engine's handle directly — `engine._handle` — rather than going
+through `engine.execute()`, so none of them makes sense without the native
+engine. `tests/test_snapshots_parity.py`, `tests/test_pools_parity.py` and
+`tests/test_shadow_parity.py` hold each pair to identical behaviour against
+a throwaway "zfs" profile whose actions read and write a plain file instead
+of talking to real ZFS.
 
 ## Responsibilities
 
