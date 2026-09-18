@@ -72,15 +72,17 @@ The native CLI currently answers `status`, `check`, `config show|check|path`,
 or the module runtime — `reconcile`, `unlock-pools`, `serve` — is still
 `python -m freedomnas`.
 
-Scheduled snapshots (`snapshots.py`) follow the engine's own split:
-`snapshots_py.py` is the reference implementation, `snapshots_native.py` is
-the Python side of `fnas/snapshots.nim`, and `FREEDOMNAS_SNAPSHOTS` (falling
-back to `FREEDOMNAS_ENGINE`) picks between them. The native scheduler calls
-the native engine's handle directly — `engine._handle` — rather than going
-through `engine.execute()`, so it only makes sense paired with the native
-engine. `tests/test_snapshots_parity.py` holds both to identical behaviour
-against a throwaway "zfs" profile whose snapshot actions read and write a
-plain file instead of talking to real ZFS.
+Scheduled snapshots (`snapshots.py`) and pool cache/log attachment
+(`pools.py`) follow the engine's own split: `snapshots_py.py`/`pools_py.py`
+are the reference implementations, `snapshots_native.py`/`pools_native.py`
+are the Python side of `fnas/snapshots.nim`/`fnas/pools.nim`, and
+`FREEDOMNAS_SNAPSHOTS`/`FREEDOMNAS_POOLS` (each falling back to
+`FREEDOMNAS_ENGINE`) pick between them. Both native sides call the native
+engine's handle directly — `engine._handle` — rather than going through
+`engine.execute()`, so neither makes sense without the native engine.
+`tests/test_snapshots_parity.py` and `tests/test_pools_parity.py` hold each
+pair to identical behaviour against a throwaway "zfs" profile whose actions
+read and write a plain file instead of talking to real ZFS.
 
 ## Responsibilities
 
