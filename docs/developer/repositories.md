@@ -133,13 +133,20 @@ OS-specific file content remains in its Python — see
 | `api/routes/system.py` | 148 | `/api/system/*` |
 | `api/routes/storage.py` | 427 | `/api/storage/*` — pools (incl. creation and cache/log devices), datasets, properties, snapshots, snapshot policies |
 | `api/routes/network.py` | 65 | `/api/network/interfaces*` |
-| `api/routes/users.py` | 121 | `/api/users/*` |
+| `api/routes/users.py` | 143 | `/api/users/*` — refuses line breaks in passwords and `:` in usernames before chpasswd sees them |
 | `api/routes/shares.py` | 170 | `/api/shares/smb*` + `/api/shares/nfs*` |
 | `api/routes/updates.py` | 126 | `/api/updates/*` |
 | `api/routes/setup.py` | 191 | `/api/setup/*` — `detected_edition` in status, edition validated against the detected OS, optional encrypted-`pool` field on `POST /api/setup/initialize` |
 | `websocket/terminal.py` | 171 | `/ws/updates/terminal` — first-frame auth, administrator only, Topgrade streaming |
 
-**Frontend:**
+**Tests** (`python3 -m pytest tests/`, needs `fastapi`, `uvicorn` and the
+sibling `freedomnas-core` checkout — not `httpx`, not `python-pam`):
+
+| File | Covers |
+|------|--------|
+| `tests/conftest.py` | The real app served by uvicorn on a free local port, in front of a MagicMock engine and a fake PAM. PAM is replaced even where python-pam is installed, so no test authenticates against the host's accounts, and no command reaches the machine |
+| `tests/test_auth.py` | 401 without or with wrong credentials, 403 outside the admin group, the five-failure lockout (per account), the first-run 503 |
+| `tests/test_users.py` | Line breaks in passwords and `:` in usernames refused before the engine is asked anything; the password travels on stdin as one line, never in argv or `config.yaml` |
 
 | File | Purpose |
 |------|---------|
