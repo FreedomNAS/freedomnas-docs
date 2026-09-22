@@ -201,7 +201,7 @@ inside the profile.
 
 | Key | Command |
 |-----|---------|
-| `run_topgrade` | Run Topgrade with FreedomNAS config |
+| `run_topgrade` | Run Topgrade with FreedomNAS config, `--yes` and all: stdin is `/dev/null`, so a prompt is a failed update |
 | `list_updatable` | Count pending updates |
 | `check_topgrade` | Verify Topgrade is installed |
 

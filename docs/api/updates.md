@@ -45,22 +45,44 @@ Write a new Topgrade configuration.
 
 ```toml
 [misc]
-assume_yes = false
-disable_tmux = true
+assume_yes = true
 no_retry = true
-
-[unstable]
+run_in_tmux = false
+skip_notify = true
 only = ["system", "containers", "firmware"]
-
-[notifications]
-enable = false
 ```
+
+Every key has to be one topgrade knows: it rejects the whole file over a
+single unknown field and falls back to its defaults without saying so, which
+is how `disable_tmux`, `[unstable]` and `[notifications]` used to cost us the
+`only` list. An edition may append its own section through
+`updates.topgrade_extra_config` — Gentoo does, because the default
+`emerge_update_flags` carry `-a`.
 
 **Response:**
 
 ```json
 {"detail": "Topgrade configured", "enabled_steps": ["system", "containers", "firmware"]}
 ```
+
+---
+
+## topgrade itself
+
+!!! warning "Not every edition packages topgrade"
+    `packages/core.json` installs `topgrade` on Arch, Artix (from
+    Chaotic-AUR — it is not in the official repositories) and Void. Debian
+    and Gentoo do not package it at all, and FreeBSD has not been checked, so
+    on those editions the Updates page has nothing to run until topgrade is
+    installed by hand. `updates.check_topgrade` is what tells them apart.
+
+`updates.run_topgrade` passes `--yes` on the command line as well as writing
+`assume_yes` into the configuration. The WebSocket handler gives the process
+`/dev/null` as stdin, so a package manager that stops to ask anything fails
+the whole run: on Arch and Artix an unconfigured system ended at
+`:: Proceed with installation? [Y/n]` and reported
+`` Command failed: `/usr/bin/sudo /usr/bin/pacman -Syu` ``. The flag holds
+whether or not `/etc/freedomnas/topgrade.toml` has been written yet.
 
 ---
 
