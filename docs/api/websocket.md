@@ -10,6 +10,17 @@ wss://<host>:8080/ws/updates/terminal
 wss://<host>/ws/updates/terminal   (if TLS is terminated upstream)
 ```
 
+!!! warning "uvicorn needs a WebSocket library"
+    uvicorn speaks HTTP by itself; the WebSocket protocol comes from a
+    separate package (`websockets`). Without it the upgrade request is never
+    turned into a WebSocket connection: it reaches the app as a plain `GET`,
+    matches no HTTP route, and the browser is told `404 {"detail":"Not
+    Found"}` — which the page reports as `WebSocket connection error` while
+    every other part of the WebUI works. The package is therefore named in
+    `requirements.txt`, `debian/control`, the PKGBUILD, the Gentoo ebuild and
+    `packages/core.json` (`python-websockets`, `python3-websockets`,
+    `py312-websockets`, `dev-python/websockets` depending on the edition).
+
 ## Authentication
 
 Browsers cannot set an `Authorization` header on a WebSocket, so the client
