@@ -123,7 +123,11 @@ spinner while loading, restores on done.
 
 Three-step wizard. No `initShared()` — runs unauthenticated.
 
-- **Step 1**: hostname (validated: letters/digits/hyphens) + timezone
+- **Step 1**: hostname (validated: letters/digits/hyphens) + timezone, a
+  `<select>` filled by `fillTimezones()` from `Intl.supportedValuesOf('timeZone')`
+  and preselected with the browser's own zone. Not a `<datalist>`: it filters
+  by what the field already holds, so a field starting at `UTC` offered nothing
+  else
 - **Step 2**: edition selector (`debian`/`freebsd`/`arch`/`gentoo`/`artix`/`void`),
   preselected from `detected_edition`; the hint under it shows `Detected: <edition>.`
 - **Step 3**: summary display → **Initialize** button calls

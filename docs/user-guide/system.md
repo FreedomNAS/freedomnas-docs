@@ -22,11 +22,15 @@ no spaces.
 
 Change the timezone:
 
-1. Start typing in the **Timezone** field (autocomplete suggestions appear)
-2. Select an IANA timezone identifier (e.g. `Europe/Rome`, `America/New_York`)
-3. Click **Save**
+1. Open the **Timezone** list — it holds every IANA zone the browser knows,
+   with the one the system currently reports preselected. Typing a few
+   letters jumps to it (e.g. `Europe/R` for `Europe/Rome`).
+2. Click **Save**
 
-The change applies via `timedatectl set-timezone` and is persisted to `config.yaml`.
+!!! warning "Not applied yet"
+    There is no timezone endpoint after setup yet: **Save** does not change
+    the system timezone. The timezone chosen in the setup wizard is applied
+    (`timedatectl set-timezone`) and recorded in `config.yaml`.
 
 ## UI Level
 
