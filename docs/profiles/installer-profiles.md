@@ -198,6 +198,24 @@ systemd units only:
 that user, installs the result with `pacman -U` and removes the user again.
 Both packages depend on the `-git` ZFS, which is why the package list names it.
 
+## `dkms`
+
+Optional, declared by Arch and Artix. Three actions run in the target after
+the packages, once per kernel that has a module tree:
+
+| Key | Notes |
+|-----|-------|
+| `module_present` | `modinfo -k {kernel_version} -n zfs`. Prints the module's path; empty output means the module is not installed, whatever the exit code says. |
+| `fix_gitrev` | Writes an empty `scripts/make_gitrev.sh` into every `/usr/src/zfs-*/` that has a `scripts` directory and does not have the file — the one thing `zfs-dkms-git` forgets to ship, and without which its DKMS build exits non-zero after compiling the module. |
+| `autoinstall` | `dkms autoinstall -k {kernel_version}`, the rebuild after the repair. |
+
+If the module is still missing afterwards the installation stops with an
+error: pacman's `dkms` hook reports a failed build as a warning and exits 0,
+so without this check the UKI is built without ZFS and the machine cannot
+boot. See [the installer's own page](../developer/installer.md) for the whole
+story. Each action is behind its own `has()`, so an edition that does not
+build ZFS with DKMS declares none of them.
+
 ## Choosing the init system
 
 An edition that can boot with more than one init lists them in

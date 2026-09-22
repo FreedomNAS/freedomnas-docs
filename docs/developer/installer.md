@@ -93,6 +93,56 @@ with code 1 at every boot. Their installer profiles declare
 carries the usershare settings the setup wizard would otherwise append.
 Debian and Void ship a default `smb.conf` and keep it.
 
+## Editions that build ZFS with DKMS
+
+Arch and Artix install `zfs-dkms-git`, which ships no module at all: it puts
+the sources in `/usr/src/zfs-<version>/`, and pacman's `dkms` hook compiles
+them at the end of the transaction. That hook is the problem. When
+`dkms install` fails it prints
+
+```
+==> WARNING: `dkms install --no-depmod zfs/<version> -k <kernel>' exited 10
+```
+
+and its `main()` still returns 0, so pacman succeeds. The installation then
+continues, dracut builds a UKI without ZFS because there is no module to put
+in it, and the machine drops into the initramfs shell looking for a root pool
+it cannot read. Nothing in the installation looked wrong.
+
+The build itself fails for a packaging reason. `dkms.conf` sets
+`MAKE[0]="make -C module/"`, which reaches the top-level `gitrev` target:
+
+```
+cd "/var/lib/dkms/zfs/<version>/build"; \
+@echo "  GEN     " gitrev;./scripts/make_gitrev.sh include/zfs_gitrev.h
+```
+
+`package()` copies only `scripts/dkms.postbuild` and
+`scripts/objtool-wrapper.in` into `/usr/src`, so `make_gitrev.sh` is not
+there, `make` exits 2, and DKMS treats the build as failed — even though the
+parallel jobs finished and `zfs.ko` and `spl.ko` are sitting in the build
+directory. (The stray `@echo` comes from `AM_V_GEN` landing mid-recipe; it is
+noise, the exit status is the missing script's.) The stable `zfs-dkms` has
+the same `cp` line but builds from a release tarball, where that target does
+not run, so only the `-git` package is affected.
+
+`PackagesInstaller.ensure_kernel_modules()` runs after the packages, for each
+kernel in the target that has a module tree:
+
+| Step | Action |
+|------|--------|
+| Is ZFS there? | `dkms.module_present` — `modinfo -k <kernel> -n zfs`, which prints the path or fails |
+| If not, repair | `dkms.fix_gitrev` writes an empty `scripts/make_gitrev.sh` into each `/usr/src/zfs-*/`, then `dkms.autoinstall` rebuilds |
+| Still not there | `RuntimeError`, pointing at `/var/lib/dkms/zfs/*/build/make.log` — the installation stops rather than produce a system that cannot boot |
+
+An empty script is enough because `include/zfs_gitrev.h` is generated when
+the package is built and is already in `/usr/src`; nothing has to regenerate
+it. The three actions are declared in `installer-arch.json` and
+`installer-artix.json` only, and each is behind its own `has()`, so no other
+edition changes. This check is for clean installs: an in-place install runs
+on a system whose ZFS already works, and rebuilding modules for a kernel it
+happens to keep around is not the installer's business.
+
 ## Disks that already carry a pool
 
 The disk menu shows, next to each disk, the pools found on it
@@ -128,7 +178,7 @@ before that confirmation.
 | 6 | Write the edition's config files | `files.*` |
 | 7 | Bind-mount the chroot | `chroot.mount` |
 | 8 | Create users — **before** packages, so PAM/Samba find them | `users.*` |
-| 9 | Third-party repositories, packages, locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `services.enable` |
+| 9 | Third-party repositories, packages, the ZFS module check, locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `dkms.*`, `services.enable` |
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
 | 11 | The root pool's `zpool.cache` in the target | `rootpool.cachefile_set`, `rootpool.cachefile_install` |
 | 12 | Boot chain | `bootloader.*` |
