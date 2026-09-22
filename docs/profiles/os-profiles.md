@@ -78,7 +78,7 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 |-----|---------|
 | `create` | Create OS user with explicit UID, GID, shell, groups |
 | `delete` | Delete user and home directory |
-| `set_password` | Set password via stdin (command for `chpasswd`) |
+| `set_password_stdin` | Set password via stdin (command for `chpasswd`), payload shaped by `password_stdin_format` |
 | `get_user_info` | Read user from `passwd` database |
 | `list_users` | List all OS users |
 | `add_to_group` | Add user to supplementary group |

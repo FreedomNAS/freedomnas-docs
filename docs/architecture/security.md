@@ -5,13 +5,13 @@
 All subprocess calls use `shell=False` via `shlex.split()`. This prevents
 shell injection attacks.
 
-The only exception: commands in JSON profiles that contain `|`, `>`,
-`&&`, or `$()` metacharacters (e.g. `apt list --upgradable | tail`) trigger
-`shell=True` automatically inside `engine._run_safe()`. This is:
+The only exception: profile templates that contain `|`, `>`,
+`&&`, or `$()` metacharacters (e.g. `apt list --upgradable | tail`) run with
+`shell=True` inside `engine._run_safe()`. This is:
 
 - **Isolated to one function** in the engine
-- **Driven by the profile command**, not by application logic
-- **Protected by `_sanitize_kwargs()`** (see below)
+- **Driven by the profile template**, never by a value substituted into it
+- **Protected by `_quote_kwargs()`** (see below)
 
 ## Password Protection
 
@@ -24,19 +24,52 @@ Passwords are never visible in the process list or log files.
 | Config persistence | `config.yaml` never stores plaintext passwords |
 
 ```python
-# Correct
-engine.execute_with_stdin("users", "set_password", stdin_data="admin:newpassword\n")
+# Correct — the password only ever travels on stdin
+payload = engine.get_profile_value("users", "password_stdin_format")
+engine.execute_with_stdin("users", "set_password_stdin",
+                          payload.format(username="admin", password=pw), username="admin")
 
-# Wrong — password visible in ps aux
-subprocess.run(["chpasswd"], ...)  # Never do this from application code
+# Wrong — the password is in argv, visible in ps aux
+subprocess.run(["sh", "-c", f"echo 'admin:{pw}' | chpasswd"])
 ```
 
-## Input Sanitisation
+`chpasswd` reads one `user:password` per line, so a line break in a password
+would start a second line — for another account. The WebUI (`422`) and the
+installer refuse line breaks and control characters in passwords, and `:` in
+usernames, before any payload is built.
 
-`engine._sanitize_kwargs()` strips shell metacharacters (`;`, `|`, `&`,
-`$`, `` ` ``, `\n`) from all kwargs before template substitution. This
-protects against injection through API input even when the profile command
-uses `shell=True`.
+## Input Quoting
+
+Every template variable is quoted with `shlex.quote()` before substitution
+(`_quote_kwargs()`), so a value reaches the command as **exactly one
+argument** whatever it contains — spaces, quotes, `;`, `$(…)`, `>` — on the
+`shlex.split()` path and through `sh` alike. An empty value is an empty
+argument. Values are refused, never cleaned: a control character (`\n`,
+`\r`, NUL), or a single argument starting with `-` that the command would
+read as an option, raises `CommandTranslationError`.
+
+A variable that carries several arguments on purpose — `{devices}`,
+`{package_list}`, an optional `{force}` flag — is listed under its
+category's `multi_args` in the profile. Its value is split on whitespace and
+each word is quoted on its own; an empty value then adds nothing.
+
+```json
+"zfs": {
+  "pool_add_cache": "zpool add {pool_name} cache {devices}",
+  "multi_args": ["devices", "vdev_type"]
+}
+```
+
+Because the engine quotes, a placeholder must never sit inside quotes of
+its own in a template: `'{path} {clients}'` would let a quote in the value
+close the template's. Where a value has to be part of a larger word,
+concatenate: `{path}' '{clients}'('{options}')'`, `"root=ZFS="{dataset}" rw"`.
+
+Until 2026-09-22 values were *stripped* of `;|&$`\` instead. That left three
+holes, each now covered by a test: a value with spaces became several
+arguments (`tank/old -r tank`), a value containing `>` switched the command
+to `shell=True` because the decision was taken on the formatted string, and
+a newline in a password added a line to `chpasswd`'s input.
 
 ## File Permissions
 
@@ -155,7 +188,8 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 
 | Threat | Mitigation |
 |--------|-----------|
-| Command injection via API input | `_sanitize_kwargs()` strips metacharacters before substitution |
+| Command injection via API input | `_quote_kwargs()` quotes every value into exactly one argument; shell use decided by the template |
+| Password injection into `chpasswd` | Line breaks refused in passwords, `:` in usernames |
 | Password exposure in logs/ps | `execute_with_stdin()` for all password operations |
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
 | Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |

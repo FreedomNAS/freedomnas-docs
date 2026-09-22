@@ -117,16 +117,39 @@ The engine searches for profiles in this order:
 
 ## Command Execution Safety
 
-Commands without shell metacharacters (`|`, `>`, `<`, `;`, `&`, `$(`) run via
-`shlex.split()` + `subprocess.run(shell=False)`.
+Templates without shell metacharacters (`|`, `>`, `<`, `;`, `&`, `$(`) run
+via `shlex.split()` + `subprocess.run(shell=False)`.
 
-Commands containing those metacharacters trigger `shell=True` automatically
-inside `_run_safe()`. This is the only permitted use of `shell=True`, and it is
-controlled by the profile author — not by application code.
+Templates containing those metacharacters run with `shell=True` inside
+`_run_safe()`. This is the only permitted use of `shell=True`, and it is
+controlled by the profile author — not by application code. The decision is
+taken on the **template**, never on the formatted command, so no value can
+turn the shell on.
 
-Before template substitution, `_sanitize_kwargs()` strips the characters
-`;|&$\`` from all kwargs values to limit injection risk even in `shell=True`
-paths.
+Every template variable is quoted with `shlex.quote()` before substitution
+(`_quote_kwargs()`), so a value reaches the command as **exactly one
+argument** whatever it contains — spaces, quotes, `;`, `$(…)`, `>` — on the
+`shlex.split()` path and through `sh` alike. An empty value is an empty
+argument. Values are refused, never cleaned: a control character (`\n`,
+`\r`, NUL), or a single argument starting with `-` that the command would
+read as an option, raises `CommandTranslationError`.
+
+A variable that carries several arguments on purpose — `{devices}`,
+`{package_list}`, an optional `{force}` flag — is listed under its
+category's `multi_args` in the profile. Its value is split on whitespace and
+each word is quoted on its own; an empty value then adds nothing.
+
+```json
+"zfs": {
+  "pool_add_cache": "zpool add {pool_name} cache {devices}",
+  "multi_args": ["devices", "vdev_type"]
+}
+```
+
+Because the engine quotes, a placeholder must never sit inside quotes of
+its own in a template: `'{path} {clients}'` would let a quote in the value
+close the template's. Where a value has to be part of a larger word,
+concatenate: `{path}' '{clients}'('{options}')'`, `"root=ZFS="{dataset}" rw"`.
 
 A **target engine with a chroot prefix never uses `shell=True`**: the prefix
 argv is prepended, and a command that needs a shell is handed to `sh -c`
@@ -146,17 +169,23 @@ via stdin. They never appear in the command string (visible in `ps aux`) or
 in log files.
 
 ```python
-# Correct — password via stdin
-engine.execute_with_stdin("users", "set_password", stdin_data="newpassword\n", username="admin")
+# Correct — password via stdin, payload shaped by the profile
+payload = engine.get_profile_value("users", "password_stdin_format")
+engine.execute_with_stdin(
+    "users", "set_password_stdin",
+    payload.format(username="admin", password="newpassword"),
+    username="admin",
+)
 
-# Wrong — never do this
-engine.execute("users", "set_password_inline", username="admin", password="newpassword")
+# Wrong — the password is in argv, visible in ps aux
+engine.execute("users", "some_action", username="admin", password="newpassword")
 ```
 
 ## Template Substitution
 
 `get_command()` formats `{variable}` placeholders in the profile command
-using `str.format(**safe_kwargs)`. All kwargs are sanitised first.
+using `str.format()`, after quoting every value — see
+[Command Execution Safety](#command-execution-safety).
 
 Example:
 
@@ -181,5 +210,5 @@ engine executes them in order and returns the output of the last command.
 | Exception | When raised |
 |-----------|-------------|
 | `OSNotSupportedException` | OS not recognised or profile file not found |
-| `CommandTranslationError` | Category or action key missing in profile |
+| `CommandTranslationError` | Category or action key missing in profile, or a value refused by `_quote_kwargs()` |
 | `CommandExecutionError` | Command exited non-zero (if `check=True`) or timed out |
