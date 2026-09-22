@@ -42,6 +42,21 @@ These routes do not require authentication:
 
 The WebUI handles these automatically: 401 redirects to `/auth/`, 503 redirects to `/setup/`.
 
+### The 401 challenge is `FreedomNAS`, not `Basic`
+
+Every 401 carries `WWW-Authenticate: FreedomNAS`. The credentials are still
+Basic, as above; only the challenge differs. A browser that sees
+`WWW-Authenticate: Basic` opens its own login dialog in front of the sign-in
+page, keeps the page's request waiting until the dialog is closed (so the page
+never shows its error), and then sends whatever was typed there on every
+request by itself, cross-site ones included. No browser acts on an unknown
+scheme, so the sign-in page stays the only place credentials are entered.
+
+API clients are unaffected: `curl -u` and most HTTP libraries send the
+`Authorization` header up front and never read the challenge. A client that
+waits for a `Basic` challenge before sending credentials has to be told to send
+them preemptively.
+
 ## First-Run Guard
 
 Before the system is initialized (`config.is_initialized() == False`), all

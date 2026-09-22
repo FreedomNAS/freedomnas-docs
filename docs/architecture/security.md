@@ -199,6 +199,7 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
 | Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
 | Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes; administrator group required; first-frame auth on the updates WebSocket |
+| Browser-cached credentials (CSRF) | 401 announces `WWW-Authenticate: FreedomNAS`, which no browser answers with its own dialog, so credentials never enter the browser's automatic auth cache and only the page's JavaScript sends them |
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |
 | XSS via Jinja2 | Jinja2 auto-escaping enabled (default) |
 | XSS in the page scripts | `esc()` escapes quotes too; values reach click handlers through `data-*` attributes, never inline `onclick`; toasts use `textContent`. It matters because the Basic credentials sit in `sessionStorage` |
