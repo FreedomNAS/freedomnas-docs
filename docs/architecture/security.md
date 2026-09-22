@@ -66,19 +66,6 @@ tampered or mismatched slot fails authentication (`SlotUnavailableError`)
 rather than silently returning a wrong key, and compromising one slot never
 exposes the other slot or the pool key.
 
-**Two implementations.** Like the [engine](engine.md#two-implementations),
-`keymgmt.py` exists twice: `keymgmt_py.py` wraps with `hashlib.scrypt` +
-`cryptography`'s `AESGCM` (above); `keymgmt_native.py` is the Python side
-of `nim/src/fnas/keymgmt.nim`, which wraps with `nimcrypto`'s scrypt
-(RFC 7914) and AES-256-GCM (NIST SP 800-38D) instead — chosen, and
-cross-checked byte-for-byte in `tests/test_keymgmt_parity.py`, specifically
-*because* both sides implement the same public, deterministic standards:
-a keyslot wrapped by one engine has to open with the other, since a pool
-created under one and booted under the other is an ordinary scenario, not
-an edge case. `FREEDOMNAS_KEYMGMT` (falling back to `FREEDOMNAS_ENGINE`)
-picks between them; the native side calls the native engine's handle
-directly, so it only makes sense paired with it.
-
 At boot, `PoolUnlocker` (invoked by `python -m freedomnas unlock-pools` from
 `firstboot.sh`) tries the USB slot first and falls back to the passphrase
 slot only if no USB key matches. The passphrase prompt disables local echo
@@ -87,21 +74,15 @@ answers in time, `unlock-pools` **fails open**: it logs a warning and returns
 non-zero, but `firstboot.sh` still boots the WebUI rather than blocking
 indefinitely — the pool simply stays locked until unlocked manually.
 
-The timeout bounds the *wait for input* itself (`select`/`poll` on the tty
-for the time remaining), not only the gap between attempts. Until
-2026-09-18 it did not: with nobody at the console the read never returned,
-and a headless appliance with a locked pool and no USB key stopped at
-`unlock-pools` for good. `test_tty_unlock_gives_up_when_nobody_answers` and
-its parity twin guard it.
+The timeout bounds the *wait for input* itself (`select` on the tty for the
+time remaining), not only the gap between attempts. Until 2026-09-18 it did
+not: with nobody at the console the read never returned, and a headless
+appliance with a locked pool and no USB key stopped at `unlock-pools` for
+good. `test_tty_unlock_gives_up_when_nobody_answers` guards it.
 
-**Key material.** Raw keys, USB keys, salts and nonces come from the system
-RNG, and the native engine refuses to continue (`OSError`, as `os.urandom`
-does) if it delivers fewer bytes than asked — nimcrypto reports that with a
-short count rather than an exception, and on FreeBSD it reads
-`/dev/urandom`, which a chroot or jail without devfs does not have. Key
-files are written until every byte is out, and shredding unlinks the file
-even when the overwrite fails. The native engine also zeroes raw keys, USB
-keys, passphrases, wrapping keys and scrypt's working buffers once done.
+**Key material.** Key files are written until every byte is out — a short
+`write()` would leave a different key behind — and shredding unlinks the
+file even when the overwrite fails.
 
 Secret material for the passphrase path never appears in argv or a
 subprocess pipe. The only place the unwrapped raw key ever touches disk is a

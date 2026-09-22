@@ -1,42 +1,7 @@
 # Configuration Manager
 
-The configuration manager keeps persistent state as YAML on a ZFS dataset.
+`config.py` manages persistent configuration as YAML on a ZFS dataset.
 This configuration survives OS reinstallation and enables cross-OS migration.
-
-Like the engine, it exists twice — see
-[Two implementations](#two-implementations) below.
-
-## Two implementations
-
-| File | What it is |
-|------|-----------|
-| `config.py` | The import everything uses, and the backend switch |
-| `config_py.py` | The manager on PyYAML — the reference implementation |
-| `config_native.py` | The same manager with parsing, merging, validation, the header and emitting done in Nim |
-| `nim/src/fnas/pyyaml.nim` | A port of PyYAML's implicit resolver and emitter |
-| `nim/src/fnas/config.nim` | Defaults, merge, validation and the atomic save, for the native CLI |
-
-`FREEDOMNAS_CONFIG` picks the backend (`python`, `native`, `auto`) and, when
-unset, follows `FREEDOMNAS_ENGINE`; `config.BACKEND` reports which one is
-live. The dict and every accessor (`get_users()`, `add_pool()`, dot-notation
-`get`/`set`, …) are shared: the native manager subclasses the Python one and
-overrides only the four methods that touch the file.
-
-!!! warning "The bytes have to match, not just the values"
-    An appliance saves `config.yaml` with whichever engine is running,
-    mirrors it onto every pool ([Shadow copies](snapshots.md)), and may read
-    it back after a reinstall with the other one. `tests/test_config_parity.py`
-    therefore compares the **file both managers produce**, byte for byte,
-    over the shipped shapes, awkward scalars and 150 random structures —
-    quoting, line folding at column 80, `\xNN` escapes for non-ASCII, the
-    explicit `? key` form for keys over 128 characters, key order and the
-    header. Reading is compared the same way against hand-written YAML with
-    comments, flow style, block scalars, sexagesimal ints and timestamps.
-
-One deliberate difference: a `config.yaml` whose top level is not a mapping
-fails either way, but the Python manager reports the Python error it hit
-(`'list' object has no attribute 'items'`) while the native one says the top
-level must be a mapping.
 
 ## Storage Locations
 
