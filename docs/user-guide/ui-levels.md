@@ -10,8 +10,10 @@ stored in the browser — it persists across sessions.
 
 Safe for everyday use. Destructive and advanced operations are hidden.
 
-- Core features fully visible: storage health, shares list, user list
-- Advanced controls hidden: snapshot creation, IP editing, timezone, reboot
+- Core features fully visible: storage health, shares list, user list,
+  changing a user's password
+- Advanced controls hidden: snapshot creation, IP editing, timezone, reboot,
+  removing a user
 - Danger zone hidden: shutdown, factory reset
 - Terminal not shown
 
@@ -22,6 +24,7 @@ Full control of the system. Recommended for experienced users.
 - Everything in Assisted
 - Snapshot creation and management
 - Network interface IP editing
+- Removing users
 - Timezone configuration
 - Reboot and shutdown buttons
 - Update configuration

@@ -33,9 +33,19 @@ in the command string.
     Users without the `samba` group cannot connect via SMB even if they
     have OS credentials.
 
+## Changing a Password
+
+Click **Password** on the user's row, enter the new password twice (at least
+8 characters) and click **Set Password**. The button is visible at every UI
+level. The password reaches the OS through stdin, never the command line.
+
 ## Deleting a User
 
-Click the **trash** icon. A confirmation dialog appears. The user is deleted
+!!! info "Advanced level required"
+    The **Remove** button is only visible at **Advanced** UI level and above.
+    Your own account has no Remove button.
+
+Click **Remove**. A confirmation dialog appears. The user is deleted
 with `userdel -r` (removes home directory) and removed from `config.yaml`.
 
 !!! warning
