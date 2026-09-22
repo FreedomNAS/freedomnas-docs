@@ -203,4 +203,5 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |
 | XSS via Jinja2 | Jinja2 auto-escaping enabled (default) |
 | XSS in the page scripts | `esc()` escapes quotes too; values reach click handlers through `data-*` attributes, never inline `onclick`; toasts use `textContent`. It matters because the Basic credentials sit in `sessionStorage` |
+| Path traversal through the timezone | Several editions run `ln -sf /usr/share/zoneinfo/{timezone} /etc/localtime`: every part of a zone name must start with a letter and the name must be in the host's zone database, in the wizard and in `POST /api/system/timezone` |
 | Option injection into `zpool` | Devices must be `/dev/...` paths and `vdev_type` one of `""`/`mirror`/`raidz1-3`: both are `multi_args`, where the engine does not refuse a leading `-` |

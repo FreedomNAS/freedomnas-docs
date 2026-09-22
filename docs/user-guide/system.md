@@ -27,10 +27,9 @@ Change the timezone:
    letters jumps to it (e.g. `Europe/R` for `Europe/Rome`).
 2. Click **Save**
 
-!!! warning "Not applied yet"
-    There is no timezone endpoint after setup yet: **Save** does not change
-    the system timezone. The timezone chosen in the setup wizard is applied
-    (`timedatectl set-timezone`) and recorded in `config.yaml`.
+The change is applied to the system first (`timedatectl set-timezone` on
+systemd editions, the `/etc/localtime` link or `tzsetup` elsewhere) and only
+then recorded in `config.yaml`, so a zone the system refuses is not saved.
 
 ## UI Level
 

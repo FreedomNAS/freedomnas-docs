@@ -69,6 +69,44 @@ Set the system hostname (spec §7.5 dual write).
 
 ---
 
+## POST /api/system/timezone
+
+Set the system timezone (spec §7.5 dual write).
+
+**Auth required:** yes
+
+**Request body:**
+
+```json
+{ "timezone": "Europe/Rome" }
+```
+
+**Behaviour:**
+
+1. The name is checked: every `/`-separated part starts with a letter and
+   holds only letters, digits, `_`, `+` and `-`; where the host has a zone
+   database (`zoneinfo.available_timezones()`), the name must be in it.
+   Several editions set the zone with
+   `ln -sf /usr/share/zoneinfo/{timezone} /etc/localtime`, so the name is a
+   path there — `../../../etc/shadow` or an option must never reach it.
+2. `engine.execute("system", "timezone_set", timezone="Europe/Rome")`
+3. `config.set("system.timezone", "Europe/Rome")` — only after the OS accepted it
+
+**Response:**
+
+```json
+{ "timezone": "Europe/Rome" }
+```
+
+**Errors:**
+
+| Code | Detail |
+|------|--------|
+| 422 | `timezone` is missing, is not a timezone name, or is unknown to this host |
+| 500 | Engine command failed; the configuration is left unchanged |
+
+---
+
 ## POST /api/system/reboot
 
 Reboot the system.
