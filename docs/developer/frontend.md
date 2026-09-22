@@ -52,7 +52,8 @@ redirects to `/auth/?next=<current>` on 401, redirects to `/setup/` on
 ### toast(msg, type, duration)
 
 Appends a self-removing toast to `#toast-stack`. Types: `'ok'`,
-`'err'`, `'warn'`, `'info'`. Duration defaults to 4000 ms.
+`'err'`, `'warn'`, `'info'`. Duration defaults to 4000 ms. `msg` is shown
+as text, never parsed as HTML: error messages repeat what was typed.
 
 ### confirm(title, msg, dangerLabel)
 
@@ -237,7 +238,13 @@ Tab-based view: **SMB** and **NFS**.
 
 - No `import` statements — all modules share a single global scope
 - `esc(s)` is defined locally in most page modules (not in `main.js`) to
-  HTML-escape user content before injecting into `innerHTML`
+  HTML-escape user content before injecting into `innerHTML`; it escapes
+  `& < > " '`, so its output is safe in text and in quoted attributes
+- **No values in inline handlers.** `onclick="deleteSmb('${esc(name)}')"`
+  is not safe whatever `esc` does: the HTML parser decodes `&#39;` back to
+  `'` before JavaScript reads the string. Put the value in a `data-*`
+  attribute and read it from a listener on the container
+  (`btn.dataset.share`). `tests/test_pages.py` fails on any `on…="…${`
 - All `fetch` calls go through `apiJSON()` so auth and redirect handling
   is centralised
 - Modal IDs follow the pattern `modal-<name>`, form IDs `form-<name>`,

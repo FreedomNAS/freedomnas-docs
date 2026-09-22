@@ -134,7 +134,7 @@ API never returns a pool's passphrase; it is accepted only at creation time.
 | Code | Detail |
 |------|--------|
 | 409 | System already initialized |
-| 422 | `edition` is missing, unknown, or differs from the detected edition; or `pool` is invalid (missing `name`/`devices`, or `master_passphrase` shorter than 12 characters) — checked before anything is created |
+| 422 | `edition` is missing, unknown, or differs from the detected edition; or `pool` is invalid (missing `name`/`devices`, `master_passphrase` shorter than 12 characters, a device that is not a `/dev/...` path, or a `vdev_type` other than `""`/`mirror`/`raidz1-3`) — checked before anything is created |
 | 500 | Engine, config, or keyslot operation failed partway through (`CommandExecutionError`, `CommandTranslationError`, `ConfigurationException`, `KeyManagementError`) |
 
 !!! note

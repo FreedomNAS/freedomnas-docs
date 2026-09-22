@@ -201,3 +201,5 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 | Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes; administrator group required; first-frame auth on the updates WebSocket |
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |
 | XSS via Jinja2 | Jinja2 auto-escaping enabled (default) |
+| XSS in the page scripts | `esc()` escapes quotes too; values reach click handlers through `data-*` attributes, never inline `onclick`; toasts use `textContent`. It matters because the Basic credentials sit in `sessionStorage` |
+| Option injection into `zpool` | Devices must be `/dev/...` paths and `vdev_type` one of `""`/`mirror`/`raidz1-3`: both are `multi_args`, where the engine does not refuse a leading `-` |

@@ -175,11 +175,24 @@ is deliberately literal:
 | a name that is not `[A-Za-z][A-Za-z0-9_.:-]*` | ZFS would refuse it later, less clearly |
 | an empty device list | nothing to build on |
 | the same device in two roles | a disk is data, or cache, or log — not two |
+| a device that is not one normalised `/dev/...` path | see below |
+| a `vdev_type` other than `""`, `mirror`, `raidz1`, `raidz2`, `raidz3` | see below |
 | `encrypted` with a passphrase under 12 characters | |
 
 **`-f` is never passed.** A disk that already carries somebody else's pool is
 refused by ZFS itself, and that refusal is better coming from ZFS than from a
 guess made here — it comes back as `500` with the original message.
+
+That promise needs the device check. Devices and `vdev_type` are `multi_args`:
+they are split into several `zpool` arguments, and the engine cannot refuse a
+leading `-` there as it does for single values, because the installer passes
+`-f` through `rootpool.force` on purpose. So `"-f"` among the devices, or
+`"-O mountpoint=/etc mirror"` as the vdev type, used to reach `zpool create`
+— and on Linux `zpool` reads options even after the pool name. A device must
+now start with `/dev/`, contain no whitespace or control characters, and be
+already normalised (no `..`); the vdev type must be one of the five above.
+The same check applies to `POST /pools/{pool}/devices` and to the pool in
+`POST /api/setup/initialize`.
 
 After the pool exists: cache and log are attached, the shadow dataset
 `<pool>/.freedomnas` is created, and the pool is recorded in `config.yaml`.
@@ -198,8 +211,9 @@ Attach a cache (L2ARC) or log (SLOG) device to a pool that already exists.
 { "role": "cache", "devices": ["/dev/disk/by-id/ata-SSD_xxx"] }
 ```
 
-`role` is `cache` or `log`; anything else is `422`. Several devices in one
-call become one `zpool add`.
+`role` is `cache` or `log`; anything else is `422`, and so is a device that
+is not a `/dev/...` path (see [creating a pool](#post-apistoragepools)).
+Several devices in one call become one `zpool add`.
 
 Neither kind holds data, which is why they are attached **after** the pool
 exists — the same endpoint serves "add the SSD I just bought" and "choose an
