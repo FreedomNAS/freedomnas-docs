@@ -139,14 +139,27 @@ OS-specific file content remains in its Python — see
 | `api/routes/setup.py` | 191 | `/api/setup/*` — `detected_edition` in status, edition validated against the detected OS, optional encrypted-`pool` field on `POST /api/setup/initialize` |
 | `websocket/terminal.py` | 171 | `/ws/updates/terminal` — first-frame auth, administrator only, Topgrade streaming |
 
-**Tests** (`python3 -m pytest tests/`, needs `fastapi`, `uvicorn` and the
-sibling `freedomnas-core` checkout — not `httpx`, not `python-pam`):
+**Tests** (`python3 -m pytest tests/`, needs `fastapi`, `uvicorn`, `websockets`
+and the sibling `freedomnas-core` and `freedomnas-profiles` checkouts — not
+`httpx`, not `python-pam`; `.forgejo/workflows/tests.yml` runs them on every
+push to `dev` and `main`):
 
 | File | Covers |
 |------|--------|
-| `tests/conftest.py` | The real app served by uvicorn on a free local port, in front of a MagicMock engine and a fake PAM. PAM is replaced even where python-pam is installed, so no test authenticates against the host's accounts, and no command reaches the machine |
-| `tests/test_auth.py` | 401 without or with wrong credentials, 403 outside the admin group, the five-failure lockout (per account), the first-run 503 |
-| `tests/test_users.py` | Line breaks in passwords and `:` in usernames refused before the engine is asked anything; the password travels on stdin as one line, never in argv or `config.yaml` |
+| `tests/conftest.py` | The real app served by uvicorn on a free local port. The engine is the real one with the real Debian profile, recording each translated command instead of running it, so a missing action or placeholder fails like it would on an appliance. PAM is always fake — even where python-pam is installed — and the configuration is a real `ConfigurationManager` in a temporary directory, as are smb.conf, exports, topgrade.toml and the keyslots |
+| `tests/test_auth.py` | 401/403, the admin group from the profile, the five-failure lockout, the first-run 503 and its exemptions |
+| `tests/test_users.py` | Line breaks in passwords and `:` in usernames refused before the engine is asked anything; passwords only on stdin, never in argv or `config.yaml` |
+| `tests/test_system.py` | Info, hostname (dual write), power, configuration export and import through the reconciler |
+| `tests/test_network.py` | Interface listing, static addresses as nmcli sees them |
+| `tests/test_storage.py` | Listings, snapshots and policies, the property catalogue and its validation, cache/log devices, pool creation — plain and encrypted, with no secret left in the config or the command |
+| `tests/test_shares.py` | SMB pre-flight, creation and deletion; NFS export lines |
+| `tests/test_updates.py` | The background update count, the topgrade.toml topgrade will accept |
+| `tests/test_setup.py` | The first-run wizard, edition checks, the optional encrypted pool |
+| `tests/test_terminal.py` | The update WebSocket: 4401/4403, pre-update snapshots, the exact argv topgrade would get (a harmless script runs instead) |
+| `tests/test_pages.py` | Every page, redirects, static files, the 501 placeholders |
+| `tests/test_module_discovery.py` | Community modules mounted, and broken ones skipped without taking the others down |
+
+**Frontend:**
 
 | File | Purpose |
 |------|---------|
