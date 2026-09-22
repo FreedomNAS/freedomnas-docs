@@ -67,6 +67,12 @@ is how `disable_tmux`, `[unstable]` and `[notifications]` used to cost us the
 
 ---
 
+`/etc/freedomnas/topgrade.toml` is written by `POST /configure`, and also
+by the WebSocket handler when an update starts and the file is not there —
+otherwise topgrade would run every step it knows (pip, cargo, flatpak and
+the rest) instead of the three this page offers. An existing file is never
+overwritten.
+
 ## topgrade itself
 
 !!! warning "Not every edition packages topgrade"

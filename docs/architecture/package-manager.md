@@ -78,6 +78,15 @@ An edition may also list `pkgbuilds` — `{"name", "git"}` PKGBUILD
 repositories the installer clones and builds after the repository packages,
 through the installer profile's `pkgbuild.install`.
 
+`admin_groups` names the groups the administrator has to belong to for a
+category's own tools to work. The containers category lists `docker`: the
+daemon's socket belongs to that group, and without it every update run ends
+with `permission denied while trying to connect to the docker API`, because
+topgrade's containers step talks to Docker as the signed-in user. The
+installer joins them after the packages are in — the group is created by the
+package that owns it — and this grants nothing new: `files.sudoers` already
+gives that user's group `NOPASSWD: ALL` so topgrade can update the system.
+
 Where an edition ships service scripts as separate packages per init — Artix's
 `openssh-openrc` and `openssh-dinit` — the per-init parts go under
 `init.<name>`, and are added to the edition-level lists when that init is
@@ -112,6 +121,7 @@ pm.get_services_for_os("samba-cifs", "artix", "dinit")  # → ["smbd", "nmbd", "
 pm.get_early_services_for_os("core", "gentoo")          # → ["zfs-import", "zfs-mount"]
 pm.get_pkgbuilds_for_os("core", "artix", "dinit")
 # → [{"name": "zfs-dinit", "git": "https://codeberg.org/sarahmeow86/zfs-dinit.git"}]
+pm.get_admin_groups_for_os("containers", "artix")       # → ["docker"]
 pm.get_config_paths("samba-cifs", "debian")       # → ["/etc/samba/smb.conf", ...]
 
 # Bulk query

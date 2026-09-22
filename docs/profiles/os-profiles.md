@@ -81,7 +81,7 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | `set_password_stdin` | Set password via stdin (command for `chpasswd`), payload shaped by `password_stdin_format` |
 | `get_user_info` | Read user from `passwd` database |
 | `list_users` | List all OS users |
-| `add_to_group` | Add user to supplementary group |
+| `add_to_group` | Add user to supplementary group. Takes `{group}`, one group — the same name the reconciler and the installer pass |
 | `remove_from_group` | Remove user from group |
 | `set_samba_pass` | Set Samba-specific password |
 
