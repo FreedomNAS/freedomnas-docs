@@ -134,7 +134,7 @@ OS-specific file content remains in its Python — see
 | `api/routes/storage.py` | 427 | `/api/storage/*` — pools (incl. creation and cache/log devices), datasets, properties, snapshots, snapshot policies |
 | `api/routes/network.py` | 65 | `/api/network/interfaces*` |
 | `api/routes/users.py` | 143 | `/api/users/*` — refuses line breaks in passwords and `:` in usernames before chpasswd sees them |
-| `api/routes/shares.py` | 170 | `/api/shares/smb*` + `/api/shares/nfs*` |
+| `api/routes/shares.py` | 178 | `/api/shares/smb*` + `/api/shares/nfs*` — NFS exports through `nfs.export_add`/`export_remove`, one-word fields only |
 | `api/routes/updates.py` | 126 | `/api/updates/*` |
 | `api/routes/setup.py` | 191 | `/api/setup/*` — `detected_edition` in status, edition validated against the detected OS, optional encrypted-`pool` field on `POST /api/setup/initialize` |
 | `websocket/terminal.py` | 171 | `/ws/updates/terminal` — first-frame auth, administrator only, Topgrade streaming |
@@ -152,7 +152,7 @@ push to `dev` and `main`):
 | `tests/test_system.py` | Info, hostname (dual write), power, configuration export and import through the reconciler |
 | `tests/test_network.py` | Interface listing, static addresses as nmcli sees them |
 | `tests/test_storage.py` | Listings, snapshots and policies, the property catalogue and its validation, cache/log devices, pool creation — plain and encrypted, with no secret left in the config or the command |
-| `tests/test_shares.py` | SMB pre-flight, creation and deletion; NFS export lines |
+| `tests/test_shares.py` | SMB pre-flight, creation and deletion; NFS exports applied for real to a copy of /etc/exports, and fields that would break out of their line refused |
 | `tests/test_updates.py` | The background update count, the topgrade.toml topgrade will accept |
 | `tests/test_setup.py` | The first-run wizard, edition checks, the optional encrypted pool |
 | `tests/test_terminal.py` | The update WebSocket: 4401/4403, pre-update snapshots, the exact argv topgrade would get (a harmless script runs instead) |

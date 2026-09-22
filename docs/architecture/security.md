@@ -69,7 +69,11 @@ Until 2026-09-22 values were *stripped* of `;|&$`\` instead. That left three
 holes, each now covered by a test: a value with spaces became several
 arguments (`tank/old -r tank`), a value containing `>` switched the command
 to `shell=True` because the decision was taken on the formatted string, and
-a newline in a password added a line to `chpasswd`'s input.
+a newline in a password added a line to `chpasswd`'s input. The NFS
+routes had the same flaw one level up: they wrote the export line into
+`/etc/exports` themselves, so a line break in the allowed hosts added an
+export of the caller's choosing. They now refuse any field with whitespace or
+a control character, and go through `nfs.export_add` / `nfs.export_remove`.
 
 ## File Permissions
 
@@ -190,6 +194,7 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 |--------|-----------|
 | Command injection via API input | `_quote_kwargs()` quotes every value into exactly one argument; shell use decided by the template |
 | Password injection into `chpasswd` | Line breaks refused in passwords, `:` in usernames |
+| Export injection into `/etc/exports` | NFS path, hosts and options must each be one word; the line is written by the profile's `nfs.export_add`, never by the WebUI |
 | Password exposure in logs/ps | `execute_with_stdin()` for all password operations |
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
 | Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
