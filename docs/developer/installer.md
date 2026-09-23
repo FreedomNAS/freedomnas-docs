@@ -93,6 +93,28 @@ with code 1 at every boot. Their installer profiles declare
 carries the usershare settings the setup wizard would otherwise append.
 Debian and Void ship a default `smb.conf` and keep it.
 
+## Editions that package FreedomNAS
+
+`installer_meta.core_packages` names the packages that carry FreedomNAS
+itself. Where it is declared — Debian, from the Codeberg registry — the
+installer does **not** copy `core`, `profiles` and `webui` out of the live
+image: `packages/core.json` lists `freedomnas-core`, `freedomnas-profiles`
+and `freedomnas-webui` like any other package, apt installs them with the
+rest, and `CoreInstaller` only checks they arrived. Copying over them would
+leave apt owning files that no longer match what it installed, and the
+system could never be updated with `apt upgrade`.
+
+The check imports the core rather than looking for a directory: a packaged
+core lives where that distribution keeps Python modules
+(`/usr/lib/python3/dist-packages/freedomnas` on Debian), not under
+`/usr/lib/freedomnas/core`, and `<site-packages>/freedomnas-core.pth` is not
+written either — there is nothing to point at. `python.import_check` is what
+asks; an edition without it falls back to the copied layout.
+
+Every other edition still gets the copy, which is what makes an installation
+work with no network and produces exactly what
+`freedomnas-image-builder/common/install-core.sh` produces.
+
 ## PATH, and why chroot cared
 
 `setup.py` completes the process PATH before anything runs: the host's own
