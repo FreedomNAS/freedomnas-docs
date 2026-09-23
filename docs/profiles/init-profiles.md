@@ -11,7 +11,8 @@ includes a `services` key.
 |------|-------------|---------|
 | `init/init-systemd.json` | systemd | Debian, Ubuntu, Arch, Fedora, … |
 | `init/init-openrc.json` | OpenRC | Artix (openrc), Alpine, Gentoo, … |
-| `init/init-runit.json` | runit | Void Linux, Artix (runit), … |
+| `init/init-runit.json` | runit | Void Linux, … |
+| `init/init-runit-artix.json` | runit | Artix (runit) — different paths, see below |
 | `init/init-s6.json` | s6 | Artix (s6), … |
 | `init/init-dinit.json` | dinit | Artix (dinit), … |
 | `init/init-bsd_rc.json` | bsd_rc (rc.d) | FreeBSD, DragonFlyBSD |
@@ -64,7 +65,8 @@ At engine startup:
 2. Every other profile subdirectory is scanned and its `<dir>-<name>.json`
    fragment merged in (see [OS Profiles](os-profiles.md))
 3. Init system is detected (e.g. `systemd`)
-4. `init/init-systemd.json` is loaded
+4. `init/init-<init>-<edition>.json` is loaded if it exists, otherwise
+   `init/init-<init>.json`
 5. The `services` key from the init profile is injected into the merged
    profile dict, last
 6. `engine.execute("services", "start", service_name="smbd")` now works
@@ -72,3 +74,14 @@ At engine startup:
 This separation means:
 - One set of OS/module fragments can be used with any compatible init system
 - Adding a new init system only requires one new JSON file
+
+### When one init needs two profiles
+
+The same init does not always mean the same paths. runit services live in
+`/etc/sv` on Void and are enabled into `/var/service`; on Artix, where
+runit comes with `runit-rc`, they live in `/etc/runit/sv` and are enabled
+by a symlink into `/etc/runit/runsvdir/default` (`/run/runit/service`,
+which `sv` is pointed at with `SVDIR`, is a symlink to the same place
+once stage 2 has run). That is what `init-runit-artix.json` is for: the
+per-edition file wins where it exists, and every other edition keeps the
+shared one.

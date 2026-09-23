@@ -36,7 +36,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `chroot_dirs` | Directories created before the chroot mounts |
 | `uki_name`, `uki_recovery_name` | UKI filenames on the ESP (UKI-booting editions) |
 | `community_maintained` | Marks the edition as community in the installer menu |
-| `init_systems` | Init systems the installer offers, default first — only when there is more than one (Artix: `["openrc", "dinit"]`) |
+| `init_systems` | Init systems the installer offers, default first — only when there is more than one (Artix: `["openrc", "dinit", "runit"]`) |
 | `init_packages` | `{init: packages}` passed to the bootstrap command as `{init_packages}` |
 
 ## `chroot`
@@ -222,12 +222,14 @@ An edition that can boot with more than one init lists them in
 `installer_meta.init_systems`; the first is the default, and the installer asks
 right after the edition is chosen. The choice rebuilds the target engine with
 that init (`FreedomNASEngine.for_target(init_system=...)`), so service commands
-come from `init/init-<name>.json`, and it selects:
+come from `init/init-<name>-<edition>.json` where that exists and
+`init/init-<name>.json` otherwise, and it selects:
 
 - `installer_meta.init_packages[<name>]`, passed to the bootstrap command as
-  `{init_packages}` — on Artix `openrc elogind-openrc` or
-  `dinit elogind-dinit`. Naming the elogind provider matters: `base` alone
-  lets pacman pick dinit's providers, and OpenRC then conflicts with them.
+  `{init_packages}` — on Artix `openrc elogind-openrc`,
+  `dinit elogind-dinit` or `runit elogind-runit`. Naming the elogind
+  provider matters: `base` alone lets pacman pick dinit's providers, and
+  OpenRC then conflicts with them.
 - the `init.<name>` block of each category in `packages/*.json` — see
   [Package Manager](../architecture/package-manager.md).
 
@@ -240,7 +242,13 @@ profile declares it, and a category's `early_services` go through
 `services.enable_early` first (OpenRC: `sysinit`, where `zfs-import` and
 `zfs-mount` belong). dinit needs it — plain `dinitctl enable` asks the running
 daemon — and gets `dinitctl --offline enable {service_name}`; OpenRC's
-`rc-update add` already works offline.
+`rc-update add` already works offline, and so does runit, whose whole
+enable step is a symlink.
+
+runit on Artix has no `early_services`: `zfs-runit` installs
+`/etc/rc/sysinit/57-zfs-mount` itself, between `55-remount-root` and
+`60-mount-all`, so pools are imported and mounted as soon as the package
+is there — the same place `lvm2-runit` and `cryptsetup-runit` use.
 
 ## `python`
 
