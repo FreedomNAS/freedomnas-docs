@@ -11,15 +11,25 @@ List all ZFS pools.
 ```json
 {
   "pools": [
-    { "name": "rpool", "size": "465G" },
-    { "name": "datapool", "size": "10.9T" }
+    { "name": "rpool", "size": 499289948160, "used": 74893492224,
+      "free": 424396455936, "used_pct": 15, "health": "ONLINE" },
+    { "name": "datapool", "size": 11990354000000, "used": 4796141867827,
+      "free": 7194212132173, "used_pct": 40, "health": "ONLINE" }
   ]
 }
 ```
 
-The fields returned depend on the `zfs.pool_list` command in the active OS profile.
-The backend splits each output line by tabs and maps position 0 → `name`,
-position 1 → `size`.
+The profile command is
+`zpool list -Hp -o name,size,alloc,free,capacity,health`: the columns are
+named rather than left to `zpool`'s default order, which differs between
+OpenZFS releases. The backend splits each line by tabs and maps position
+0 → `name`, 1 → `size`, 2 → `used`, 3 → `free`, 4 → `used_pct`,
+5 → `health`.
+
+`-p` prints exact byte counts, and the page formats them; a profile whose
+command omits `-p` sends `"3.6T"`, which is passed through as the string it
+is. A profile that prints fewer columns simply yields fewer keys — `name`
+and `size` are the only ones the page needs to draw a pool at all.
 
 **Errors:**
 
