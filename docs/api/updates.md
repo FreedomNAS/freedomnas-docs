@@ -76,11 +76,21 @@ overwritten.
 ## topgrade itself
 
 !!! warning "Not every edition packages topgrade"
-    `packages/core.json` installs `topgrade` on Arch, Artix (from
-    Chaotic-AUR — it is not in the official repositories) and Void. Debian
-    and Gentoo do not package it at all, and FreeBSD has not been checked, so
-    on those editions the Updates page has nothing to run until topgrade is
-    installed by hand. `updates.check_topgrade` is what tells them apart.
+    Debian and Gentoo do not carry topgrade at all, and building it from
+    source pulls the Rust toolchain and several hundred crates. Upstream
+    publishes a statically linked musl binary, and both editions get that
+    binary rather than a compile:
+
+    | Edition | Where topgrade comes from |
+    |---------|---------------------------|
+    | Arch, Artix | Chaotic-AUR — not in the official repositories |
+    | Void | `topgrade`, in the distribution |
+    | Gentoo | `app-admin/topgrade-bin` in freedomnas-overlay, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
+    | Debian | a `.deb` built from the same binary by [freedomnas-debian-repo](https://codeberg.org/FreedomNAS/freedomnas-debian-repo) — **pending**: the package list gains `topgrade` once that repository is hosted |
+    | FreeBSD | not checked yet |
+
+    `updates.check_topgrade` is what tells an edition that has it from one
+    that does not.
 
 `updates.run_topgrade` passes `--yes` on the command line as well as writing
 `assume_yes` into the configuration. The WebSocket handler gives the process
