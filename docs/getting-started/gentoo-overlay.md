@@ -23,6 +23,10 @@ auto-sync = yes
 masters = gentoo
 ```
 
+The installer writes this file itself (`files.repos_conf` in
+`installer-gentoo.json`), on a clean install and in place alike, before
+`repositories.core` syncs the overlay.
+
 ## Packages
 
 Everything lives in a dedicated `app-nas` category — these are one appliance,
