@@ -86,7 +86,7 @@ overwritten.
     | Arch, Artix | Chaotic-AUR — not in the official repositories |
     | Void | `topgrade`, in the distribution |
     | Gentoo | `app-admin/topgrade-bin` in freedomnas-overlay, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
-    | Debian | a `.deb` built from the same binary by [freedomnas-debian-repo](https://codeberg.org/FreedomNAS/freedomnas-debian-repo) — **pending**: the package list gains `topgrade` once that repository is hosted |
+    | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://codeberg.org/FreedomNAS/freedomnas-deb) and published to Codeberg's Debian registry, which `repositories.core` adds to the target's sources |
     | FreeBSD | not checked yet |
 
     `updates.check_topgrade` is what tells an edition that has it from one
