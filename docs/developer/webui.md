@@ -90,7 +90,7 @@ from api.deps import get_engine, get_config, authenticate
 |------------|----------------|-------|
 | `get_engine()` | `FreedomNASEngine` singleton | Calls `freedomnas.engine.get_engine()` |
 | `get_config()` | `ConfigurationManager` singleton | Lazily created on first call, module-level cache |
-| `authenticate(credentials)` | `str` (username) | PAM validation via `python3-pam`; raises `HTTP 401` on failure |
+| `authenticate(credentials)` | `str` (username) | PAM validation via the `pam` module (Debian packages it as `python3-pampy`); raises `HTTP 401` on failure |
 
 PAM authentication validates against the OS user database. Any OS user with a valid
 password can log in. There is no FreedomNAS-specific user store for auth.

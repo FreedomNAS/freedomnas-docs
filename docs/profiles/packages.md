@@ -88,15 +88,25 @@ it has to be complete per edition: nothing pulls these in by itself. Debian's
 typing-extensions — **not** on Jinja2, which `api/main.py` needs at import
 time.
 
+!!! warning "Debian's `python3-pam` is not the library we import"
+    It ships `PAM` — a C extension from 2004, module name in capitals. The
+    library `api/deps.py` imports (`import pam`, `pam.pam().authenticate()`)
+    is packaged on Debian as **`python3-pampy`**. Installing the
+    same-sounding name left the WebUI crash-looping with
+    `ModuleNotFoundError: No module named 'pam'` until its supervisor's
+    circuit breaker gave up, on an installation that reported no errors at
+    all. Void's `python3-pam` really is python-pam (1.8.4) and is correct.
+
 | Module imported | Debian | Gentoo | Arch / Artix | Void | FreeBSD |
 |---|---|---|---|---|---|
 | interpreter | `python3` | `dev-lang/python` | `python` | `python3` | `python3` |
 | `yaml` | `python3-yaml` | `dev-python/pyyaml` | `python-yaml` | `python3-yaml` | `py312-pyyaml` |
-| `pam` | `python3-pam` | `dev-python/python-pam` | `python-pam` | `python3-pam` | `py312-python-pam` |
+| `pam` | `python3-pampy` ⚠️ | `dev-python/python-pam` | `python-pam` | `python3-pam` | `py312-python-pam` |
 | `jinja2` | `python3-jinja2` | `dev-python/jinja2` | `python-jinja` | `python3-Jinja2` | `py312-Jinja2` |
 | `cryptography` | `python3-cryptography` | `dev-python/cryptography` | `python-cryptography` | `python3-cryptography` | `py312-cryptography` |
 | `fastapi` | `python3-fastapi` | `dev-python/fastapi` | `python-fastapi` | `python3-fastapi` | `py312-fastapi` |
 | `uvicorn` | `python3-uvicorn` | `dev-python/uvicorn` | `uvicorn` | `python3-uvicorn` | `py312-uvicorn` |
+| `websockets` | `python3-websockets` | `dev-python/websockets` | `python-websockets` | `python3-websockets` | `py312-websockets` |
 
 Note the two names that break the pattern: Arch and Artix ship uvicorn
 unprefixed, and FreeBSD's prefix tracks its default interpreter, so it moves
