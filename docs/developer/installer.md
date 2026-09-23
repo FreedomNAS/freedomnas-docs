@@ -93,6 +93,35 @@ with code 1 at every boot. Their installer profiles declare
 carries the usershare settings the setup wizard would otherwise append.
 Debian and Void ship a default `smb.conf` and keep it.
 
+## PATH, and why chroot cared
+
+`setup.py` completes the process PATH before anything runs: the host's own
+entries keep their order, and any of `/usr/local/sbin`, `/usr/local/bin`,
+`/usr/sbin`, `/usr/bin`, `/sbin`, `/bin` it lacks are appended.
+
+This is not housekeeping. `chroot` resolves the command name through the
+PATH it inherits, but *after* changing root. The live ISO is Gentoo, where
+`/sbin` and `/usr/sbin` are symlinks to `/usr/bin` and are therefore absent
+from root's PATH. Installing Debian from it asked the target for
+`/usr/bin/useradd`, and Debian keeps the directories apart:
+
+```
+Command failed with exit code 127
+Command: useradd -m -s /bin/bash -G sudo admin
+Stderr: chroot: failed to run command 'useradd': No such file or directory
+```
+
+Every other edition hid the problem, because on Arch, Artix and Void
+`/usr/sbin` is a symlink to `/usr/bin` and the command was found anyway. It
+would have hit `usermod`, `chpasswd`, `zpool` and `update-grub` in the same
+way. The WebUI's `firstboot.sh` sets PATH for the same reason — cron's
+`@reboot` environment has no sbin either.
+
+A login shell inside the target (`chroot {root} bash -lc …`) would also fix
+it, by sourcing the target's `/etc/profile`, but it would send every command
+back through a shell that re-parses the values the engine quoted, require
+bash in every edition, and leave the host side alone.
+
 ## Editions that build ZFS with DKMS
 
 Arch and Artix install `zfs-dkms-git`, which ships no module at all: it puts
