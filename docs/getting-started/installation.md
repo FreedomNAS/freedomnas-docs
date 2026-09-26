@@ -8,6 +8,10 @@
     machine that already runs a supported OS and should be turned into a
     NAS in place.
 
+    The FreeBSD image comes with root locked and a default administrator,
+    `admin` with password `freedomnas`, for the WebUI and the console.
+    Change the password after the first sign-in.
+
 The installer is profile-driven: every OS command it runs comes from
 `freedomnas-profiles` through `freedomnas-core`'s engine. It therefore
 installs **any edition its host can bootstrap**, not just Debian.
