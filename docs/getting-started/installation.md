@@ -75,10 +75,22 @@ What the ISO offers for each edition:
 The pool is created by the ISO's ZFS (2.4), whichever edition is being
 installed — see [ZFS version skew](../developer/installer.md#zfs-version-skew-between-host-and-target).
 
+### FreeBSD
+
+FreeBSD installs need FreeBSD's own tools (`gpart`, `pkg`, its `zpool`), so
+they have their own ISO: `freedomnas-live-freebsd.iso`, built by
+`freedomnas-image-builder/freebsd/live.sh` from the newest FreeBSD release.
+It boots on UEFI and BIOS, from optical media or written to a USB stick the
+same way, and behaves like the Linux one: root is logged in on the first
+console, where `freedomnas-install` starts by itself, and on the serial
+console; the network comes up over DHCP. The system runs from the read-only
+ISO, with `/tmp` and `/var` in memory.
+
 ## Prerequisites
 
 - A live/rescue environment of the right family: the FreedomNAS live ISO, or
-  any Linux distribution for the Linux editions
+  any Linux distribution for the Linux editions; the FreedomNAS FreeBSD live
+  ISO, or any FreeBSD system, for FreeBSD
 - `freedomnas-installer`, plus its hard dependencies **`freedomnas-core`**
   and **`freedomnas-profiles`**
 - `dialog` (or `whiptail`), and the host tools the edition needs —
