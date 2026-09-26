@@ -25,7 +25,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | Key | Meaning |
 |-----|---------|
 | `arch` | Architecture passed to the bootstrapper (`amd64`, `x86_64`) |
-| `suite` | Release to bootstrap (`trixie`, `14.2-RELEASE`) |
+| `suite` | Release to bootstrap (`trixie`, `15.1-RELEASE`) |
 | `mirror` | Default package mirror |
 | `mirrors` | `{code, label, url}` entries offered in the mirror menu |
 | `esp_size` | ESP size **in that partitioner's syntax** — `512MiB` for sgdisk, `512M` for gpart |
@@ -33,6 +33,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `bootstrap_methods` | Ordered list, e.g. `["debootstrap", "tarball"]` |
 | `bootstrap_tools` | `{method: host binary}` — a method whose binary is missing on the host is filtered out at runtime |
 | `rootfs_tarball_url` | Default tarball URL; **empty means "ask"**, which is correct for date-stamped filenames |
+| `extra_tarball_urls` | Tarballs unpacked over the rootfs, in order, with the same `fetch_tarball`/`unpack_tarball` commands — for releases split into sets (FreeBSD: `base.txz` has no kernel, `kernel.txz` follows) |
 | `chroot_dirs` | Directories created before the chroot mounts |
 | `uki_name`, `uki_recovery_name` | UKI filenames on the ESP (UKI-booting editions) |
 | `community_maintained` | Marks the edition as community in the installer menu |
