@@ -25,8 +25,8 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | Key | Meaning |
 |-----|---------|
 | `arch` | Architecture passed to the bootstrapper (`amd64`, `x86_64`) |
-| `suite` | Release to bootstrap (`trixie`, `15.1-RELEASE`) |
-| `mirror` | Default package mirror |
+| `suite` | Release to bootstrap (`trixie`). **Empty with a `bootstrap.latest_suite` command** means "the newest release": FreeBSD follows whatever the mirror ships last, so its profile names no version |
+| `mirror` | Default package mirror. `mirror`, `rootfs_tarball_url` and `extra_tarball_urls` may name `{arch}` and `{suite}`, filled in once the release is known |
 | `mirrors` | `{code, label, url}` entries offered in the mirror menu |
 | `esp_size` | ESP size **in that partitioner's syntax** — `512MiB` for sgdisk, `512M` for gpart |
 | `esp_mountpoint` | Where the ESP is mounted inside the target |
@@ -60,6 +60,7 @@ Runs on the host, with the host's tools.
 | `wipe` / `clear` | `{disk}` | Destroy the old table / create a new one |
 | `labelclear` | `{device}` | Optional; clears the ZFS label of an old pool's device before `wipe` |
 | `create_esp` | `{disk}`, `{esp_size}` | Partition 1, EFI System |
+| `create_bios_boot` | `{disk}` | Optional. A BIOS boot-code partition, created before the root partition but numbered after it (FreeBSD: `freebsd-boot`, index 3, for `gptzfsboot`) |
 | `create_root` | `{disk}` | Partition 2, rest of the disk |
 | `probe` / `settle` | `{disk}` | Optional — omit on platforms without an equivalent |
 | `format_esp` | `{device}` | FAT32, label `EFI` |
@@ -96,6 +97,7 @@ root is still empty at that point. The exceptions are `update_cache`,
 |-----|-----------|-------|
 | *native method* | `{arch}`, `{suite}`, `{root}`, `{mirror}`, `{bootstrap_dir}` | Key name must match its entry in `bootstrap_methods`; may be a command sequence |
 | `fetch_tarball` | `{url}`, `{output}` | `curl` on Linux, `fetch` on FreeBSD |
+| `latest_suite` | `{arch}` | Optional. Prints the newest release; FreeBSD picks the newest `N.M-RELEASE` on download.freebsd.org that has a `kernel.txz`. When it prints nothing the installer asks |
 | `unpack_tarball` | `{tarball}`, `{root}` | |
 | `update_cache` | — | In-target |
 | `install_base` | `{package_list}` | Space-separated; the recommends-free variant |
