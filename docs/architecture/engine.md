@@ -108,12 +108,15 @@ runtime.
 
 ## Profile Search Path
 
-The engine searches for profiles in this order:
+The engine asks `paths.profiles_dir()`, which searches, relative to the
+core's own location:
 
-1. `/usr/lib/freedomnas/profiles` — system install
-2. `../../freedomnas-profiles` — sibling repo in dev tree
-3. `../os_profiles`, `./os_profiles` — local dev
-4. `/opt/freedomnas/lib/os_profiles` — alternative install
+1. `<install_root>/profiles` — system install (the core is
+   `<install_root>/core/freedomnas/`)
+2. `../freedomnas-profiles` — sibling repo in a dev tree
+
+No absolute path is involved: `<install_root>` is whatever the edition's
+packages chose (see [System Stack](system-stack.md#installed-filesystem-layout)).
 
 ## Command Execution Safety
 

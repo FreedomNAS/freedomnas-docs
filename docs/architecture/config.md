@@ -5,15 +5,25 @@ This configuration survives OS reinstallation and enables cross-OS migration.
 
 ## Storage Locations
 
+`<config_dir>` is the OS profile's `paths.config_dir`: `/etc/freedomnas` on
+the Linux editions, `/usr/local/etc/freedomnas` on FreeBSD.
+
 | Priority | Path | Notes |
 |----------|------|-------|
-| Primary | `/etc/freedomnas/state/config.yaml` | Where the `.freedomnas` dataset mounts |
-| Active | `/etc/freedomnas/state/config.yaml` | Mounted ZFS dataset `rpool/.freedomnas` |
-| Fallback | `/etc/freedomnas/config.yaml` | Backup copy |
+| Primary | `<config_dir>/state/config.yaml` | Where the `.freedomnas` dataset mounts |
+| Active | `<config_dir>/state/config.yaml` | Mounted ZFS dataset `rpool/.freedomnas` |
+| Fallback | `<config_dir>/config.yaml` | Backup copy |
 
-The installer writes to `/mnt/etc/freedomnas/state/config.yaml` (within the
-chroot). Post-install, the ZFS dataset `rpool/.freedomnas` is mounted at
-`/etc/freedomnas/state` with `canmount=noauto`.
+The installer writes to `<target root><config_dir>/state/config.yaml`.
+Post-install, the ZFS dataset `rpool/.freedomnas` is mounted at
+`<config_dir>/state` with `canmount=noauto`; the storage profile's
+`create_state_dataset` uses the same directory, and a core test checks the
+two agree on every edition.
+
+A pool created by one edition carries that edition's mountpoint on its
+`.freedomnas` dataset. When `firstboot.sh` finds it on another edition — a
+Debian pool on FreeBSD, say — it sets the dataset's mountpoint to this
+edition's `<config_dir>/state` before mounting it.
 
 ## Shadow-Copy Pattern
 

@@ -117,8 +117,18 @@ The profile layer has zero Python logic. It is pure data, split per module
 
 ## Installed Filesystem Layout
 
+Where FreedomNAS goes is each edition's data, not code: the OS profile's
+`paths` section.
+
+| Edition | `paths.install_root` (the program) | `paths.config_dir` (its configuration) |
+|---------|------------------------------------|----------------------------------------|
+| Linux editions | `/usr/lib/freedomnas` | `/etc/freedomnas` |
+| FreeBSD | `/usr/local/lib/freedomnas` | `/usr/local/etc/freedomnas` |
+
+Under the root, every edition has the same tree:
+
 ```
-/usr/lib/freedomnas/
+<install_root>/
 ├── core/                   ← freedomnas-core package
 │   └── freedomnas/
 │       ├── engine.py
@@ -161,26 +171,46 @@ vendors `freedomnas-core`/`freedomnas-profiles`/`freedomnas-webui` wholesale
 into the pre-built image at build time. See
 [Getting Started → Installation](../getting-started/installation.md).
 
+## How the pieces find each other
+
+The root cannot come from a profile, because the profiles are what it is
+needed to find. So no installed component names it: each finds the others
+**relative to its own location**.
+
+| Who | Is at | Finds |
+|-----|-------|-------|
+| `paths.py` (core) | `<root>/core/freedomnas/` | `<root>/profiles`, `<root>/modules` |
+| `module_discovery.py` (WebUI) | `<root>/webui/api/` | `<root>/modules` |
+| `corelink.py` (installer) | `<root>/installer/lib/` | `<root>/core`, `<root>/profiles` |
+| `firstboot.sh`, `supervisor.sh` | `<root>/profiles/assets/`, or a copy in `<root>/webui/bin/` | the root, three levels above their real path |
+
+The configuration directory is the other way round: it is read from the
+profile of the running edition, through the engine (`paths.config_dir()`,
+`state_dir()`, `tls_dir()`, `keyslot_dir()`). Shell scripts ask the core:
+`python3 -m freedomnas path {install-root,config,state,tls,keyslots}`.
+
+Only what *installs* FreedomNAS reads `paths.install_root`: the installer
+(for the target it writes), freedomnas-freebsd, the FreeBSD image builder,
+and the `{install_root}` and `{config_dir}` placeholders in the installer
+profiles' `files` entries, such as the crontab.
+
 ## Python Import Resolution
 
-The core lives in `/usr/lib/freedomnas/core`, on no interpreter's default
-path. Everything FreedomNAS starts puts it there itself: `firstboot.sh`,
+The core lives in `<install_root>/core`, on no interpreter's default path.
+Everything FreedomNAS starts puts it there itself: `firstboot.sh`,
 `supervisor.sh` (and so the WebUI) and the scheduled jobs in cron all set
-`PYTHONPATH=/usr/lib/freedomnas/core`. That holds on every edition and across
+`PYTHONPATH=<install_root>/core`. That holds on every edition and across
 Python upgrades — site-packages is `/usr/lib/python3/dist-packages` only on
 Debian, and elsewhere its name carries the Python version.
 
-For running `python3 -m freedomnas` by hand, the installer also writes
-`freedomnas-core.pth` into the directory the target's own `python3` reports
-(`python.site_dir` in the installer profile), and the packages do the same:
-`dh_python3` on Debian, `python_domodule` in the Gentoo overlay. After a
-Python upgrade on a rolling edition that file may be left in the old
+For running `python3 -m freedomnas` by hand, every package also writes
+`freedomnas-core.pth` into site-packages: the .deb, the PKGBUILD, the Gentoo
+ebuild, the FreeBSD package and the installer (into the directory the
+target's own `python3` reports, `python.site_dir`). The core is never a
+wheel in site-packages: from there it could not find the profiles. After a
+Python upgrade on a rolling edition the .pth may be left in the old
 directory; the services are unaffected.
 
-In development, the engine searches for profiles in this order:
-
-1. `/usr/lib/freedomnas/profiles` (system install)
-2. `../../freedomnas-profiles` (sibling repo in dev)
-3. `../os_profiles`
-4. `./os_profiles`
-5. `/opt/freedomnas/lib/os_profiles`
+In a development tree, where the checkouts sit side by side, the engine
+looks for profiles in `<root>/profiles` first and then in
+`../freedomnas-profiles`.

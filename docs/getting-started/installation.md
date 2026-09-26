@@ -192,7 +192,7 @@ path under systemd, OpenRC, runit, s6, dinit or bsd_rc.
 #### 8. FreedomNAS itself
 
 `freedomnas-core`, `freedomnas-profiles` and `freedomnas-webui` are copied
-into the target under `/usr/lib/freedomnas/`, together with `firstboot.sh`,
+into the target under its `install_root` (`/usr/lib/freedomnas/` on Linux, `/usr/local/lib/freedomnas/` on FreeBSD), together with `firstboot.sh`,
 `supervisor.sh` and the cron `@reboot` hook that starts the WebUI.
 
 #### 9. Boot chain
@@ -254,7 +254,7 @@ ESP/
 #### 10. Save the configuration
 
 `config.yaml` is written to the `.freedomnas` dataset
-(`/etc/freedomnas/state/config.yaml`), recording hostname, timezone, users,
+(`/etc/freedomnas/state/config.yaml`, `/usr/local/etc/freedomnas/state/config.yaml` on FreeBSD), recording hostname, timezone, users,
 the pool and the installed features. This file survives reinstallation and is
 what disaster recovery reads.
 
@@ -287,7 +287,8 @@ pulled in), enables their services through the init profile, deploys
 The WebUI starts at the next boot, or immediately with:
 
 ```bash
-/usr/lib/freedomnas/webui/bin/firstboot.sh &
+/usr/lib/freedomnas/webui/bin/firstboot.sh &        # Linux
+/usr/local/lib/freedomnas/webui/bin/firstboot.sh &  # FreeBSD
 ```
 
 ---

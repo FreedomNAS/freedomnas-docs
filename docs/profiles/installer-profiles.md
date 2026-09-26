@@ -282,7 +282,7 @@ in the installer's Python.
   "webui_cron": {
     "path": "/etc/crontab",
     "append": true,
-    "content": "@reboot root /usr/lib/freedomnas/webui/bin/firstboot.sh …\n"
+    "content": "@reboot root {install_root}/webui/bin/firstboot.sh …\n"
   }
 }
 ```
@@ -290,7 +290,7 @@ in the installer's Python.
 | Key | Meaning |
 |-----|---------|
 | `path` | Absolute path **inside the target** |
-| `content` | Template — filled with hostname, fqdn, domain, timezone, mirror, suite, arch, esp_device, esp_spec, pool_name, edition |
+| `content` | Template — filled with hostname, fqdn, domain, timezone, mirror, suite, arch, esp_device, esp_spec, pool_name, edition, and on every entry `install_root` and `config_dir` from the target's OS profile `paths` |
 | `symlink_to` | Makes the entry a symlink rather than a file |
 | `mode` | Decimal mode (420 = 0o644); default 0o644 |
 | `append` | Append instead of overwrite, skipping if already present — for editions with no drop-in directory (FreeBSD has no `/etc/cron.d`) |
