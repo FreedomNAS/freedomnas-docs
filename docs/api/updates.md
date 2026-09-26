@@ -87,7 +87,7 @@ overwritten.
     | Void | `topgrade`, in the distribution |
     | Gentoo | `app-admin/topgrade-bin` in freedomnas-overlay, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
     | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://codeberg.org/FreedomNAS/freedomnas-deb) and published to Codeberg's Debian registry, which `repositories.core` adds to the target's sources |
-    | FreeBSD | not checked yet |
+    | FreeBSD | `sysutils/topgrade`, in FreeBSD's own repository |
 
     `updates.check_topgrade` is what tells an edition that has it from one
     that does not.

@@ -12,7 +12,8 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
 ├── freedomnas-website       Public project website (static HTML + CSS)
-└── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
+├── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
+└── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
 
 codeberg.org/sarahmeow86/
 └── zfs-dinit                dinit services for ZFS on Artix (checked out as artix-zfs)

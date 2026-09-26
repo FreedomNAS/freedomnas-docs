@@ -59,7 +59,7 @@ Samba file sharing server — SMB/CIFS protocol for Windows/macOS/Linux clients.
 | OS | Packages | Services |
 |----|---------|---------|
 | Debian | `samba`, `samba-common-bin` | `smbd`, `nmbd` |
-| FreeBSD | `net/samba419` | `smbd` |
+| FreeBSD | `samba416` | `samba_server` |
 | Arch | `samba` | `smb` |
 
 ### `nfs`
@@ -69,16 +69,23 @@ NFS server — Unix/Linux file sharing protocol.
 | OS | Packages | Services |
 |----|---------|---------|
 | Debian | `nfs-kernel-server` | `nfs-server` |
-| FreeBSD | (kernel built-in) | `nfsd` |
+| FreeBSD | (base system) | `rpcbind`, `mountd`, `nfsd` |
 | Arch | `nfs-utils` | `nfs-server` |
 
 ### `containers`
 
 Docker or Podman container runtime for running containerised applications.
 
+FreeBSD has no Docker: its entry installs `podman`, which pulls in `ocijail`
+as the runtime and runs FreeBSD containers, as root only — so there is no
+group for the administrator to join.
+
 ### `virtualization`
 
 KVM/QEMU virtual machines.
+
+On FreeBSD the hypervisor is bhyve, part of the base system; the entry
+installs only `libvirt`, `vm-bhyve` and `grub2-bhyve`.
 
 ## The core's own runtime
 
@@ -131,4 +138,4 @@ When FreedomNAS needs to install or verify `samba-cifs`, it:
 4. Installs/checks those packages via `engine.execute("packages", "install", packages="samba samba-common-bin")`
 
 This is what enables cross-OS migration: reinstall on FreeBSD, and the
-installer reads `samba-cifs` → `net/samba419` from the FreeBSD profile.
+installer reads `samba-cifs` → `samba416` from the FreeBSD profile.
