@@ -449,7 +449,10 @@ Which chain is built depends on what the target profile declares, not on an
 - otherwise `bootloader.install_efi_loader` → the edition's native loader
   (FreeBSD's reads ZFS directly and needs no UKI)
 
-Then firmware decides the entry point:
+Then firmware decides the entry point. How the installer's own machine
+booted comes from the host profile's `bootloader.firmware_mode`, which prints
+`UEFI` or `BIOS` (Linux: whether `/sys/firmware/efi` exists; FreeBSD:
+`sysctl machdep.bootmethod`):
 
 - **UEFI** — `bootloader.efi_boot_entry` (`efibootmgr`) registers the loader
 - **BIOS** — the vendored **Clover** chain (release 5173, pinned) bridges

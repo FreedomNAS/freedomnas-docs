@@ -8,7 +8,7 @@
     machine that already runs a supported OS and should be turned into a
     NAS in place.
 
-    The FreeBSD image comes with root locked and a default administrator,
+    The Debian and FreeBSD images come with root locked and a default administrator,
     `admin` with password `freedomnas`, for the WebUI and the console.
     Change the password after the first sign-in.
 
