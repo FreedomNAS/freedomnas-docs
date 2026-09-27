@@ -11,7 +11,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
-├── freedomnas-website       Public project website (static HTML + CSS)
+├── pages                    Public project website (static HTML + CSS), at freedomnas.codeberg.page
 ├── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
 ├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to Codeberg's Arch registry
 ├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
@@ -38,6 +38,12 @@ still install `zfs-dkms-git` from Chaotic-AUR until those packages are
 published and the profiles switch; the prototype boots an Artix image under
 UEFI. The module template keeps its own PKGBUILD, since a module author
 copies it with the rest of the scaffolding.
+
+`pages` is the website and has to carry that name for Codeberg Pages to
+serve it at the root of <https://freedomnas.codeberg.page/>. Both it and
+this documentation publish themselves on every push to `dev`: a workflow on
+the self-hosted runner hands the files to `git-pages/action`, and the
+documentation lands at <https://freedomnas.codeberg.page/freedomnas-docs/>.
 
 `freedomnas-image-builder` produces the primary install path (ADR-002).
 `freedomnas-installer` is the secondary one, for hardware that can't be
