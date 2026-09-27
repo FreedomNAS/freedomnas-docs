@@ -10,6 +10,10 @@
   var meta = document.querySelector('meta[name="freedomnas-docs-version"]');
   var docsVersion = meta ? meta.content : "";
 
+  function release(version) {
+    return String(version).split("+")[0];
+  }
+
   function matches(label, wanted) {
     var text = label.textContent.trim().toLowerCase();
     return wanted.some(function (w) {
@@ -33,7 +37,7 @@
   function showBanner() {
     var article = document.querySelector("article.md-content__inner");
     if (!article || document.getElementById("fnas-context")) return;
-    var differs = context.version && docsVersion && context.version !== docsVersion;
+    var differs = context.version && docsVersion && release(context.version) !== release(docsVersion);
 
     var box = document.createElement("div");
     box.id = "fnas-context";
@@ -45,8 +49,8 @@
       (system ? " — " + system : "");
     var body = document.createElement("p");
     body.textContent = differs
-      ? "This documentation is for " + docsVersion + ", not the version running here."
-      : "This documentation is for " + (docsVersion || "an unknown version") + ".";
+      ? "This documentation is for FreedomNAS " + docsVersion + ", another release than the one running here."
+      : "This documentation is for FreedomNAS " + (docsVersion || "(version unknown)") + ".";
     box.appendChild(title);
     box.appendChild(body);
     article.insertBefore(box, article.firstChild);
