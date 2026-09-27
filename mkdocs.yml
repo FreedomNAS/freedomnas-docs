@@ -8,6 +8,7 @@ repo_url: https://codeberg.org/FreedomNAS
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/logo_cut.png
   favicon: assets/logo_cut.png
   palette:
@@ -29,6 +30,7 @@ theme:
     - navigation.top
     - navigation.footer
     - content.code.copy
+    - content.tabs.link
     - content.code.annotate
     - search.suggest
     - search.highlight
@@ -36,6 +38,9 @@ theme:
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/freedomnas.js
 
 markdown_extensions:
   - admonition
@@ -113,8 +118,10 @@ nav:
 
 plugins:
   - search
+  - privacy
 
 extra:
+  freedomnas_version: !ENV [FREEDOMNAS_DOCS_VERSION, "dev"]
   social:
     - icon: fontawesome/brands/git-alt
       link: https://codeberg.org/FreedomNAS
