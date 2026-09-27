@@ -204,7 +204,8 @@ Python upgrades — site-packages is `/usr/lib/python3/dist-packages` only on
 Debian, and elsewhere its name carries the Python version.
 
 For running `python3 -m freedomnas` by hand, every package also writes
-`freedomnas-core.pth` into site-packages: the .deb, the PKGBUILD, the Gentoo
+`freedomnas-core.pth` into site-packages: the .deb, the PKGBUILD in
+freedomnas-arch, the Gentoo
 ebuild, the FreeBSD package and the installer (into the directory the
 target's own `python3` reports, `python.site_dir`). The core is never a
 wheel in site-packages: from there it could not find the profiles. After a

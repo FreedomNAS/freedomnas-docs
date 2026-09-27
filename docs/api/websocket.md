@@ -17,7 +17,7 @@ wss://<host>/ws/updates/terminal   (if TLS is terminated upstream)
     matches no HTTP route, and the browser is told `404 {"detail":"Not
     Found"}` — which the page reports as `WebSocket connection error` while
     every other part of the WebUI works. The package is therefore named in
-    `requirements.txt`, `debian/control`, the PKGBUILD, the Gentoo ebuild and
+    `requirements.txt`, `debian/control`, freedomnas-arch's PKGBUILD, the Gentoo ebuild and
     `packages/core.json` (`python-websockets`, `python3-websockets`,
     `py312-websockets`, `dev-python/websockets` depending on the edition).
 
