@@ -44,8 +44,9 @@ answers every installer dialog from `seed.env` and stops on any question it
 does not know. The host reads `vm-install: RESULT ok` from the serial log
 and compresses the image. The image is exactly what the installer produces
 on real hardware, and the host imports no pool and needs no pacman: only
-QEMU (with KVM) and xorriso. An Artix/OpenRC build takes about six minutes;
-the 10 GB image compresses to about 2.4 GB and boots under BIOS and UEFI.
+QEMU (with KVM) and xorriso. A build takes about six minutes; the 10 GB
+image compresses to about 2.4 GB. The OpenRC, dinit and runit images all
+boot, and their first-boot reconcile finishes with no failure.
 
 ## Versions
 
