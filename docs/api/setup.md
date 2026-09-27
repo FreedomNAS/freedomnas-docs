@@ -1,15 +1,14 @@
 # Setup API
 
-The setup API handles the first-run wizard. All routes here are exempt from
-authentication and from the first-run guard — they are always accessible.
+The setup API drives the first-run wizard. Its routes are exempt from the
+first-run guard, so they answer before the system is initialized. All of
+them but `/status` need an administrator's credentials: on a system flashed
+from an image, the ones it shipped with (`admin` / `freedomnas`), which the
+wizard replaces.
 
 ## GET /api/setup/status
 
-Returns whether the system has been initialized.
-
 **Auth required:** no
-
-**Response:**
 
 ```json
 {
@@ -19,133 +18,101 @@ Returns whether the system has been initialized.
 }
 ```
 
-After initialization:
+`detected_edition` is the profile the engine detected (`engine.os_type`).
 
-```json
-{
-  "initialized": true,
-  "edition": "debian",
-  "detected_edition": "debian"
-}
-```
+---
 
-`detected_edition` is the profile the engine detected on the running system
-(`engine.os_type`). The wizard preselects it.
+## GET /api/setup/whoami
+
+**Auth required:** yes
+
+`{"username": "admin"}`. The sign-in page uses it to check credentials
+while `/api/system/info` still answers `503`.
+
+## GET /api/setup/devices
+
+**Auth required:** yes
+
+The block devices, for the wizard's data pool — the same answer as
+[`GET /api/storage/devices`](storage.md).
+
+## GET /api/setup/pools
+
+**Auth required:** yes
+
+The imported pools, as [`GET /api/storage/pools`](storage.md), plus
+`system_pool`: the pool the root filesystem is on, so the wizard can tell it
+from a data pool.
 
 ---
 
 ## POST /api/setup/initialize
 
-Run the first-run initialization.
-
-**Auth required:** no
-
-**Request body:**
-
-```json
-{
-  "hostname": "freedomnas",
-  "timezone": "Europe/Rome",
-  "edition": "debian"
-}
-```
-
-`edition` is required and must be one of `engine.SUPPORTED_OS` (`debian`,
-`freebsd`, `arch`, `artix`, `void`, `gentoo`) **and** equal to the detected
-edition — the engine chooses profiles by detection, so a different value
-would only record a wrong label. `hostname` defaults to `"freedomnas"`,
-`timezone` to `"UTC"`.
-
-### Optional: creating an encrypted pool during setup
-
-The body accepts an optional `pool` field. When present, the wizard also
-creates a ZFS-native-encrypted pool as part of first-run initialization, via
-`freedomnas.keymgmt.PoolProvisioner` (see
-[Encrypted Pool Keyslots](../architecture/security.md#encrypted-pool-keyslots)
-for the underlying keyslot design):
+**Auth required:** yes
 
 ```json
 {
   "hostname": "mynas",
   "timezone": "Europe/Rome",
-  "edition": "debian",
-  "pool": {
-    "name": "datapool",
-    "vdev_type": "mirror",
-    "devices": ["/dev/disk/by-id/ata-DISK1", "/dev/disk/by-id/ata-DISK2"],
-    "master_passphrase": "correct horse battery staple",
-    "usb_devices": ["/dev/sdb1"]
-  }
+  "admin": {"username": "sarah", "password": "a new password", "remove_default": false},
+  "pool": {"name": "tank", "vdev_type": "mirror", "devices": ["/dev/sdb", "/dev/sdc"],
+           "encrypted": false},
+  "state_pool": "tank"
 }
 ```
 
-| `pool` field | Required | Notes |
-|--------------|----------|-------|
-| `name` | yes | Pool name |
-| `vdev_type` | no | e.g. `mirror`, `raidz1`; empty string means a single-disk vdev |
-| `devices` | yes | Non-empty list of block device paths |
-| `master_passphrase` | yes | At least 12 characters — becomes the `passphrase` keyslot, used for the TTY unlock prompt at boot |
-| `usb_devices` | no | Block device paths of already-mounted-and-writable USB sticks to write `freedomnas.key` onto — becomes the `usb` keyslot, used for zero-touch unlock at boot |
+| Field | Required | Notes |
+|-------|----------|-------|
+| `hostname` | no | Letters, digits, hyphens; default `freedomnas` |
+| `timezone` | no | A known IANA name; default `UTC` |
+| `edition` | no | Defaults to the detected edition; any other value is refused |
+| `admin.username` | no | Empty keeps the account the request is authenticated as; otherwise lowercase letters, digits, `_`, `-` |
+| `admin.password` | yes | At least 8 characters, and different from the password the request is authenticated with |
+| `admin.remove_default` | no | With a new `username`: remove the account the request is authenticated as. If false, it is kept and gets the new password too, so the shipped one works nowhere |
+| `pool` | no | A data pool to create, exactly as [`POST /api/storage/pools`](storage.md) takes it (`name`, `vdev_type`, `devices`, `encrypted`, `master_passphrase`, cache and log devices) |
+| `state_pool` | yes | The pool that keeps `.freedomnas`: an imported pool, or the one `pool` creates |
 
-A random raw ZFS key is generated once and never stored in the clear. It is
-wrapped independently for each factor (scrypt KDF + AES-256-GCM) into
-`/etc/freedomnas/keyslots/<pool>.json`. The passphrase and the USB key bytes
-themselves are never persisted anywhere — only their wrapped keyslots. The
-API never returns a pool's passphrase; it is accepted only at creation time.
+**Behaviour**, in this order — everything that can be checked is checked
+before anything changes:
 
-**Behaviour:**
-
-1. Returns `409` immediately if `config.is_initialized()` is already `true`
-2. `engine.execute("system", "hostname_set", hostname=...)`
-3. `config.set_hostname(hostname)`
-4. `engine.execute("system", "timezone_set", timezone=...)`
-5. `config.set("system.timezone", timezone)`
-6. Appends the Samba usershare stanza to `smb.conf` (`samba.config_file`) —
-   **only if** the file has no `usershare path` yet, which is the case when
-   the installer wrote a complete `smb.conf` (Arch, Artix, Gentoo):
-   ```
-   [global]
-      usershare path = <samba.usershare_path>
-      usershare max shares = 100
-      usershare allow guests = no
-   ```
-7. Creates the usershare directory through the profile:
-   `samba.usershare_prepare` with `{path}` = `samba.usershare_path`
-   (`/var/lib/samba/usershares`, `/var/db/samba4/usershares` on FreeBSD)
-8. If `pool` was given: `PoolProvisioner.create_encrypted_pool(...)` creates
-   the pool and provisions both keyslots, writing `freedomnas.key` to each
-   `usb_devices` entry, then `config.add_pool({"name", "vdev_type",
-   "encrypted": true, "usb_keyslot_devices": <count>})` — only that
-   non-secret metadata is recorded in `config.yaml`
-9. `config.mark_initialized(edition=edition, initialized_by="webui")`
+1. `409` if the system is already initialized
+2. `422` for an invalid hostname, timezone, edition, administrator or a
+   `state_pool` that is neither imported nor being created
+3. If `pool` was given, it is created through the Storage route, which
+   validates it (`422` before anything else changes) and gives it a
+   `.freedomnas` dataset
+4. `system.hostname_set`, `system.timezone_set`, the Samba usershare
+   directory and `smb.conf` stanza
+5. The administrator: `users.create` with the edition's sudo group for a
+   new name, then its password through `users.set_password_stdin`; the old
+   account removed (`users.delete`) or given the same password
+6. `system.ssh_enabled: false` in `config.yaml` (SSH is off on fresh
+   systems; see [`/api/system/ssh`](system.md))
+7. `config.mark_initialized(edition, initialized_by="webui")`
+8. `shadow.activate(engine, state_pool)`: creates `<state_pool>/.freedomnas`
+   if needed, moves the configuration written so far from the plain state
+   directory into it, removes the copies left on the root filesystem and
+   mounts the dataset in their place
 
 **Response:**
 
 ```json
 {
   "detail": "System initialized",
-  "hostname": "freedomnas",
-  "edition": "debian"
+  "hostname": "mynas",
+  "edition": "debian",
+  "admin": "sarah",
+  "state_dataset": "tank/.freedomnas"
 }
 ```
 
-**Errors:**
-
-| Code | Detail |
-|------|--------|
-| 409 | System already initialized |
-| 422 | `timezone` is not a known timezone name (same check as [`POST /api/system/timezone`](system.md#post-apisystemtimezone)); `edition` is missing, unknown, or differs from the detected edition; or `pool` is invalid (missing `name`/`devices`, `master_passphrase` shorter than 12 characters, a device that is not a `/dev/...` path, or a `vdev_type` other than `""`/`mirror`/`raidz1-3`) — checked before anything is created |
-| 500 | Engine, config, or keyslot operation failed partway through (`CommandExecutionError`, `CommandTranslationError`, `ConfigurationException`, `KeyManagementError`) |
+**Errors:** `401` without an administrator's credentials, `409`, `422` as
+above, `500` when an engine, configuration or pool step fails partway —
+the system then stays uninitialized.
 
 !!! note
-    When the system was installed via the TUI installer, it is already
-    initialized (`initialized_by: "installer"`). The WebUI's `setup.js`
-    checks `GET /api/setup/status` on every page load and redirects to the
-    dashboard if `initialized` is `true` — so the wizard page is skipped
-    entirely on installer-provisioned systems.
-
-!!! warning "No wizard UI for `pool`"
-    `setup.js`/`setup.html` implement only the 3 steps
-    (hostname/timezone/edition). The `pool` field can only be exercised by
-    calling this endpoint directly. After setup, pools are created from the
-    Storage page through [`POST /api/storage/pools`](storage.md).
+    A system installed with the installer is initialized
+    (`initialized_by: "installer"`) and has its `.freedomnas` on the root
+    pool already; `setup.js` sends it to the dashboard. Images are built in
+    the installer's image mode, which creates the shipped administrator but
+    no `.freedomnas` and no configuration, so their first boot lands here.

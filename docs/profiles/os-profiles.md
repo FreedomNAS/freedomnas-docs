@@ -190,6 +190,7 @@ inside the profile.
 |-----|---------|
 | `hostname_get` | Read current hostname |
 | `hostname_set` | Set hostname |
+| `ssh_service` | Not a command: the name of the SSH service (`ssh` on Debian, `sshd` elsewhere), which the installer disables and `/api/system/ssh` turns on and off |
 | `timezone_get` | Read current timezone |
 | `timezone_set` | Set timezone |
 | `timezone_list` | List available timezones |

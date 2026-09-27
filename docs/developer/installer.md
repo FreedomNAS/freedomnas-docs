@@ -62,10 +62,10 @@ same call therefore works against `/mnt` during a clean install and against
 | `lib/zfs_installer.py` | Root pool and dataset tree via `rootpool.*` |
 | `lib/system_installer.py` | Firmware detection, prompts, bootstrap, `files.*`, chroot mounts |
 | `lib/users_installer.py` | Accounts; passwords through `users.set_password_stdin` |
-| `lib/packages_installer.py` | Category selection via `PackageManager`, install, `services.enable` |
+| `lib/packages_installer.py` | Category selection via `PackageManager`, install, `services.enable`. `PackagesInstaller.disable_ssh()` leaves every clean install with SSH off: `system.ssh_service` is disabled through the init profile (`services.disable_offline` or `services.disable`), which matters where the package enables itself (Debian's `openssh-server`); it is turned on from the WebUI |
 | `lib/core_installer.py` | Copies core/profiles/webui/docs into the target, wires first boot. A source counts only if it holds the file that proves it is a real copy (`__init__.py`, `api/main.py`, `index.html`): a removed package leaves `__pycache__` directories behind, and copying that skeleton gave a target whose WebUI could not start. The documentation comes from the installed `<root>/docs` or a built `freedomnas-docs/site`; without one the target has no offline documentation and the installer says so |
 | `lib/bootloader_installer.py` | UKI + Clover, or the edition's native loader |
-| `lib/state_installer.py` | The `config.yaml` shadow copy on `.freedomnas` |
+| `lib/state_installer.py` | The `config.yaml` shadow copy on `.freedomnas`, created on the new root pool at the end of a clean install (`rootpool.create_state_dataset`). In image mode (`Configuration.image_mode`, set by freedomnas-image-builder's vm-install) neither the dataset nor `config.yaml` is written: the image boots into the setup wizard, which puts `.freedomnas` on the pool its owner chooses |
 | `lib/target_installer.py` | Clean-install orchestration |
 | `lib/inplace_installer.py` | In-place orchestration |
 | `tests/dryrun_smoke.py` | End-to-end dry run of both modes, no root needed |

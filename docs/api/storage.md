@@ -141,9 +141,11 @@ The block devices this machine has, and what is already on them.
 ] }
 ```
 
-`in_use` is true when the device carries a filesystem or is mounted — the
-pool form shows those greyed out, so nobody can pick the disk their system
-is running from.
+`in_use` is true when the device carries a filesystem or is mounted, and
+for a whole disk when any of its partitions is (lsblk's `PKNAME` names each
+partition's disk): the disk of the running system shows no filesystem of
+its own, only its partitions do. The pool form and the setup wizard show
+those greyed out, so nobody can pick the disk their system is running from.
 
 On Linux this is `lsblk -pbP` (key="value" pairs, which parse without
 guessing at column widths). FreeBSD has no lsblk: it answers with

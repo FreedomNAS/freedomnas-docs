@@ -31,6 +31,14 @@ The change is applied to the system first (`timedatectl set-timezone` on
 systemd editions, the `/etc/localtime` link or `tzsetup` elsewhere) and only
 then recorded in `config.yaml`, so a zone the system refuses is not saved.
 
+## SSH
+
+*Advanced level.* SSH is off on a freshly installed or flashed system.
+**Allow SSH logins** turns it on (and back off) through the edition's init
+system, and the choice is kept in the configuration, so it is restored with
+everything else after a reinstall. While it is on, anyone who can reach the
+system and knows an administrator's password can log in.
+
 ## UI Level
 
 Select your preferred interface complexity level. See [UI Levels](ui-levels.md)

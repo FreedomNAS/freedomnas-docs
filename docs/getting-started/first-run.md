@@ -1,7 +1,10 @@
 # First-Run Setup (WebUI Wizard)
 
-When FreedomNAS starts for the first time (or is reset), it shows a 3-step
-setup wizard before granting access to the dashboard.
+A system that has no FreedomNAS configuration yet shows a setup wizard
+before anything else. That is the case after flashing an image: images ship
+without a `.freedomnas` dataset on purpose, so that every appliance starts
+by being made its owner's. A system installed with the installer is already
+configured and skips the wizard.
 
 ## Accessing the Wizard
 
@@ -11,73 +14,59 @@ Open a browser and navigate to:
 https://<hostname or IP>:8080
 ```
 
-If the system is not yet initialized, the root URL automatically redirects
-to the setup wizard.
+Sign in with the credentials the system came with. On an image those are:
 
-## Step 1 — Identity
+| Username | Password |
+|----------|----------|
+| `admin` | `freedomnas` |
 
-Configure the system's hostname and timezone.
+After signing in, an unconfigured system goes straight to the wizard. Until
+it has been through it, the rest of the WebUI and its API answer `503`.
+
+## Step 1 — Administrator
+
+| Field | Description |
+|-------|-------------|
+| **Administrator name** | Leave it empty to keep the account you signed in with (`admin`), or give a new name to create that account |
+| **Remove the current account** | Shown when a new name is given. If unchecked, the old account is kept and gets the new password too |
+| **New password** | At least 8 characters, and not the password you signed in with: the shipped one cannot stay |
+
+## Step 2 — System
 
 | Field | Description | Example |
 |-------|-------------|---------|
 | **Hostname** | Short system name (letters, digits, hyphens) | `freedomnas` |
-| **Timezone** | IANA timezone identifier | `Europe/Rome` |
+| **Timezone** | IANA timezone identifier, preselected from the browser | `Europe/Rome` |
 
-Click **Continue** to proceed.
+## Step 3 — Storage
 
-## Step 2 — Edition
+Optionally create a data pool on the other disks: name, layout (single disk,
+mirror, RAIDZ1, RAIDZ2), the disks, and whether to encrypt it with a Master
+Passphrase of at least 12 characters. Disks in use — the system disk among
+them — cannot be selected. Pools that already exist are left as they are;
+more pools can be created later from **Storage**.
 
-Confirm the operating system edition. The wizard preselects the edition the
-engine detected on this machine (`detected_edition` from
-`GET /api/setup/status`) and shows it under the selector.
+## Step 4 — Configuration
 
-| Edition | Running |
-|---------|---------|
-| **Debian** | Debian trixie, or Ubuntu |
-| **FreeBSD** | FreeBSD 14+ |
-| **Arch Linux** | Arch Linux |
-| **Gentoo** | Gentoo |
-| **Artix Linux** | Artix Linux |
-| **Void Linux** | Void Linux |
+Choose the pool that keeps FreedomNAS's configuration (the `.freedomnas`
+dataset: users, shares, settings). A data pool is preselected when there is
+one, and recommended: the configuration then survives reinstalling or
+reflashing the system disk — at the next boot, `firstboot.sh` finds it on
+the data pool and restores the system from it (see
+[Installation](installation.md)).
 
-!!! note
-    The selection does **not** choose which JSON profile is loaded — the
-    engine detects the running OS by itself. The edition is recorded in
-    `config.yaml`, so it must match: `POST /api/setup/initialize` returns
-    `422` for an unknown edition or one that differs from the detected OS.
-    It cannot be changed without re-running setup.
+## Step 5 — Review
 
-## Step 3 — Review
+A summary of the choices. **Apply** calls `POST /api/setup/initialize`
+([Setup API](../api/setup.md)), which creates the pool if one was asked for,
+sets the hostname and timezone, sets up the administrator, records SSH as
+off, marks the system initialized, and moves the configuration onto the
+chosen pool.
 
-A summary table shows your choices. Review them, then click
-**Initialize System**.
-
-The wizard calls `POST /api/setup/initialize`, which:
-
-1. Sets the hostname via `engine.execute("system", "hostname_set")`
-2. Sets the timezone via `engine.execute("system", "timezone_set")`
-3. Marks the system as initialized in `config.yaml`
-4. Saves the configuration to the `.freedomnas` ZFS dataset
-
-!!! note "Creating a data pool"
-    The wizard has no pool step. After setup, create pools from
-    **Storage → Create Pool** — see [Storage](../user-guide/storage.md#creating-a-pool).
-    `POST /api/setup/initialize` also accepts an optional `pool` field that
-    creates an encrypted pool during setup (name, devices, a ≥12-character
-    Master Passphrase, and optionally USB devices to write a zero-touch
-    unlock key onto) — see [Encrypted Data Pools](../developer/zfs.md#encrypted-pools).
-    That field is API-only: `setup.html`/`setup.js` do not expose it.
+SSH stays off. It can be turned on under **System → SSH** at the Advanced
+UI level ([System](../user-guide/system.md)).
 
 ## Done
 
-After initialization you'll see a confirmation screen. Click **Sign In**
-to go to the login page.
-
-## Login
-
-Use the `admin` credentials configured during installation (or your OS
-user credentials — FreedomNAS uses PAM authentication).
-
-After logging in you'll be redirected to the **Dashboard**.
-
-[Dashboard guide →](../user-guide/dashboard.md)
+Sign in again with the new password; you are taken to the
+[Dashboard](../user-guide/dashboard.md).

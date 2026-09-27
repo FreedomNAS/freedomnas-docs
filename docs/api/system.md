@@ -118,6 +118,30 @@ Set the system timezone (spec §7.5 dual write).
 
 ---
 
+## GET /api/system/ssh
+
+**Auth required:** yes
+
+`{"enabled": false, "service": "sshd"}` — `enabled` as `config.yaml`
+records it (`system.ssh_enabled`), `service` the edition's
+`system.ssh_service` (`ssh` on Debian, `sshd` elsewhere).
+
+## POST /api/system/ssh
+
+**Auth required:** yes
+
+`{"enabled": true}` enables and starts the service through the init
+profile (`services.enable`, `services.start`); `{"enabled": false}` stops
+and disables it. The result is then written to `system.ssh_enabled` (dual
+write), which disaster recovery reapplies. `422` unless `enabled` is a
+boolean; `500` when enabling fails, and nothing is recorded then.
+
+SSH is off on every fresh system: the installer does not enable it and
+disables it explicitly where the package turns it on by itself (Debian's
+`openssh-server`), and the setup wizard records it as off.
+
+---
+
 ## POST /api/system/reboot
 
 Reboot the system.
