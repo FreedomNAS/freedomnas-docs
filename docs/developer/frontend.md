@@ -79,15 +79,31 @@ Persisted in `localStorage` (`fnas_ui_level`).
 
 ### Sidebar
 
-Collapse state persisted in `localStorage` (`fnas_sidebar`). Toggles
-`.collapsed` on `.sidebar` and `.sidebar-collapsed` on `.main-area`.
+On a desktop the menu button collapses the sidebar to icons; the state is
+persisted in `localStorage` (`fnas_sidebar`) and toggles `.collapsed` on
+`.sidebar` and `.sidebar-collapsed` on `.main-area`.
+
+At 640px and below the sidebar is an off-canvas drawer instead: the button
+adds `.mobile-open` and shows `#sidebar-backdrop`, and the drawer closes on
+a tap on the backdrop, on Escape, or when the width goes back above the
+breakpoint. The desktop preference is not touched there, so the icon-only
+mode never leaks into a phone's "desktop site" view. `Sidebar.mobileQuery`
+must match the `max-width` of the mobile `@media` block in `main.css`.
+
+### Documentation links
+
+`setHelpLink()` points the topbar **?** at the page of the documentation for
+the current section (`DOCS_PAGES`), and `saveDocsContext()` stores what the
+offline documentation reads — see
+[WebUI Internals](webui.md#offline-documentation).
 
 ### initShared()
 
 Called as the first statement of every page's `DOMContentLoaded` handler.
 Redirects to login if not authenticated; otherwise applies Theme, UILevel,
-Sidebar, marks the active nav item, loads user and edition badges, wires
-theme/sidebar/logout buttons.
+Sidebar, marks the active nav item, sets the help link, loads user and
+edition badges (saving the documentation context), wires theme/sidebar/logout
+buttons.
 
 Returns `true` on success, `false` after redirect.
 
