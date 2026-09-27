@@ -195,9 +195,10 @@ All authenticated pages extend `base.html`:
 
 ## Offline documentation
 
-The WebUI serves this documentation at `/docs/`, from the copy installed
-with the system (`<install root>/docs`, next to `webui/`; in a checkout,
-`freedomnas-docs/site` beside the WebUI repository). What a reader sees is
+The WebUI serves this documentation at `/docs/`, from the copy the
+`freedomnas-docs` package installs (`<install root>/docs`, next to `webui/`;
+in a checkout, a built `freedomnas-docs/site` beside the WebUI repository).
+`freedomnas-webui` depends on that package — see [Packaging](packaging.md). What a reader sees is
 the documentation of the version running there, not the latest one online.
 Without a copy, `/docs/` answers with a page saying it is not installed. The
 path is not behind the API's login, like the sign-in page. FastAPI's own
@@ -211,15 +212,18 @@ make room.
 | Every page load | `saveDocsContext()` stores version, edition, init system and firmware from `/api/system/info` in `localStorage["fnas_docs_context"]` |
 
 The documentation reads that key (`javascripts/freedomnas.js`, same origin):
-it puts a banner at the top of each page naming the system, turns it into a
-warning when the documentation's version — `FREEDOMNAS_DOCS_VERSION` at build
-time, in a `<meta name="freedomnas-docs-version">` — differs from the
-system's, and selects the tabs that match the system's init system, firmware
-or edition. On the public site there is no such key and nothing changes.
+it puts a banner at the top of each page naming the system and both
+versions, turns it into a warning when the documentation belongs to another
+release — the part before the `+` of `FREEDOMNAS_DOCS_VERSION`, written at
+build time into a `<meta name="freedomnas-docs-version">`, against the
+system's `VERSION` — and selects the tabs that match the system's init
+system, firmware or edition. Two snapshots of the same release carry
+different commits and are not a mismatch. On the public site there is no
+such key and nothing changes.
 
-The build is self-contained: Material's `privacy` plugin downloads the fonts
-and every other external asset into the site, so nothing is fetched from
-the internet when the pages are read.
+The site is self-contained: the fonts are shipped in `docs/assets/fonts`
+and `theme.font` is off, so nothing is fetched from the internet, neither
+when the site is built nor when it is read.
 
 ## Development Rules
 

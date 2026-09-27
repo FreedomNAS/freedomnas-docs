@@ -112,6 +112,7 @@ nav:
   - Developer Guide:
     - Repository Structure: developer/repositories.md
     - Installer Flow: developer/installer.md
+    - Packaging: developer/packaging.md
     - ZFS Best Practices: developer/zfs.md
     - WebUI Development: developer/webui.md
     - Frontend JS Modules: developer/frontend.md
