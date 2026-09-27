@@ -42,6 +42,7 @@ change gets a version of its own:
 |--------|------------------|
 | `.deb` | `1.0+<yyyymmdd>.<commit>-1` |
 | Arch | `1.0+<yyyymmddHHMMSS>.<commit>-1` |
+| Gentoo (live ebuilds) | `1.0+git.<commit>` in `VERSION` and the documentation |
 | FreeBSD | `1.0.<yyyymmddhhmm>` (pkg's own form) |
 | Images | `1.0+<yyyymmddHHMMSS>.<commit>` |
 
@@ -68,6 +69,7 @@ at build time or when a page is read.
 | `.deb` | Debian's `mkdocs`, `mkdocs-material`, `python3-pymdownx` |
 | Arch | `mkdocs`, `mkdocs-material`, `python-pymdown-extensions` |
 | FreeBSD | `py3xx-mkdocs-material` |
+| Gentoo | `dev-python/mkdocs` and `mkdocs-material` from freedomnas-overlay (they left `::gentoo`), Python 3.11 to 3.14 |
 | Images | `mkdocs` if the build host has it, otherwise the pinned `requirements.txt` in a throwaway virtualenv, otherwise a prebuilt `site/` |
 
 The public copy at <https://freedomnas.codeberg.page/freedomnas-docs/> is
