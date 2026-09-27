@@ -129,6 +129,7 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | `load_key_file` | Load a raw key from a file into the pool (`zfs load-key -L file://{keyfile_path} {pool_name}`) |
 | `unload_key` | Unload a pool's encryption key |
 | `mount_all` | `zfs mount -a` — mount all datasets whose keys are loaded |
+| `pool_leaf_devices`, `partition_of`, `disk_size`, `partition_grow`, `pool_expand` | Grow the root pool to the end of its disk at boot — see [ZFS Best Practices](../developer/zfs.md#growing-the-root-pool-on-a-flashed-image) |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
 `mount_all` actions back the ZFS pool encryption feature: independent

@@ -55,6 +55,40 @@ zpool create \
   rpool /dev/disk/by-id/<part2>
 ```
 
+## Growing the root pool on a flashed image
+
+An image is a few GB and is usually written to a larger disk. At every boot
+`firstboot.sh` runs `python3 -m freedomnas grow-root-pool` before anything
+else: it extends the root pool's partition to the end of its disk and tells
+ZFS the device grew (`zpool online -e`). It only touches the case every image
+ships — a root pool on a single partition — and does nothing once the
+partition reaches the end of the disk (less than 64 MiB left). A mirror, a
+raidz or a pool of several devices was laid out by someone and is left
+alone. A failure is logged and the boot carries on.
+
+The commands are the storage profile's:
+
+| Key | Linux | FreeBSD |
+|-----|-------|---------|
+| `dataset_at_path` | `zfs list -H -o name {path}` | same |
+| `pool_leaf_devices` | `zpool list -vHPL <pool>` | same |
+| `partition_of` | `lsblk` → disk, partition number, start, size | `glabel status` + `geom part list` → the same four |
+| `disk_size` | `lsblk -bdnro SIZE` | `diskinfo` |
+| `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u` | `gpart recover`, `gpart resize -i <n>` |
+| `pool_expand` | `zpool online -e <pool> <device>` | same |
+
+The Linux commands are verified on a loop device and on a flashed Artix
+image (a 10 GB image on a 20 GB disk boots with a 20 GB pool); the FreeBSD
+ones are not tested yet.
+
+## Building images next to the host's pools
+
+The image builders create the image's pool under a temporary name,
+`zpool create -t fnasbuild-<edition>-<pid>`, and never run `zfs mount -a`.
+The image keeps the name it is meant to have (`rpool`), while the build host
+— which may well have an `rpool` of its own — never sees two pools with the
+same name or mounts anything but the image's datasets.
+
 ## Dataset Layout
 
 ```
