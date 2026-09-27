@@ -20,3 +20,9 @@
 .md-typeset .admonition.golden-rule > .admonition-title::before {
   background-color: #f59e0b;
 }
+
+/* Shipped fonts */
+:root {
+  --md-text-font: "Roboto";
+  --md-code-font: "Roboto Mono";
+}

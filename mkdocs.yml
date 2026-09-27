@@ -9,6 +9,7 @@ repo_url: https://codeberg.org/FreedomNAS
 theme:
   name: material
   custom_dir: overrides
+  font: false
   logo: assets/logo_cut.png
   favicon: assets/logo_cut.png
   palette:
@@ -37,6 +38,7 @@ theme:
     - toc.follow
 
 extra_css:
+  - stylesheets/fonts.css
   - stylesheets/extra.css
 
 extra_javascript:
@@ -118,7 +120,6 @@ nav:
 
 plugins:
   - search
-  - privacy
 
 extra:
   freedomnas_version: !ENV [FREEDOMNAS_DOCS_VERSION, "dev"]
