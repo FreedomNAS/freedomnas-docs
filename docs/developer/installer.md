@@ -63,7 +63,7 @@ same call therefore works against `/mnt` during a clean install and against
 | `lib/system_installer.py` | Firmware detection, prompts, bootstrap, `files.*`, chroot mounts |
 | `lib/users_installer.py` | Accounts; passwords through `users.set_password_stdin` |
 | `lib/packages_installer.py` | Category selection via `PackageManager`, install, `services.enable` |
-| `lib/core_installer.py` | Copies core/profiles/webui into the target, wires first boot |
+| `lib/core_installer.py` | Copies core/profiles/webui/docs into the target, wires first boot. A source counts only if it holds the file that proves it is a real copy (`__init__.py`, `api/main.py`, `index.html`): a removed package leaves `__pycache__` directories behind, and copying that skeleton gave a target whose WebUI could not start. The documentation comes from the installed `<root>/docs` or a built `freedomnas-docs/site`; without one the target has no offline documentation and the installer says so |
 | `lib/bootloader_installer.py` | UKI + Clover, or the edition's native loader |
 | `lib/state_installer.py` | The `config.yaml` shadow copy on `.freedomnas` |
 | `lib/target_installer.py` | Clean-install orchestration |
