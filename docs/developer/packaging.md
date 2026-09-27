@@ -24,12 +24,28 @@ WebUI has the documentation of its own version at `/docs/`.
 | Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | Codeberg's Arch registry |
 | FreeBSD `pkg` | freedomnas-freebsd | `bin/build-freedomnas-pkgs.sh` on FreeBSD, staging directories handed to `pkg create` | a signed pkg repository |
 | Gentoo | freedomnas-overlay | live (`-9999`) ebuilds tracking `dev` | the overlay itself |
-| Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts | release downloads |
+| Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
 | Installer copy | freedomnas-installer | `lib/core_installer.py`, from the installed layout or the checkouts | — |
 
 The Debian and Arch registries are filled by Forgejo workflows on the
 self-hosted runner (`publish-packages.yml` in each repository), with the
 organisation's `PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`.
+
+### Images installed in a VM
+
+The Artix images (`artix/build.sh <openrc|dinit|runit> [image] [size]`) are
+not assembled on the build host: `common/vm-install.sh` boots the live ISO
+in QEMU with an empty raw image as its only disk and a second disc labelled
+`FNASSEED`. The live ISO's `.bash_profile` finds that disc and runs its
+`run.sh` instead of the menus: it puts the checkouts' core, profiles,
+WebUI (with its `VERSION`), installer and the built documentation in place
+of the ISO's, waits for the network and runs `drive_install.py`, which
+answers every installer dialog from `seed.env` and stops on any question it
+does not know. The host reads `vm-install: RESULT ok` from the serial log
+and compresses the image. The image is exactly what the installer produces
+on real hardware, and the host imports no pool and needs no pacman: only
+QEMU (with KVM) and xorriso. An Artix/OpenRC build takes about six minutes;
+the 10 GB image compresses to about 2.4 GB and boots under BIOS and UEFI.
 
 ## Versions
 
