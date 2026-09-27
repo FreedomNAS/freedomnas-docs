@@ -1,0 +1,20 @@
+Source: freedomnas-docs
+Section: doc
+Priority: optional
+Maintainer: FreedomNAS Team <dev@freedomnas.io>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13),
+ mkdocs,
+ mkdocs-material,
+ python3-pymdownx
+Homepage: https://codeberg.org/FreedomNAS/freedomnas-docs
+Vcs-Browser: https://codeberg.org/FreedomNAS/freedomnas-docs
+Vcs-Git: https://codeberg.org/FreedomNAS/freedomnas-docs.git
+
+Package: freedomnas-docs
+Architecture: all
+Depends: ${misc:Depends}
+Description: FreedomNAS documentation, for reading offline in the WebUI
+ The FreedomNAS documentation as a static site, installed next to the other
+ components so the WebUI serves the documentation of the version that is
+ running, with no network access.
