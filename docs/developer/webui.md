@@ -193,6 +193,34 @@ All authenticated pages extend `base.html`:
 | `{service_name}` | services | `smbd` |
 | `{size}` | zfs.set_quota | `500G` |
 
+## Offline documentation
+
+The WebUI serves this documentation at `/docs/`, from the copy installed
+with the system (`<install root>/docs`, next to `webui/`; in a checkout,
+`freedomnas-docs/site` beside the WebUI repository). What a reader sees is
+the documentation of the version running there, not the latest one online.
+Without a copy, `/docs/` answers with a page saying it is not installed. The
+path is not behind the API's login, like the sign-in page. FastAPI's own
+Swagger UI moved from `/docs` to `/api/docs` (and ReDoc to `/api/redoc`) to
+make room.
+
+| Where | What |
+|-------|------|
+| Sidebar | **Documentation**, opening `/docs/` in a new tab |
+| Topbar | **?**, opening the page for the current section (`DOCS_PAGES` in `main.js`) |
+| Every page load | `saveDocsContext()` stores version, edition, init system and firmware from `/api/system/info` in `localStorage["fnas_docs_context"]` |
+
+The documentation reads that key (`javascripts/freedomnas.js`, same origin):
+it puts a banner at the top of each page naming the system, turns it into a
+warning when the documentation's version — `FREEDOMNAS_DOCS_VERSION` at build
+time, in a `<meta name="freedomnas-docs-version">` — differs from the
+system's, and selects the tabs that match the system's init system, firmware
+or edition. On the public site there is no such key and nothing changes.
+
+The build is self-contained: Material's `privacy` plugin downloads the fonts
+and every other external asset into the site, so nothing is fetched from
+the internet when the pages are read.
+
 ## Development Rules
 
 - No frontend JS frameworks (React, Vue, Angular, Svelte, Alpine)

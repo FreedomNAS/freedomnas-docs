@@ -26,7 +26,10 @@ Returns OS and system identity information.
   "edition": "debian",
   "timezone": "Europe/Rome",
   "uptime_since": "up 3 days, 14:22",
-  "initialized": true
+  "initialized": true,
+  "version": "1.0+20260927134226.bc74e68",
+  "init_system": "systemd",
+  "firmware": "UEFI"
 }
 ```
 
@@ -34,6 +37,14 @@ Returns OS and system identity information.
 - `uptime_since` — live read via `system.uptime` profile command
 - `edition` — read from `config.yaml`
 - `initialized` — `config.is_initialized()`
+- `version` — the `VERSION` file next to the WebUI, written by its package;
+  `null` when there is none (a checkout)
+- `init_system` — the init system the engine detected
+- `firmware` — live read via the `bootloader.firmware_mode` profile command,
+  `null` if the profile has none
+
+The last three are what the offline documentation shows and matches the
+system against — see [WebUI Internals](../developer/webui.md#offline-documentation).
 
 ---
 
