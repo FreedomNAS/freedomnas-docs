@@ -13,7 +13,8 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-docs          This documentation site
 ├── freedomnas-website       Public project website (static HTML + CSS)
 ├── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
-├── freedomnas-arch          Arch/Artix PKGBUILDs (components + linux-freedomnas), for Codeberg's Arch registry
+├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to Codeberg's Arch registry
+├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
 └── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
 
 codeberg.org/sarahmeow86/
@@ -25,12 +26,14 @@ it: when Artix is installed with dinit, the installer clones it into the target
 and builds it with `makepkg`, the way it builds `zfs-openrc` from the AUR for
 OpenRC.
 
-`freedomnas-arch` holds every Arch PKGBUILD: the four components, which
+`freedomnas-arch` holds the Arch PKGBUILDs of the four components, which
 used to sit in their own repositories and now build from a branch with
-snapshot versions (`1.0+<commit date and time>.<commit>`), and
-`linux-freedomnas` — Arch's `linux-lts` with the OpenZFS modules built into
-the same package, plus `zfs-utils-freedomnas` at the matching version, so the
-Arch and Artix editions can drop DKMS the way Proxmox does. The editions
+snapshot versions (`1.0+<commit date and time>.<commit>`), and the scripts
+and workflow that build and publish every Arch package. `linux-freedomnas`
+has a repository of its own: Arch's `linux-lts` with the OpenZFS modules
+built into the same package, plus `zfs-utils-freedomnas` at the matching
+version, so the Arch and Artix editions can drop DKMS the way Proxmox does;
+freedomnas-arch's workflow clones it. The editions
 still install `zfs-dkms-git` from Chaotic-AUR until those packages are
 published and the profiles switch; the prototype boots an Artix image under
 UEFI. The module template keeps its own PKGBUILD, since a module author
