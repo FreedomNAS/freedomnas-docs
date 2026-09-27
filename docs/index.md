@@ -82,4 +82,5 @@ On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing els
 ## License
 
 - **Core software:** Mozilla Public License v2.0 (MPLv2)
+- **This documentation:** Mozilla Public License v2.0 (MPLv2)
 - **ProMonitor:** Proprietary (paid) — proactive weekly health reports
