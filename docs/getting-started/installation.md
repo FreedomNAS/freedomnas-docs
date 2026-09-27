@@ -227,7 +227,8 @@ FreeBSD's own loader reads ZFS directly and is installed instead.
            /boot/efi/EFI/Linux/<edition>-uki.efi <kernel-version>
        ```
        plus a recovery UKI with `ro single`
-    3. `efibootmgr` registers the UKI as a UEFI boot entry
+    3. `efibootmgr` registers the UKI as a UEFI boot entry, and the UKI is
+       copied to the fallback path `EFI/BOOT/BOOTX64.efi`
     4. The `zz-dracut-uki` hook is deployed to `/etc/kernel/postinst.d/` so
        future kernel updates rebuild both UKIs automatically
 
@@ -237,8 +238,8 @@ FreeBSD's own loader reads ZFS directly and is installed instead.
     3. **Clover** (vendored, release 5173) bridges BIOS → UEFI emulation → UKI:
         - `boot0ss` (440 bytes) into the MBR bootstrap area, partition table preserved
         - `boot1f32alt` into the ESP's VBR, merging the original FAT32 BPB (bytes 3–89)
-        - `boot7` (DUET/BiosBlockIO) → `ESP/boot/`
-        - `CLOVERX64.efi` → `EFI/CLOVER/`, `BOOTX64.efi` → `EFI/BOOT/`
+        - `boot7` (DUET/BiosBlockIO) → the file `ESP/boot`
+        - `CLOVERX64.efi` → `EFI/CLOVER/`
         - `config.plist` → `EFI/CLOVER/`, loading the UKI with `Timeout=0`
           and `IgnoreNVRAMBoot=true`
 
@@ -255,11 +256,10 @@ ESP/
 │   │   ├── CLOVERX64.efi
 │   │   └── config.plist
 │   ├── BOOT/
-│   │   └── BOOTX64.efi
+│   │   └── BOOTX64.efi                ← copy of the active UKI
 │   └── FreedomNAS/
 │       └── boot.state                 ← tries-left counter
-└── boot/                              ← BIOS only
-    └── boot7
+└── boot                               ← BIOS only: boot7
 ```
 
 !!! note "Clover version is pinned"

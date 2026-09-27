@@ -460,6 +460,12 @@ booted comes from the host profile's `bootloader.firmware_mode`, which prints
   ESP's boot sector, so it has no profile entry — the same precedent as
   writing `/etc/fstab`.
 
+On both, the UKI is also copied to the UEFI fallback path
+`EFI/BOOT/BOOTX64.efi`. The UKI is itself a UEFI application, so firmware
+with no NVRAM entry for the disk — a flashed image, a disk moved to another
+machine — starts Linux directly. Clover is used for BIOS boot only and never
+runs under UEFI.
+
 ### UKI paths on the ESP
 
 | File | Purpose |
@@ -467,6 +473,7 @@ booted comes from the host profile's `bootloader.firmware_mode`, which prints
 | `EFI/Linux/<edition>-uki.efi` | Active UKI — every normal boot |
 | `EFI/Linux/<edition>-uki-previous.efi` | Previous UKI — rotated in by `zz-dracut-uki` |
 | `EFI/Linux/<edition>-recovery.efi` | Recovery UKI — `ro single` |
+| `EFI/BOOT/BOOTX64.efi` | Copy of the active UKI — what UEFI firmware starts without an NVRAM entry |
 | `EFI/FreedomNAS/boot.state` | `tries-left: 3`, reset on each new kernel |
 
 The filenames come from `installer_meta.uki_name` /
@@ -498,9 +505,17 @@ every kernel install or update it:
 1. Rotates the current UKI to `-previous.efi`
 2. Records the most recent `pre-update-*` ZFS snapshot name, pairing the old
    kernel with the matching filesystem state for rollback
-3. Rebuilds the active UKI
+3. Rebuilds the active UKI and copies it to `EFI/BOOT/BOOTX64.efi` — a
+   fallback left behind would boot the old kernel against the new kernel's
+   modules
 4. Rebuilds the recovery UKI (`ro single`)
 5. Resets `boot.state` to `tries-left: 3`
+
+dpkg runs `/etc/kernel/postinst.d/` on Debian. pacman does not: on Arch and
+Artix nothing calls the hook yet, so a kernel update leaves the UKI on the
+old kernel while pacman deletes that kernel's modules. A pacman hook on
+`usr/lib/modules/*/vmlinuz` that calls `zz-dracut-uki` with the new version
+fixes it; it has been tried on an Artix image and is not in the profiles yet.
 
 It never aborts `dpkg`'s kernel install over a UKI or ZFS failure — it logs
 and exits 0.
@@ -551,9 +566,18 @@ installed.
 |------|------|
 | `boot0ss` | MBR bootstrap (first 440 bytes; partition table preserved) |
 | `boot1f32alt` | FAT32 VBR — BPB bytes 3–89 merged from the original sector |
-| `boot7` | DUET BiosBlockIO firmware → `ESP/boot/` |
-| `CLOVERX64.efi` | Clover picker/BDS → `EFI/CLOVER/` |
-| `BOOTX64.efi` | UEFI fallback stub → `EFI/BOOT/` |
+| `boot7` | DUET BiosBlockIO firmware → the file `ESP/boot`, which is what `boot1f32alt` loads |
+| `CLOVERX64.efi` | Clover picker/BDS → `EFI/CLOVER/`, started by `boot7` |
+| `BOOTX64.efi` | Clover's UEFI stub — **not deployed**: `EFI/BOOT/BOOTX64.efi` holds the UKI |
+
+FAT names are case-insensitive, so a `boot/` directory left on the ESP by an
+older installer (which put `boot7` at `boot/boot7`, where nothing loads it)
+would block the file; the installer removes it first.
+
+Clover's CPU detection crashes under KVM on an AMD host (#GP reading MSR
+`0xC0010061`; with `kvm.ignore_msrs=Y`, a division by zero). That is a VM
+artifact, not an image fault: test the BIOS path under TCG with an Intel CPU
+model (`-accel tcg -cpu Haswell-v4`).
 
 !!! warning "Do not bump the Clover version without hardware validation"
     Release 5163 is a known regression on some real BIOS hardware
