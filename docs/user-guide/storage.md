@@ -125,9 +125,17 @@ rule as the **system** badge on the Datasets tab.
 !!! info "Advanced level required"
     Visible at **Advanced** UI level and above.
 
-Each pool card lists its attached cache (L2ARC) and log (SLOG) devices.
-**Add cache or log device** attaches one to an existing pool; the **×** next
-to a device detaches it. Neither kind holds data, so detaching loses nothing.
+Each pool card lists its attached cache (L2ARC) and log (SLOG) devices, as
+the pool itself reports them — also for a pool created or imported outside
+the WebUI.
+**Add cache or log device** opens a window: choose the role — **Cache
+(L2ARC)**, an SSD used as a read cache, or **Log (SLOG)**, which only helps
+synchronous writes (NFS, databases) — and the device from the list of disks
+and partitions, where those already in use are greyed out — including the
+small "ZFS reserved" partition ZFS leaves on every disk it was given whole. Tick **I
+understand the selected device will be erased** and confirm: everything on
+the device is destroyed. The **×** next to an attached device detaches it.
+Neither kind holds data, so detaching loses nothing.
 
 ## Datasets Tab
 

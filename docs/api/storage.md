@@ -27,8 +27,11 @@ OpenZFS releases. The backend splits each line by tabs and maps position
 5 → `health`.
 
 A pool recorded in `config.yaml` also carries what was recorded for it
-there: `vdev_type`, `encrypted`, and its `cache_devices` and `log_devices` —
-`zpool list` does not show those. Every pool carries `protected`: `null`, or
+there: `vdev_type` and `encrypted`. Its `cache_devices` and `log_devices`
+are read from the pool itself (`zfs.pool_leaf_devices`, `zpool list -vHP`:
+the vdevs under its `cache` and `logs` headings), so a pool created or
+imported outside the WebUI shows them too; what `config.yaml` recorded is
+used only when ZFS cannot answer. Every pool carries `protected`: `null`, or
 why it must not be exported or destroyed (`freedomnas.pool_removal.problem`).
 
 `-p` prints exact byte counts, and the page formats them; a profile whose
@@ -238,12 +241,19 @@ The block devices this machine has, and what is already on them.
 
 ```json
 { "devices": [
-  { "name": "/dev/sdb", "size": 2000398934016, "type": "disk",
-    "fstype": "", "mountpoint": "", "model": "WDC WD20", "in_use": false },
-  { "name": "/dev/sda1", "size": 500098400256, "type": "part",
-    "fstype": "zfs_member", "mountpoint": "", "model": "", "in_use": true }
+  { "name": "/dev/sdb", "parent": "", "size": 2000398934016, "type": "disk",
+    "fstype": "", "mountpoint": "", "model": "WDC WD20", "in_use": false, "reserved": false },
+  { "name": "/dev/sda1", "parent": "/dev/sda", "size": 500098400256, "type": "part",
+    "fstype": "zfs_member", "mountpoint": "", "model": "", "in_use": true, "reserved": false },
+  { "name": "/dev/sda2", "parent": "/dev/sda", "size": 8388608, "type": "part",
+    "fstype": "", "mountpoint": "", "model": "", "in_use": true, "reserved": true }
 ] }
 ```
+
+`reserved` marks the small partition ZFS creates beside its own when it is
+given a whole disk (type `6a945a3b-1dd2-11b2-99a6-080020736631`, "Solaris
+reserved 1", read from lsblk's `PARTTYPE`): it carries no filesystem, so
+without this it would look free.
 
 `in_use` is true when the device carries a filesystem or is mounted, and
 for a whole disk when any of its partitions is (lsblk's `PKNAME` names each
