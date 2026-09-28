@@ -1,7 +1,7 @@
 # Packaging
 
 FreedomNAS is five components, each packaged for every edition from the
-same checkouts, plus a kernel for the Arch-based editions.
+same checkouts, plus a kernel for the Arch, Artix and Debian editions.
 
 | Component | Contents | Installed at |
 |-----------|----------|--------------|
@@ -30,6 +30,23 @@ WebUI has the documentation of its own version at `/docs/`.
 The Debian and Arch registries are filled by Forgejo workflows on the
 self-hosted runner (`publish-packages.yml` in each repository), with the
 organisation's `PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`.
+
+### Registry quota
+
+Codeberg gives the organisation 1.5 GB for packages, and a kernel with its
+headers takes about 245 MB on Arch and 305 MB on Debian (its modules carry
+about six times the BTF, for reasons not yet found). After publishing, each
+workflow runs `bin/prune-registry.py`, which deletes superseded versions:
+
+| Registry | Kept |
+|----------|------|
+| Debian | the 2 newest versions of every package, and the 2 newest kernels (`linux-image-<kver>` with its headers) |
+| Arch | the newest version of every package: pacman installs nothing else, and the rolling editions have no use for an older kernel |
+
+Snapshots (`1.0+<date>...`) and releases are counted apart, so snapshots
+never push a release out. `DRY_RUN=1 bin/prune-registry.py` lists what would
+go. Debian's firmware comes from `trixie-backports` rather than a package of
+our own: `linux-firmware` alone is 660 MB.
 
 ### Images installed in a VM
 
@@ -99,7 +116,7 @@ built by freedomnas-docs' own workflow from `requirements.txt`, which pins
 
 ## linux-freedomnas
 
-Arch and Artix will run their own kernel with the OpenZFS modules built in,
+Arch, Artix and Debian will run their own kernel with the OpenZFS modules built in,
 the way Proxmox ships its kernels, instead of building `zfs.ko` with DKMS on
 the NAS: a DKMS build that fails once leaves a NAS that cannot import its
 pool. [linux-freedomnas](https://codeberg.org/FreedomNAS/linux-freedomnas) is
@@ -107,9 +124,26 @@ Arch's `linux-lts` plus OpenZFS compiled against it, split into
 `linux-freedomnas`, `linux-freedomnas-headers` and `zfs-utils-freedomnas`;
 the kernel depends on the userspace of its own build, so pacman never pairs
 a kernel with another ZFS version. freedomnas-arch builds and publishes it,
-rebuilding only when its version is not in the registry yet. The editions
-still install `zfs-dkms-git` until the packages are published and the
-profiles switch.
+rebuilding only when its version is not in the registry yet.
+
+The same repository builds the Debian packages from the same tarballs,
+patches and `config.x86_64`: `debian/rules` reads the versions from the
+`PKGBUILD`, and freedomnas-deb's `bin/build-kernel-debs.sh` fetches and
+verifies the sources before `dpkg-buildpackage`. Following Debian's
+convention the kernel packages carry the release in their name
+(`linux-image-6.18.54-1-freedomnas`, `linux-headers-...`, and the
+`linux-image-freedomnas` / `linux-headers-freedomnas` metapackages for the
+newest), so an update installs beside the previous kernel and the
+`-previous` UKI keeps its modules. `zfsutils-freedomnas` replaces
+`zfsutils-linux`, `zfs-zed`, `zfs-dracut` and Debian's ZFS libraries and
+enables the same systemd units; a kernel depends on it at its own version or
+newer, since only one can be installed. The kernel's package scripts run
+`/etc/kernel/postinst.d`, so `zz-dracut-uki` rebuilds the UKI with no extra
+hook. Rust is enabled, as in Arch's configuration: trixie's `rustc` and
+`bindgen` satisfy the kernel.
+
+The editions still build ZFS with DKMS (`zfs-dkms-git` on Arch and Artix,
+backports on Debian) until the profiles switch.
 
 ## Licenses
 
