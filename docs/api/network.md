@@ -69,7 +69,11 @@ All four fields are required. `dns` may be a list or a space-separated string.
 
 **Behaviour (dual write):**
 
-1. `engine.execute("network", "set_static_ip", conn_name=name, ip=..., cidr=..., gateway=..., dns=...)`
+1. `engine.execute("network", "set_static_ip", interface=name, ip=..., cidr=..., gateway=..., dns=...)`
+   — a configuration that survives a reboot: a NetworkManager connection
+   `fnas-<interface>` on Debian, a block in `/etc/dhcpcd.conf` on Arch,
+   Artix, Gentoo and Void, `rc.conf` on FreeBSD; see
+   [Network](../user-guide/network.md)
 2. Update or create interface record in `config.yaml` with `method: static`
 
 **Response:**

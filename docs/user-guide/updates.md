@@ -45,21 +45,21 @@ completed successfully (exit 0)` or `✗ Update exited with code N`.
 ### Pre-Update Snapshots
 
 With **Create ZFS snapshot before updating** on (the default), FreedomNAS
-takes a snapshot named `pre-update-YYYYmmdd-HHMMSS` of every pool recorded
-in `config.yaml` before running Topgrade, and prints each one in the
-terminal:
+takes a **recursive** snapshot named `pre-update-YYYYmmdd-HHMMSS` of the
+pool the system runs from and of every pool recorded in `config.yaml`
+before running Topgrade — every dataset of those pools, the system's own
+`<pool>/ROOT/<edition>` included — and prints each one in the terminal:
 
 ```
-Snapshot created: datapool@pre-update-YYYYmmdd-HHMMSS
+Snapshot created: rpool@pre-update-YYYYmmdd-HHMMSS (recursive)
+Snapshot created: datapool@pre-update-YYYYmmdd-HHMMSS (recursive)
 ```
 
-!!! warning "Not yet a rollback point for the system"
-    The snapshot is taken of each pool's top dataset only, not recursively,
-    and the system itself lives in `<pool>/ROOT/<edition>`: it is not in the
-    snapshot. A system set up from an image does not record its root pool
-    in `config.yaml` at all. Until this is fixed, take a recursive snapshot
-    by hand (`zfs snapshot -r rpool@before-update`) if you want to be able
-    to roll the system back.
+A pool whose snapshot fails is reported as a warning; the others are still
+taken and the update still runs. When the update brings a new kernel, the
+boot image of the old one is kept as the `-previous` UKI and paired with
+this snapshot, so kernel and system can be rolled back together (see
+[ZFS](../developer/zfs.md#uki-pairing)).
 
 ## Configuring Updates
 

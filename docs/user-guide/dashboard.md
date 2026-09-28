@@ -20,14 +20,21 @@ can take minutes on some editions, so it is refreshed in the background
 
 ## Module Health
 
-Below the cards, one tile per FreedomNAS module: storage, network, shares,
-users and updates.
+Below the cards, one tile per FreedomNAS module — storage, network,
+shares, users, updates, and any installed community module — with its
+state and the reason for it. Each tile leads to the module's page.
 
-!!! warning "Not a health check yet"
-    The tiles show **Running** whenever the WebUI answers, and **Unknown**
-    when it does not. They do not yet ask each module how it is doing: a
-    degraded pool or a stopped Samba service still shows **Running** here.
-    Check the **Storage** and **Shares** pages for their real state.
+| Module | Healthy when | Example of a problem |
+|--------|--------------|----------------------|
+| Storage | no imported pool is `DEGRADED`, `FAULTED`, `REMOVED` or `UNAVAIL` — the system's pool included | `tank is DEGRADED` |
+| Network | at least one interface other than loopback is up | `no interface is up` |
+| Shares | the service of every enabled share feature answers (`smbd`, `nfs-server`, …) | `smbd not running` |
+| Users | every account in the configuration exists on the system | `mario missing from the system` |
+| Updates | its configuration can be read | — |
+
+**Healthy** is green, **Problem** red; **Error** means the module itself
+could not be asked, with the reason. The grid is filled once when the page
+opens, from [`GET /api/system/health`](../api/system.md).
 
 ## Quick Actions
 

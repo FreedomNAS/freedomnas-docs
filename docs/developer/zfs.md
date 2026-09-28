@@ -200,10 +200,12 @@ support pool modification at all (see the reconciler's constraints).
 Pre-update snapshots follow this naming convention:
 
 ```
-<dataset>@pre-update-YYYYMMDD
+<dataset>@pre-update-YYYYmmdd-HHMMSS
 ```
 
-Example: `rpool/ROOT/debian@pre-update-20260718`
+Example: `rpool/ROOT/debian@pre-update-20260718-093012`. The update terminal
+takes them recursively on the root pool and every recorded pool, so every
+dataset — the root dataset included — gets one.
 
 Snapshot names must not contain spaces. Use hyphens.
 
@@ -215,12 +217,12 @@ The `zz-dracut-uki` kernel post-install hook looks for the most recent
 rotated-out (previous) UKI with the matching filesystem state so a kernel
 rollback and a filesystem rollback can be done together.
 
-Always create a `rpool/ROOT/debian@pre-update-*` snapshot **before**
-installing a kernel update so the hook has a snapshot to pair with:
+Updates run from the WebUI take that snapshot themselves, before the
+kernel is installed. Updating by hand, take it first:
 
 ```bash
-zfs snapshot rpool/ROOT/debian@pre-update-$(date +%Y%m%d)
-apt upgrade linux-image-amd64
+zfs snapshot -r rpool@pre-update-$(date +%Y%m%d-%H%M%S)
+apt upgrade
 ```
 
 If no `pre-update-*` snapshot exists at the time of the kernel update, the

@@ -75,9 +75,11 @@ All messages are JSON objects.
    run as root and calls `sudo` itself. A profile error, or a command
    sequence instead of a single command, closes with `1011`
 3. If `updates.topgrade.auto_snapshot` is true (the default), take
-   `<pool>@pre-update-YYYYmmdd-HHMMSS` on every pool recorded in
-   `config.yaml` via `zfs.snapshot_create`, reporting each as a `stdout`
-   line. A failed snapshot is reported as a `stderr` warning and the update
+   `<pool>@pre-update-YYYYmmdd-HHMMSS` recursively
+   (`zfs.snapshot_create_recursive`, `zfs snapshot -r`) on the pool `/` is
+   on (`zfs.dataset_at_path`) and on every pool recorded in `config.yaml`,
+   reporting each as a `stdout` line. A failed snapshot is reported as a
+   `stderr` warning, the other pools are still snapshotted, and the update
    still runs
 4. Launch the command with `asyncio.create_subprocess_exec`, stdin on
    `/dev/null`

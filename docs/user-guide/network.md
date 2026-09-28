@@ -34,15 +34,19 @@ The refresh button in the page header reloads it.
 
 3. Click **Apply**
 
-The address is set with the edition's `network.set_static_ip` and recorded
-in `config.yaml`.
+The address is set with the edition's `network.set_static_ip`, applied at
+once, kept across reboots, and recorded in `config.yaml`:
 
-!!! warning "Not every edition keeps the address across a reboot"
-    Debian applies it through NetworkManager (`nmcli`), which keeps it, and
-    FreeBSD writes it to `rc.conf` with `sysrc`. On Arch, Artix, Gentoo and
-    Void the command is `ip addr add` plus a default route: the address
-    holds until the next boot, and the DNS servers are not applied. The
-    reconciler does not restore interfaces either.
+| Edition | Where it is kept |
+|---------|------------------|
+| Debian | a NetworkManager connection of its own, `fnas-<interface>`, which takes precedence over the automatic one |
+| Arch, Artix, Gentoo, Void | a block between `# freedomnas begin <interface>` and `# freedomnas end <interface>` in `/etc/dhcpcd.conf`, applied with `dhcpcd -n <interface>` |
+| FreeBSD | `rc.conf` (`ifconfig_<interface>`, `defaultrouter`) and `resolvconf.conf`, through `sysrc` |
+
+Setting a new address replaces the previous one; `network.set_dynamic_ip`
+removes it again (the `fnas-` connection, or the `dhcpcd.conf` block) and
+the interface goes back to DHCP. The reconciler does not restore interfaces:
+after reflashing the system disk, set the address again.
 
 !!! warning
     Changing the IP address of the interface you're using to access the

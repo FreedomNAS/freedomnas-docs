@@ -29,7 +29,7 @@ is still accepted as another name for `declarative`, because the
 
 | Part | How | Unreadable → |
 |------|-----|--------------|
-| Hostname, timezone | `system.hostname_get`, `system.timezone_get` | set again |
+| Hostname, timezone | `network.hostname_get` (`hostnamectl --static` on systemd editions, else `hostname`), `system.timezone_get` | set again |
 | Pools | `zfs.pool_list` — the imported ones | imported again |
 | Accounts | `users.list` (UIDs 1000–65533, 1001– on FreeBSD; `root` left out), each with `users.list_groups` | created if missing, nothing removed |
 | SMB shares | `samba.list_shares` (`net usershare list`) | written again, nothing removed |

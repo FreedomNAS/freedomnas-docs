@@ -102,10 +102,11 @@ The API call: `POST /api/storage/snapshots`
 ### Snapshot Naming Convention
 
 FreedomNAS uses this naming pattern for automatic pre-update snapshots,
-taken on every pool recorded in `config.yaml`:
+taken recursively on the system's pool and every pool recorded in
+`config.yaml`, so each of their datasets gets one:
 
 ```
-<pool>@pre-update-YYYYmmdd-HHMMSS
+<dataset>@pre-update-YYYYmmdd-HHMMSS
 ```
 
 Scheduled snapshots are named `freedomnas-<interval>-<YYYYmmdd-HHMMSS>` — see
@@ -127,6 +128,5 @@ For manual snapshots, use any descriptive name without spaces.
 
 !!! tip
     **Create ZFS snapshot before updating** (Updates → Configure) snapshots
-    each pool's top dataset before `topgrade` runs. It is not yet recursive,
-    so it does not cover the system in `<pool>/ROOT/<edition>` — see
-    [Updates](updates.md#pre-update-snapshots).
+    the system's pool and your data pools, recursively, before `topgrade`
+    runs — see [Updates](updates.md#pre-update-snapshots).

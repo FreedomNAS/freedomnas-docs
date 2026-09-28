@@ -91,7 +91,8 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 |-----|---------|
 | `list_interfaces` | List all interfaces in JSON format |
 | `list_interfaces_json` | Detailed interface info (FreeBSD: `ifconfig -j`) |
-| `set_static_ip` | Configure static IPv4 address |
+| `set_static_ip` | Static IPv4 address that survives a reboot: NetworkManager connection `fnas-{interface}` (Debian), a marked block in `/etc/dhcpcd.conf` + `dhcpcd -n` (Arch, Artix, Gentoo, Void), `sysrc` (FreeBSD) |
+| `set_dynamic_ip` | Undo it: back to DHCP |
 | `apply_config` | Apply pending network configuration |
 | `get_interface_details` | Read details of one interface |
 
@@ -198,7 +199,6 @@ account removes it from Samba first.
 | Key | Command |
 |-----|---------|
 | `hostname_get` | Read current hostname |
-| `hostname_get` | Print the running hostname (`hostname`) |
 | `hostname_set` | Set hostname |
 | `ssh_service` | Not a command: the name of the SSH service (`ssh` on Debian, `sshd` elsewhere), which the installer disables and `/api/system/ssh` turns on and off |
 | `timezone_get` | Read current timezone |

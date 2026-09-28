@@ -28,7 +28,7 @@ schema below.
   "version": "1.0.0",
   "type": "core",
   "entry_point": "module:StorageModule",
-  "supported_os": ["debian", "freebsd", "arch"],
+  "supported_os": [],
   "depends_on": [],
   "webui": null
 }
@@ -39,7 +39,9 @@ schema below.
 (`importlib.util.spec_from_file_location`), not Python's package import
 machinery — that's what lets a module live in a totally separate repo with
 zero wiring into `freedomnas-core`. A module is silently skipped (not an
-error) if the running OS isn't in `supported_os`. `webui` is `null` for
+error) if the running OS isn't in `supported_os`; an empty list means every
+edition, which is what the core modules declare — they only ever talk to
+the system through the profiles. `webui` is `null` for
 every core module today; a community module with a WebUI component sets it
 to an object naming its `api_routes.py`, route prefix, and template/static
 directories — see `freedomnas-webui/api/module_discovery.py`, which mounts
@@ -56,6 +58,7 @@ class FreedomNASModule(ABC):
     def start() -> None     # idempotent
     def stop() -> None      # idempotent
     def health_check() -> bool  # must never raise
+    def health() -> tuple[bool, str]  # healthy, and why; default wraps health_check()
 
 class Orchestrator:
     def register(module) -> None
@@ -77,17 +80,23 @@ class Orchestrator:
 
 ## Pluggable Modules
 
-| Module | `name` | `health_check()` logic |
-|--------|--------|------------------------|
-| StorageModule | `"storage"` | `zpool list` — no pool in DEGRADED/FAULTED/UNAVAIL |
-| NetworkModule | `"network"` | `list_interfaces` — at least one non-loopback interface UP |
-| SharesModule | `"shares"` | `services.status` for each enabled feature's service |
-| UsersModule | `"users"` | `users.get_user_info` for each configured user |
-| UpdatesModule | `"updates"` | `config.is_topgrade_configured()` returns True |
+Each core module implements `health()`, which says why as well as whether;
+its `health_check()` is `health()[0]`.
+
+| Module | `name` | `health()` logic |
+|--------|--------|------------------|
+| StorageModule | `"storage"` | `zfs.pool_list` — no imported pool DEGRADED, FAULTED, REMOVED or UNAVAIL, recorded or not (a system set up from an image does not record its root pool) |
+| NetworkModule | `"network"` | `network.list_interfaces` — at least one non-loopback interface up: `operstate` from Linux's `ip -j addr show` JSON, any Ethernet name from FreeBSD's `ifconfig -l -ether` |
+| SharesModule | `"shares"` | `services.status` for each enabled feature's service; names the ones that are down |
+| UsersModule | `"users"` | `users.get_user_info` for each configured user; names the missing ones |
+| UpdatesModule | `"updates"` | the configuration can be read; says whether topgrade is configured |
 
 ## Dashboard Integration
 
-The WebUI dashboard polls `GET /api/system/status` every 30 seconds and
-displays each module's state as a coloured badge. When any module enters
-`FAILED` or `DISABLED` state, the badge turns red and the module name is
-highlighted in the health grid.
+`python -m freedomnas serve` is not started on an appliance: `supervisor.sh`
+runs the WebUI only. The dashboard therefore does not read the
+orchestrator's state. [`GET /api/system/health`](../api/system.md) takes
+`ModuleLoader.instances()` — every module this edition supports, community
+ones included, instantiated but not registered — starts each, asks
+`health()` and drops it; the dashboard draws one tile per module with its
+state and reason when the page opens.

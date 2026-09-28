@@ -48,6 +48,34 @@ system against — see [WebUI Internals](../developer/webui.md#offline-documenta
 
 ---
 
+## GET /api/system/health
+
+Each FreedomNAS module's health, and why.
+
+**Auth required:** yes
+
+```json
+{
+  "modules": [
+    { "id": "network", "name": "Network", "state": "healthy",   "detail": "enp3s0 up" },
+    { "id": "shares",  "name": "Shares",  "state": "unhealthy", "detail": "smbd not running" },
+    { "id": "storage", "name": "Storage", "state": "healthy",   "detail": "2 pool(s) online" },
+    { "id": "updates", "name": "Updates", "state": "healthy",   "detail": "topgrade configured" },
+    { "id": "users",   "name": "Users",   "state": "healthy",   "detail": "3 account(s) present" }
+  ]
+}
+```
+
+Every module `ModuleLoader.instances()` finds for this edition — community
+modules included — is started (which only reads the configuration), asked
+`health()`, and dropped: no orchestrator runs on an appliance, so nothing
+keeps modules alive between requests. `state` is `healthy`, `unhealthy`, or
+`error` when the module raised, with the exception as `detail`. The
+commands run in a worker thread. `500` only when the modules directory
+cannot be found.
+
+---
+
 ## POST /api/system/hostname
 
 Set the system hostname (spec §7.5 dual write).
