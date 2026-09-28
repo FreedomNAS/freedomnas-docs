@@ -41,13 +41,13 @@ includes a `services` key.
 
 | Action | systemd | openrc | runit | s6 | dinit | bsd_rc |
 |--------|---------|--------|-------|-----|-------|--------|
-| start | `systemctl start {svc}` | `rc-service {svc} start` | `sv start {svc}` | `s6-svc -u /var/run/s6/services/{svc}` | `dinitctl start {svc}` | `service {svc} start` |
-| stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6-svc -d /var/run/s6/services/{svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
-| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6-svc -t /var/run/s6/services/{svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
-| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6-rc-bundle-update add default {svc}` | `dinitctl enable {svc}` | `sysrc {svc}_enable=YES` |
+| start | `systemctl start {svc}` | `rc-service {svc} start` | `sv start {svc}` | `s6-svc -u /run/service/{svc}` | `dinitctl start {svc}` | `service {svc} start` |
+| stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6-svc -d /run/service/{svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
+| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6-svc -r /run/service/{svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
+| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6-service add default {svc}` | `dinitctl enable {svc}`, accepting "already enabled" | `sysrc {svc}_enable=YES` |
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
-| enable_offline | — | — | — | — | `dinitctl --offline enable {svc}` | — |
-| status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6-svstat /var/run/s6/services/{svc}` | `dinitctl status {svc}` | `service {svc} status` |
+| enable_offline | — | — | — | — | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
+| status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6-svstat /run/service/{svc}` | `dinitctl status {svc}` | `service {svc} status` |
 
 `enable_early` and `enable_offline` are optional and used by the installer only.
 `enable_early` is for the services a package category lists under

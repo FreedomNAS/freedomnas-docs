@@ -11,13 +11,24 @@ Returns the current update status.
 ```json
 {
   "pending_updates": 5,
+  "checked_at": "2026-09-28T09:12:44.118302",
+  "refreshing": false,
+  "error": null,
   "topgrade_configured": true,
   "auto_snapshot": true
 }
 ```
 
-`pending_updates` is queried from the package manager using the profile
-key `packages.list_updatable` — the command varies by OS.
+The route never waits for the package manager: counting pending updates
+takes milliseconds with apt and minutes with Portage. It answers with the
+last count it has and, when that count is older than an hour, starts a
+refresh in the background (`packages.list_updatable`, one line per update,
+up to 15 minutes).
+
+- `pending_updates` — the last count; `null` until the first refresh ends
+- `checked_at` — when it was taken (server local time); `null` before that
+- `refreshing` — a refresh is running; the page polls every 5 seconds meanwhile
+- `error` — why the last refresh failed, else `null`
 
 ---
 
@@ -38,7 +49,9 @@ Write a new Topgrade configuration.
 
 **Behaviour:**
 
-1. Writes `/etc/freedomnas/topgrade.toml` with the provided settings
+1. Writes the edition's `updates.topgrade_config` —
+   `/etc/freedomnas/topgrade.toml`, `/usr/local/etc/freedomnas/topgrade.toml`
+   on FreeBSD — with the provided settings
 2. `config.configure_topgrade(steps=["system", "containers", "firmware"])` + `config.save()`
 
 **Generated `topgrade.toml`:**
@@ -67,7 +80,7 @@ is how `disable_tmux`, `[unstable]` and `[notifications]` used to cost us the
 
 ---
 
-`/etc/freedomnas/topgrade.toml` is written by `POST /configure`, and also
+`topgrade.toml` is written by `POST /configure`, and also
 by the WebSocket handler when an update starts and the file is not there —
 otherwise topgrade would run every step it knows (pip, cargo, flatpak and
 the rest) instead of the three this page offers. An existing file is never
@@ -89,8 +102,8 @@ overwritten.
     | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://codeberg.org/FreedomNAS/freedomnas-deb) and published to Codeberg's Debian registry, which `repositories.core` adds to the target's sources |
     | FreeBSD | `sysutils/topgrade`, in FreeBSD's own repository |
 
-    `updates.check_topgrade` is what tells an edition that has it from one
-    that does not.
+    Every edition's package list installs topgrade (`packages/core.json`),
+    so `updates.run_topgrade` can count on it.
 
 `updates.run_topgrade` passes `--yes` on the command line as well as writing
 `assume_yes` into the configuration. The WebSocket handler gives the process
@@ -98,7 +111,7 @@ overwritten.
 the whole run: on Arch and Artix an unconfigured system ended at
 `:: Proceed with installation? [Y/n]` and reported
 `` Command failed: `/usr/bin/sudo /usr/bin/pacman -Syu` ``. The flag holds
-whether or not `/etc/freedomnas/topgrade.toml` has been written yet.
+whether or not `topgrade.toml` has been written yet.
 
 ---
 

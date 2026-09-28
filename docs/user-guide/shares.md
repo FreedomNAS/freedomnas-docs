@@ -9,24 +9,28 @@ Samba protocol (also called CIFS or Windows File Sharing).
 
 ### Listing Shares
 
-The SMB tab lists all current usershares with their path, read-only status,
-and guest access setting.
+The **SMB / CIFS** tab lists the shares recorded by FreedomNAS with their
+path, the users recorded for them and whether they are read-only.
 
 ### Creating an SMB Share
 
-1. Go to **Shares → SMB**
-2. Click **+ Add Share**
+1. Open the **SMB / CIFS** tab
+2. Click **Add Share**
 3. Fill in the form:
 
 | Field | Description | Example |
 |-------|-------------|---------|
 | **Share Name** | Unique share identifier | `Documents` |
-| **Path** | Absolute path to the directory | `/mnt/datapool/documents` |
-| **Read Only** | Disallow write access | Off |
-| **Guest Access** | Allow unauthenticated access | Off |
-| **Valid Users** | Comma-separated usernames | `admin,sarah` |
+| **Directory Path** | Absolute path to the directory | `/mnt/datapool/documents` |
+| **Read-only share** | Nobody may write, its creator included | Off |
 
 4. Click **Create Share**
+
+Everyone with an account can read a new share, and the account that created
+it has full control; with **Read-only share**, everyone can only read. The
+share is recorded with that access list, so restoring the system brings it
+back exactly so. Accounts log in to SMB with their FreedomNAS password (see
+[Users](users.md)). There is no guest access.
 
 !!! warning "Pre-flight check"
     FreedomNAS verifies that `smb.conf` has usershares configured before
@@ -35,8 +39,8 @@ and guest access setting.
 
 ### Deleting an SMB Share
 
-Click the **trash** icon next to a share. A confirmation dialog appears.
-The share is removed but the underlying directory is not deleted.
+Click **Remove** next to a share and confirm. The share is removed but the
+underlying directory is not deleted.
 
 ### Connecting from a Client
 
@@ -66,24 +70,26 @@ performance for large file transfers in local networks.
 
 ### Creating an NFS Share
 
-1. Go to **Shares → NFS**
-2. Click **+ Add Export**
+1. Open the **NFS** tab
+2. Click **Add Share**
 3. Fill in the form:
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| **Name** | Identifier for this export | `backup` |
-| **Path** | Absolute path to the directory | `/mnt/datapool/backup` |
-| **Allowed Hosts** | IP or CIDR that may mount | `192.168.1.0/24` |
-| **Options** | NFS export options | `rw,sync,no_subtree_check` |
+| **Share Name** | Identifier for this export | `backup` |
+| **Directory Path** | Absolute path to the directory | `/mnt/datapool/backup` |
+| **Allowed Hosts** | IP, CIDR or hostname that may mount | `192.168.1.0/24` |
+| **Export Options** | NFS export options — **Advanced** UI level; default `rw,sync,no_subtree_check` | `ro,sync` |
 
-4. Click **Add Export**
+4. Click **Create Share**
 
 The entry is added to `/etc/exports` and `exportfs -ra` is called to reload.
+Path, hosts and options must each be a single word: a space would split the
+export line.
 
 ### Deleting an NFS Share
 
-Click the **trash** icon. The entry is removed from `/etc/exports` and
+Click **Remove** and confirm. The entry is removed from `/etc/exports` and
 `exportfs -ra` is called.
 
 ### Mounting from a Linux Client

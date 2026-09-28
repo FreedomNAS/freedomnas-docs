@@ -26,6 +26,10 @@ OpenZFS releases. The backend splits each line by tabs and maps position
 0 → `name`, 1 → `size`, 2 → `used`, 3 → `free`, 4 → `used_pct`,
 5 → `health`.
 
+A pool recorded in `config.yaml` also carries what was recorded for it
+there: `vdev_type`, `encrypted`, and its `cache_devices` and `log_devices` —
+`zpool list` does not show those.
+
 `-p` prints exact byte counts, and the page formats them; a profile whose
 command omits `-p` sends `"3.6T"`, which is passed through as the string it
 is. A profile that prints fewer columns simply yields fewer keys — `name`
@@ -52,17 +56,18 @@ List all ZFS datasets.
   "datasets": [
     {
       "name": "datapool/documents",
-      "used": "45.6G",
-      "avail": "8.71T",
-      "refer": "45.3G",
+      "used": "48964566016",
+      "avail": "9576649629696",
+      "refer": "48642826240",
       "mountpoint": "/mnt/datapool/documents"
     }
   ]
 }
 ```
 
-Fields come from the `zfs.dataset_list` profile command (typically
-`zfs list -H -o name,used,avail,refer,mountpoint`).
+Fields come from the `zfs.dataset_list` profile command,
+`zfs list -Hp -o name,used,avail,refer,mountpoint` in every edition: the
+sizes are exact byte counts, passed on as the strings `zfs` prints.
 
 ---
 
@@ -79,12 +84,15 @@ List all ZFS snapshots.
   "snapshots": [
     {
       "name": "rpool/ROOT/debian@pre-update-20260718",
-      "creation": "2026-07-18T10:30:00",
-      "used": "1.2G"
+      "creation": "1784370600",
+      "used": "1288490188"
     }
   ]
 }
 ```
+
+From `zfs.snapshot_list`, `zfs list -t snapshot -Hp -o name,creation,used`:
+`creation` is seconds since 1970 and `used` a byte count.
 
 ---
 

@@ -1,45 +1,38 @@
 # Dashboard
 
 The dashboard is the first page you see after logging in. It gives an
-at-a-glance view of system health and quick access to common actions.
+at-a-glance view of the system and quick access to the other pages.
 
 ## Stat Cards
 
-The top row shows four live stat cards:
+The top row shows four cards, loaded once when the page opens:
 
 | Card | Description |
 |------|-------------|
-| **Hostname** | System hostname and OS edition |
+| **Hostname** | The system hostname |
 | **Uptime** | How long the system has been running |
-| **Pending Updates** | Number of packages awaiting update |
-| **Pool Health** | Combined ZFS pool status |
+| **Updates** | `Up to date`, or how many packages are waiting (`5 pending`) |
+| **Edition** | The FreedomNAS edition, with the timezone beneath it |
 
-Cards refresh automatically every 30 seconds.
+The update count is the last one the system knows: counting pending updates
+can take minutes on some editions, so it is refreshed in the background
+(see [Updates](updates.md)).
 
-## Module Health Grid
+## Module Health
 
-Below the stat cards, the health grid shows the status of each FreedomNAS
-module (checked every 30 seconds via the orchestrator's heartbeat):
+Below the cards, one tile per FreedomNAS module: storage, network, shares,
+users and updates.
 
-| Module | What it checks |
-|--------|---------------|
-| Storage | ZFS pools — no pool in DEGRADED/FAULTED/UNAVAIL |
-| Network | At least one non-loopback interface available |
-| Shares | SMB/NFS service status for each enabled feature |
-| Users | Configured users exist on the OS |
-| Updates | Topgrade is configured and readable |
-
-A green badge means the module is healthy. A red badge means the module
-failed its health check. Clicking a module badge navigates to the
-corresponding management page.
+!!! warning "Not a health check yet"
+    The tiles show **Running** whenever the WebUI answers, and **Unknown**
+    when it does not. They do not yet ask each module how it is doing: a
+    degraded pool or a stopped Samba service still shows **Running** here.
+    Check the **Storage** and **Shares** pages for their real state.
 
 ## Quick Actions
 
-The dashboard provides shortcut buttons to the most common tasks:
-
-- **Manage Storage** → `/storage/`
-- **Manage Shares** → `/shares/`
-- **Run Updates** → `/updates/`
+At the **Advanced** UI level and above, a row of shortcuts leads to
+**Storage**, **Shares**, **Users** and **Updates**.
 
 ## Theme and Sidebar
 

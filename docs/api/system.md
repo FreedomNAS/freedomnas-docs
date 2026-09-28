@@ -78,6 +78,12 @@ Set the system hostname (spec §7.5 dual write).
 | 422 | `hostname` is missing or empty |
 | 500 | Engine command failed |
 
+The name is not checked further here, unlike in the setup wizard: on
+editions where `system.hostname_set` is plain `hostname {hostname}` (Artix,
+Gentoo, Void), that command only changes the running name — the persistent
+one is written by the installer, and the reconciler sets the recorded name
+again at every boot.
+
 ---
 
 ## POST /api/system/timezone
@@ -148,8 +154,9 @@ Reboot the system.
 
 **Auth required:** yes
 
-Calls `engine.execute("system", "reboot", check=False)`.
-The response is sent before the command executes.
+Calls `engine.execute("system", "reboot", check=False)` and answers once
+the command has returned — the reboot itself follows, so the response
+usually arrives before the connection drops.
 
 **Response:**
 
@@ -165,8 +172,8 @@ Power off the system.
 
 **Auth required:** yes
 
-Calls `engine.execute("system", "shutdown", check=False)`.
-The response is sent before the command executes.
+Calls `engine.execute("system", "shutdown", check=False)` and answers once
+the command has returned; the power-off follows.
 
 **Response:**
 

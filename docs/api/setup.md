@@ -110,8 +110,12 @@ before anything changes:
 ```
 
 **Errors:** `401` without an administrator's credentials, `409`, `422` as
-above, `500` when an engine, configuration or pool step fails partway —
-the system then stays uninitialized.
+above, `500` when an engine, configuration or pool step fails partway.
+Nothing is undone: a failure in steps 3–6 leaves the system uninitialized
+with whatever was already applied (a created pool, a new administrator
+password), and a failure in step 8 comes after step 7, so the system is
+already marked initialized while its configuration is still on the root
+filesystem.
 
 !!! note
     A system installed with the installer is initialized

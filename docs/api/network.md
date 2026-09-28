@@ -6,7 +6,7 @@ List all network interfaces detected on the system.
 
 **Auth required:** yes
 
-**Response (Linux — `ip -j link` output, wrapped):**
+**Response (Linux — `ip -j addr show` output, wrapped):**
 
 ```json
 {

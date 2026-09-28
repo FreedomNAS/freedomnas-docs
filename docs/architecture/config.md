@@ -69,6 +69,8 @@ system:
   initialized_by: null          # "installer" | "webui"
   edition: null                 # "debian" | "arch" | "freebsd"
   root_filesystem: null         # reserved field (not actively used)
+  # ssh_enabled: false          # not in the template; written by the setup
+  #                             # wizard and POST /api/system/ssh
 
 network:
   interfaces: []
@@ -87,6 +89,7 @@ storage:
 snapshots:
   root: []
   boot: []
+  policies: []                  # {dataset, hourly, daily, weekly, monthly}
 
 installed_features: []
 
@@ -110,6 +113,7 @@ system:
   initialized_at: "2026-07-18T10:30:00"
   initialized_by: "installer"
   edition: "debian"
+  ssh_enabled: false
 
 network:
   interfaces:
@@ -126,13 +130,18 @@ network:
 
 users:
   - username: "admin"
-    groups: ["sudo", "samba"]
+    groups: ["sudo"]
+    admin: true                  # in the edition's sudo group; set by the installer and the wizard
+  - username: "mario"
+    groups: []
     shell: "/bin/bash"
 
 shares:
   smb:
     - name: "Documents"
       path: "/mnt/datapool/documents"
+      comment: "Documents"
+      acl: "Everyone:R,admin:F"  # what Samba enforces; restored as recorded
       read_only: false
       valid_users: ["admin"]
       guest_ok: false

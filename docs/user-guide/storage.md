@@ -16,7 +16,7 @@ log devices recorded in `config.yaml`.
 | Used | Used space |
 | Free | Available space |
 
-A red health badge triggers an alert in the module health grid on the dashboard.
+The dashboard does not yet reflect pool health: check it here.
 
 ### Creating a Pool
 
@@ -61,7 +61,13 @@ to a device detaches it. Neither kind holds data, so detaching loses nothing.
 ## Datasets Tab
 
 Lists all ZFS datasets with used, available and referenced space and their
-mountpoint. Data comes from `zfs list`.
+mountpoint. Data comes from `zfs list -Hp`.
+
+!!! note
+    The sizes on this tab, and the creation time and size on the Snapshots
+    tab, are shown as the raw numbers ZFS prints with `-p` — bytes, and
+    seconds since 1970 — until the page learns to format them as it does
+    for pools.
 
 At **Advanced** level and above, each row has a **Properties** button that
 edits the dataset's ZFS properties (compression, quota, …). The catalogue
@@ -80,10 +86,9 @@ Lists all ZFS snapshots with their creation time and used space.
 !!! info "Advanced level required"
     The snapshot creation button is only visible at **Advanced** UI level and above.
 
-1. Go to **Storage → Snapshots**
-2. Click **+ Create Snapshot**
-3. Enter the dataset path (e.g. `datapool/documents`) and a snapshot name
-4. Click **Create**
+1. Click **Create Snapshot** (top right of the Storage page)
+2. Enter the dataset path (e.g. `datapool/documents`) and a **Snapshot Name**
+3. Click **Create Snapshot**
 
 The API call: `POST /api/storage/snapshots`
 
@@ -110,7 +115,9 @@ For manual snapshots, use any descriptive name without spaces.
 
 ## ZFS Best Practices
 
-- **Never use `/dev/sdX` paths** for pool creation — use `/dev/disk/by-id/`
+- **Device names may change**: the Create Pool form lists disks as
+  `/dev/sdX`, and ZFS finds its disks by their labels, so a pool still
+  imports when the names move. From the shell, prefer `/dev/disk/by-id/`
 - **Use compression**: `lz4` is the recommended default (fast, transparent)
 - **Set `ashift=12`** for modern drives (4K sector alignment)
 - **For redundancy**: mirror (2 drives) or RAIDZ2 (4+ drives)
@@ -119,6 +126,7 @@ For manual snapshots, use any descriptive name without spaces.
   `rpool` alone holds both the OS and its boot environments
 
 !!! tip
-    Enable **auto-snapshot before updates** in the Updates page. This creates
-    a ZFS snapshot of your datasets before running `topgrade`, giving you a
-    rollback point if anything goes wrong.
+    **Create ZFS snapshot before updating** (Updates → Configure) snapshots
+    each pool's top dataset before `topgrade` runs. It is not yet recursive,
+    so it does not cover the system in `<pool>/ROOT/<edition>` — see
+    [Updates](updates.md#pre-update-snapshots).
