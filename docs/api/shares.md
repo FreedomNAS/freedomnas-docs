@@ -58,7 +58,14 @@ Optional fields: `comment` (defaults to `name`), `acl`
 1. Pre-flight: open and scan `smb.conf` for usershare stanza
 2. `engine.execute("samba", "create_share", share_name=..., path=..., comment=..., acl=...)`
 3. `engine.execute("samba", "reload_config")`
-4. `config.add_smb_share({name, path, read_only, valid_users, guest_ok: false})`
+4. `config.add_smb_share({name, path, comment, acl, read_only, valid_users, guest_ok: false})`
+
+The ACL is recorded with the share because disaster recovery and a loaded
+configuration recreate the share from `config.yaml`. A share recorded
+before the ACL was stored gets back what the WebUI gave it, `Everyone:R`
+plus full control for its `valid_users`, never more. `read_only` and
+`valid_users` are recorded but not applied separately: the ACL is what
+Samba enforces.
 
 **Response:**
 

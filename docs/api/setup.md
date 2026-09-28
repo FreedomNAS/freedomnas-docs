@@ -68,7 +68,7 @@ from a data pool.
 | `edition` | no | Defaults to the detected edition; any other value is refused |
 | `admin.username` | no | Empty keeps the account the request is authenticated as; otherwise lowercase letters, digits, `_`, `-` |
 | `admin.password` | yes | At least 8 characters, and different from the password the request is authenticated with |
-| `admin.remove_default` | no | With a new `username`: remove the account the request is authenticated as. If false, it is kept and gets the new password too, so the shipped one works nowhere |
+| `admin.remove_default` | no | With a new `username`: remove the account the request is authenticated as. If false, it is kept and gets the new password too, so the shipped one works nowhere. Never applies to `root` |
 | `pool` | no | A data pool to create, exactly as [`POST /api/storage/pools`](storage.md) takes it (`name`, `vdev_type`, `devices`, `encrypted`, `master_passphrase`, cache and log devices) |
 | `state_pool` | yes | The pool that keeps `.freedomnas`: an imported pool, or the one `pool` creates |
 
@@ -84,8 +84,11 @@ before anything changes:
 4. `system.hostname_set`, `system.timezone_set`, the Samba usershare
    directory and `smb.conf` stanza
 5. The administrator: `users.create` with the edition's sudo group for a
-   new name, then its password through `users.set_password_stdin`; the old
-   account removed (`users.delete`) or given the same password
+   new name, then its password through `users.set_password_stdin` and,
+   where Samba is installed, `samba.set_user_password`; the old account
+   removed (`samba.delete_user`, `users.delete`) or given the same password.
+   `root` is never removed nor changed: signed in as root with a new name,
+   only the new account is set up
 6. `system.ssh_enabled: false` in `config.yaml` (SSH is off on fresh
    systems; see [`/api/system/ssh`](system.md))
 7. `config.mark_initialized(edition, initialized_by="webui")`

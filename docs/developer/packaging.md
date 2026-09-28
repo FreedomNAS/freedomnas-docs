@@ -86,6 +86,11 @@ change gets a version of its own:
 
 `1.0+...` sorts after `1.0` and before `1.1` everywhere.
 
+The Debian edition's installer adds the registry with both components,
+`trixie main dev`: the snapshots are in `dev` and sort above the `1.0-1` in
+`main`, and topgrade, which follows upstream releases, is published to
+`main` only.
+
 Each component is versioned from its own repository, so the WebUI and the
 documentation of one snapshot carry different commits. What matters is the
 release: the WebUI writes its version to `<root>/webui/VERSION`, the

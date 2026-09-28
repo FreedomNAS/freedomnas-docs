@@ -19,19 +19,22 @@ and group memberships.
 | **UID** | User ID (leave blank to auto-assign) | `1001` |
 | **Shell** | Login shell | `/bin/bash` |
 | **Groups** | Checkbox list of supplementary groups | `sudo`, `samba` |
-| **Password** | Initial password | — |
-| **Samba Password** | Set Samba-specific password | — |
+| **Password** | Initial password, at least 8 characters, entered twice | — |
 
 3. Click **Create User**
 
-Both the OS user (`useradd`) and the Samba password (`smbpasswd`) are
-created in a single operation. Passwords are passed via stdin — never
-in the command string.
+The account is created with its password, and where Samba is installed the
+same password is given to Samba (`smbpasswd`), so the account can open SMB
+shares straight away. Passwords are passed via stdin — never in the command
+string. Changing a password later changes both, and deleting a user removes
+it from Samba too.
 
 !!! tip
-    Add users to the `samba` group to allow them to access SMB shares.
-    Users without the `samba` group cannot connect via SMB even if they
-    have OS credentials.
+    Who may open an SMB share is decided by that share's ACL, not by a
+    group: a new share gives everyone read access and its creator full
+    control. The shares group the form offers where the edition has one
+    (Debian's `sambashare`) is for accounts that create usershares
+    themselves.
 
 ## Changing a Password
 

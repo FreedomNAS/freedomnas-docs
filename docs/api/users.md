@@ -33,7 +33,7 @@ List all users recorded in `config.yaml`.
 
 ## POST /api/users/
 
-Create a new OS user and persist to `config.yaml`.
+Create a new OS user with its password, and persist it to `config.yaml`.
 
 **Auth required:** yes
 
@@ -42,6 +42,7 @@ Create a new OS user and persist to `config.yaml`.
 ```json
 {
   "username": "sarah",
+  "password": "at least eight characters",
   "groups": ["samba"],
   "shell": "/bin/bash",
   "uid": 1001,
@@ -49,19 +50,22 @@ Create a new OS user and persist to `config.yaml`.
 }
 ```
 
-`username` is required. `groups` defaults to `[]`, `shell` to `/bin/bash`.
-`uid` and `gid` are optional — omit them to let the OS assign IDs.
-
-!!! warning "Passwords are not set via this endpoint"
-    The API creates the OS account but does **not** set a password. The user
-    will be locked until a password is set via the terminal
-    (`passwd <username>`). Password management via the API is deferred to a
-    future release.
+`username` and `password` are required. `groups` defaults to `[]`, `shell`
+to `/bin/bash`. `uid` and `gid` are optional — omit them to let the OS
+assign IDs. The password is at least 8 characters; neither it nor the
+username may hold line breaks or control characters, and the username may
+not hold `:` — `chpasswd` reads one `user:password` per line.
 
 **Behaviour (dual write):**
 
 1. `engine.execute("users", "create", username=..., groups=..., shell=..., uid=..., gid=...)`
-2. `config.add_user({username, groups, shell, [uid, gid]})`
+2. The password through `users.set_password_stdin`, on stdin, shaped by
+   `users.password_stdin_format` — never in a command line
+3. Where Samba is installed (`samba.check_installed`), the same password
+   through `samba.set_user_password` (`smbpasswd -a -s`), on stdin too:
+   Samba keeps its own database, and an account missing from it cannot
+   open a share
+4. `config.add_user({username, groups, shell, [uid, gid]})` — never the password
 
 **Response:**
 
@@ -73,8 +77,28 @@ Create a new OS user and persist to `config.yaml`.
 
 | Code | Detail |
 |------|--------|
-| 422 | `username` is missing |
+| 422 | `username` or `password` missing, password under 8 characters, a control character in either, `:` in the username |
 | 500 | OS user creation failed (duplicate username, invalid groups, etc.) |
+
+---
+
+## POST /api/users/{target}/password
+
+Set an existing account's password, for the system and, where Samba is
+installed, for Samba.
+
+**Auth required:** yes
+
+```json
+{ "password": "a new password" }
+```
+
+Same rules and the same two stdin commands as creation. `422` for a
+password that breaks the rules, `500` when a command fails.
+
+```json
+{ "detail": "Password updated for sarah" }
+```
 
 ---
 
@@ -88,8 +112,9 @@ Delete an OS user and remove from `config.yaml`.
 
 **Behaviour (dual write):**
 
-1. `engine.execute("users", "delete", username=target)`
-2. `config.remove_user(target)`
+1. Where Samba is installed: `samba.delete_user` (`smbpasswd -x`)
+2. `engine.execute("users", "delete", username=target)`
+3. `config.remove_user(target)`
 
 **Response:**
 

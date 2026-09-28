@@ -83,7 +83,6 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | `list_users` | List all OS users |
 | `add_to_group` | Add user to supplementary group. Takes `{group}`, one group — the same name the reconciler and the installer pass |
 | `remove_from_group` | Remove user from group |
-| `set_samba_pass` | Set Samba-specific password |
 
 ### `network`
 
@@ -161,16 +160,25 @@ inside the profile.
 | Key | Value type | Description |
 |-----|------------|-------------|
 | `config_file` | string | Path to `smb.conf` |
+| `testparm` | command | `{config_file}` — check `smb.conf` |
+| `check_installed` | command | Succeeds only where Samba is installed (`testparm -V`); decides whether accounts get a Samba password |
+| `set_user_password` | command | `smbpasswd -a -s {username}`: adds the account to Samba's database or changes its password, read from stdin |
+| `password_stdin_format` | string | What `set_user_password` reads: `{password}\n{password}\n` |
+| `delete_user` | command | `smbpasswd -x {username}` |
 | `smb_service` | string | Main Samba service name |
 | `nmb_service` | string | NetBIOS name service name |
-| `shares_dir` | string | Usershares directory path |
+| `reload_config` | command | Make `smbd` reread its configuration |
 | `usershare_path` | string | Where usershares live; written into `smb.conf` by the setup wizard when missing |
 | `usershare_prepare` | command | `{path}` — creates that directory (`install -d -m 1770`) |
-| `create_share` | command | Create a usershare |
+| `create_share` | command | `{share_name} {path} {comment} {acl}` — create a usershare |
 | `delete_share` | command | Delete a usershare |
 | `list_shares` | command | List current usershares |
-| `set_smb_password` | command | Set Samba user password |
-| `test_config` | command | Test smb.conf validity |
+
+Samba keeps its own password database: an account with no entry there cannot
+open a share, whatever its system password. Every place that sets a password
+— the Users page, the password change, the setup wizard and the installer —
+sets the Samba one too wherever `check_installed` succeeds, and deleting an
+account removes it from Samba first.
 
 ### `nfs`
 

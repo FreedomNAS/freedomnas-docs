@@ -70,6 +70,10 @@ When restoring from a config snapshot, changes are applied in this fixed order:
 This order ensures dependencies are satisfied: pools must exist before shares,
 users must exist before share permissions can reference them.
 
+An SMB share is recreated with the ACL recorded in `config.yaml`. A share
+recorded before the ACL was stored gets `Everyone:R` plus full control for
+its `valid_users` — what the WebUI gave it — and never more.
+
 On first boot, `firstboot.sh` runs `python -m freedomnas unlock-pools`
 *before* `reconcile --mode disaster_recovery` — an encrypted pool must be
 unlocked before its datasets can mount. `reconcile.py` itself performs no
