@@ -129,11 +129,13 @@ value, or `zfs inherit` if it was inherited) and the pool exported: a failed
 import leaves the pool as it found it.
 
 **Encryption.** Passphrase roots are unlocked with
-`zfs load-key -L prompt <root>`, the passphrase on stdin. Roots with a raw or
-hex key stay locked: FreedomNAS's own encrypted pools wrap their raw key in a
-keyslot file on the other system's boot disk, which is not here. At the next
-boot, `unlock-pools` asks for the passphrase of an imported pool on the
-console, as for any encrypted pool.
+`zfs load-key -L prompt <root>`, the passphrase on stdin. FreedomNAS's own
+encrypted pools (raw key) are unlocked through the keyslots recorded on the
+pool — USB key, `freedomnas.key` file or Master Passphrase, see
+[Encrypted Pools](#encrypted-pools). A raw or hex key with no keyslots on
+the pool cannot be unlocked here, and the pool is imported locked. While
+`.freedomnas` is locked its configuration is not read (`config_locked`):
+the shares and users appear once the pool is unlocked.
 
 Tested live on loop devices (a plain pool with a new mountpoint, another
 system's root, a passphrase-encrypted pool with a wrong and a right
@@ -219,7 +221,40 @@ which:
    the pool key, and a tampered slot fails AEAD authentication rather than
    silently unwrapping to garbage.
 3. Writes the USB key as `freedomnas.key` onto every device passed in
-   `usb_devices`.
+   `usb_devices`. The API accepts only partitions of removable devices
+   (`GET /api/storage/usb-devices`), and only for an encrypted pool: the
+   file is written onto a mounted filesystem, so any other partition would
+   be mounted read-write.
+4. Records the same keyslots on the pool itself, in the ZFS user property
+   `org.freedomnas:keyslots` of the pool's dataset (base64 of the keyslot
+   JSON, about 1 KB; user properties hold up to 8 KB).
+
+**Why the keyslots are also on the pool.** The file on the boot device is
+lost with the boot device, and a pool moved to another system leaves it
+behind: with the file alone, neither the USB key nor the Master Passphrase
+can open the pool anywhere else. ZFS properties are not encrypted, so the
+copy can be read while the pool is locked — the same model as a LUKS
+header on its own disk. The slots hold only wrapped copies of the key. The
+cost: whoever takes the data disks alone, without the boot disk, can try to
+guess the Master Passphrase offline — against scrypt (about 32 MiB per
+attempt) and a passphrase of at least 12 characters. The USB slot is
+wrapped with 32 random bytes and cannot be guessed. Whoever takes the whole
+NAS had the boot disk anyway.
+
+Pools created before this carry no copy: `PoolUnlocker` writes it
+(`keymgmt.publish_keyslots`) the first time it unlocks them at boot, where
+the keyslot file is.
+
+**Importing a FreedomNAS encrypted pool.** `pool_import` reads the property
+of each encryption root whose key is not a passphrase, and offers the
+unlock methods its slots allow: the USB key plugged into the NAS
+(`PoolUnlocker.find_usb_key`), the `freedomnas.key` file uploaded from the
+browser (its bytes, base64, in `keyslot_unlock.key`), or the Master
+Passphrase. The key is unwrapped on the server and loaded with
+`keymgmt.load_raw_key` (tmpfs file, shredded). After the import,
+`keymgmt.adopt_keyslots` writes the slots to this system's keyslot
+directory under the pool's new name — never over an existing file — so the
+boot-time unlock works for the pool from then on.
 
 The read side, `keymgmt.PoolUnlocker`, is what `python -m freedomnas
 unlock-pools` runs at boot (called from `firstboot.sh`, right after `zpool
@@ -233,6 +268,9 @@ to `--tty-timeout` seconds (default 300). If nobody answers in time,
 boot continues to the WebUI with the pool left locked, rather than blocking
 indefinitely. The timeout bounds the wait for input itself, so a console
 nobody sits at fails open too — see [Security](../architecture/security.md).
+Once unlocked, only the pool's datasets with `canmount=on` are mounted
+(`zfs.mount_pool_auto`): `mount_pool` would also mount `.freedomnas`, whose
+mountpoint is this system's state directory.
 
 **Never** wrap or unwrap a keyslot with anything other than
 `keymgmt.wrap_key()`/`unwrap_key()`. No XOR, no unauthenticated ciphers, no
@@ -248,9 +286,8 @@ support pool modification at all (see the reconciler's constraints).
     Both `POST /api/storage/pools` (the **Storage → Create Pool** form, with
     **Encrypt this pool** ticked) and the optional `pool` field of
     `POST /api/setup/initialize` go through `PoolProvisioner`. The Storage
-    form only collects the Master Passphrase — the USB keyslot's
-    `usb_devices` is API-only — and the first-run wizard has no pool step at
-    all. See [Storage](../user-guide/storage.md#creating-a-pool) and
+    form collects the Master Passphrase and, optionally, the USB sticks that
+    get `freedomnas.key`; the first-run wizard has no pool step at all. See [Storage](../user-guide/storage.md#creating-a-pool) and
     [First-Run Setup](../getting-started/first-run.md).
 
 ## Snapshots

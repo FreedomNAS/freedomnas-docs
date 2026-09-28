@@ -31,6 +31,7 @@ The dashboard does not yet reflect pool health: check it here.
 | **Cache device (L2ARC)** | Optional SSD read cache |
 | **Log device (SLOG)** | Optional, **Advanced** level and above — only helps synchronous writes (NFS, databases) |
 | **Encrypt this pool** | ZFS native encryption; asks for a **Master Passphrase** of at least 12 characters |
+| **USB keys** | With encryption: the USB sticks plugged into the NAS. A `freedomnas.key` file is written onto each ticked one (what is already there stays). With one plugged in at boot the pool unlocks by itself; without, the Master Passphrase is asked on the console |
 
 3. Tick **I understand the selected devices will be erased** and click
    **Create Pool**; a final confirmation lists the devices to be destroyed
@@ -45,9 +46,12 @@ the pool is recorded in `config.yaml`.
     passed, so ZFS itself refuses a disk that already belongs to another pool.
 
 !!! note "Encryption from the WebUI"
-    The form creates the passphrase keyslot only. The USB keyslot
-    (`usb_devices`) is accepted by the API but has no field in the form yet.
-    See [Encrypted Pools](../developer/zfs.md#encrypted-pools) for the design.
+    Only partitions of removable USB devices are offered, and a stick must
+    hold a filesystem the NAS can write (FAT32 works on every edition).
+    Anyone holding a stick can unlock the pool: keep a spare away from the
+    NAS. The keyslots are also recorded on the pool, so the pool can be
+    imported and unlocked on another FreedomNAS — see
+    [Encrypted Pools](../developer/zfs.md#encrypted-pools).
 
 ### Importing a Pool
 
@@ -67,9 +71,14 @@ the data pool of another FreedomNAS, or a pool some other system made.
       that inherit it follow. For a pool not made by FreedomNAS, check it:
       changing it runs `zfs set mountpoint=` on the pool.
     - **Passphrase** — one field per encryption root. A wrong passphrase is
-      reported here, before anything is imported. A pool encrypted with a
-      raw key (like FreedomNAS's own encrypted pools, whose key is wrapped
-      on the other system's boot disk) can be imported, but stays locked.
+      reported here, before anything is imported.
+    - **Unlock — encrypted by FreedomNAS** — for FreedomNAS's own encrypted
+      pools: its **USB key plugged into this NAS**, the **freedomnas.key
+      file** chosen from your computer, or its **Master Passphrase**. After
+      the import this system can unlock the pool at boot like one created
+      here. Its shares and users appear once it is unlocked. A pool
+      encrypted with another kind of raw key can be imported, but stays
+      locked.
 4. For a FreedomNAS pool, its shares are listed, ticked. The users they need
    that do not exist here are listed too, each with a password field:
    passwords are never stored in the configuration, so each needs a new one.

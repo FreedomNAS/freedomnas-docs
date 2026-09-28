@@ -181,7 +181,9 @@ Create a pool.
 
 `vdev_type` is `""` (stripe), `mirror`, `raidz1`, `raidz2` or `raidz3`.
 With `encrypted`, an optional `usb_devices` list writes a `freedomnas.key`
-USB keyslot too — the WebUI form does not expose it. Unencrypted pools also
+onto each of those sticks; each must be a partition of a removable device
+from `GET /api/storage/usb-devices`, and not also a data, cache or log
+device (`422` otherwise, and without `encrypted`). Unencrypted pools also
 accept `ashift` (default `12`) and `compression` (default `lz4`).
 
 This endpoint backs the **Storage → Create Pool** form
@@ -198,6 +200,7 @@ is deliberately literal:
 | a device that is not one normalised `/dev/...` path | see below |
 | a `vdev_type` other than `""`, `mirror`, `raidz1`, `raidz2`, `raidz3` | see below |
 | `encrypted` with a passphrase under 12 characters | |
+| a `usb_devices` entry that is not a removable partition, or `usb_devices` without `encrypted` | `freedomnas.key` is written onto a mounted filesystem |
 
 **`-f` is never passed.** A disk that already carries somebody else's pool is
 refused by ZFS itself, and that refusal is better coming from ZFS than from a
@@ -218,6 +221,17 @@ After the pool exists: cache and log are attached, the shadow dataset
 `<pool>/.freedomnas` is created, and the pool is recorded in `config.yaml`.
 A cache device that fails to attach does not fail the request — the pool is
 already there — and comes back in `warnings`.
+
+---
+
+## `GET /api/storage/usb-devices`
+
+The partitions of removable devices, where a pool's `freedomnas.key` can be
+written (`media.list_removable`):
+
+```json
+{ "devices": ["/dev/sdh1"] }
+```
 
 ---
 
@@ -257,6 +271,14 @@ was.
 }
 ```
 
+For a pool encrypted by FreedomNAS (raw key, keyslots on the pool) add
+
+```json
+{ "keyslot_unlock": { "method": "usb" } }
+{ "keyslot_unlock": { "method": "file", "key": "<freedomnas.key, base64>" } }
+{ "keyslot_unlock": { "method": "passphrase", "passphrase": "…" } }
+```
+
 Only `pool_id` is required. `name` imports it under another name,
 `mountpoint` projects a new mountpoint for the pool's own dataset,
 `passphrases` maps encryption roots (relative to the pool, `""` for the pool
@@ -270,7 +292,8 @@ The report:
 | `datasets` | each dataset with the mountpoint it would get, `canmount`, `used`, `encrypted`, `locked` |
 | `refused` | why this is another system's root; not empty = cannot be imported |
 | `conflicts` | datasets that would mount on a system directory, an occupied mount point or a non-empty directory |
-| `encryption_roots` | per root: `keyformat`, `unlocked`, and `error` (`passphrase required`, `wrong passphrase`, or a key that is not a passphrase) |
+| `encryption_roots` | per root: `keyformat`, `unlocked`, `unlock_methods` (`usb`, `file`, `passphrase` when the pool carries keyslots), `error`, and `blocking` when that error stops an import |
+| `config_locked` | its `.freedomnas` is still locked, so its configuration was not read |
 | `root_mountpoint`, `current_root_mountpoint` | where the pool's dataset would mount, and where it mounts now |
 | `name_taken` | a pool with `final_name` is already imported |
 | `freedomnas` | the pool has a `.freedomnas` dataset |
@@ -304,7 +327,7 @@ password breaks the rules of `POST /api/users/`.
 Then, in order:
 
 1. `zpool import -N` by id under the final name (`-f` only with `force`)
-2. the keys of the passphrase encryption roots; roots with another kind of key stay locked and come back in `warnings`
+2. the keys: passphrase roots with their passphrase, FreedomNAS roots through `keyslot_unlock`; roots with another kind of key and no keyslots stay locked and come back in `warnings`
 3. `zfs set mountpoint=` on the pool if `mountpoint` differs from its own
 4. the datasets with `canmount=on` that are not mounted yet (`zfs.mount_pool_auto` — never `.freedomnas`, whose `canmount=noauto` would put it over this system's configuration)
 5. the pool's `config.yaml` is copied to `config.yaml.imported` beside it, before this system's copy is mirrored over it
@@ -318,8 +341,12 @@ again. Users and shares that fail do not undo the import: they come back in
 
 ```json
 { "pool": "tank", "users": ["carla"], "shares": ["smb:media", "nfs:media-nfs"],
-  "kept_config": "tank/.freedomnas:config.yaml.imported", "warnings": [] }
+  "kept_config": "tank/.freedomnas:config.yaml.imported", "adopted_keyslots": false,
+  "warnings": [] }
 ```
+
+`adopted_keyslots` is true when the keyslots of a FreedomNAS encrypted pool
+were copied to this system's keyslot directory, so it unlocks at boot.
 
 ---
 

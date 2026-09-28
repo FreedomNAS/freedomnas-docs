@@ -88,7 +88,12 @@ works around this by generating its own random 32-byte raw ZFS key (never
 stored in the clear) and keeping **two independently-wrapped copies** of it in
 a keyslot file outside the encrypted pool, at
 `/etc/freedomnas/keyslots/<pool>.json`, so it is readable before the pool
-unlocks:
+unlocks. The same slots are also recorded on the pool, in the ZFS user
+property `org.freedomnas:keyslots` (properties are not encrypted), so the
+pool can be unlocked on another system or after the boot disk is lost —
+at the cost of letting whoever holds the data disks alone attempt the
+Master Passphrase offline against scrypt. See
+[Encrypted Pools](../developer/zfs.md#encrypted-pools).
 
 | Slot | Wrapped by | Delivered via |
 |------|-----------|----------------|
@@ -197,7 +202,7 @@ shows Topgrade output — it cannot be used as an interactive shell. See
 | Export injection into `/etc/exports` | NFS path, hosts and options must each be one word; the line is written by the profile's `nfs.export_add`, never by the WebUI |
 | Password exposure in logs/ps | `execute_with_stdin()` for all password operations |
 | Config file reading by non-root | `0o600` permissions on `config.yaml` |
-| Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM); raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
+| Encrypted pool key exposure | Two independently-wrapped keyslots (scrypt + AES-256-GCM), on the boot device and as a property of the pool; raw key only ever touches a transient `0600` tmpfs file, shredded immediately after use |
 | Unauthorized API access | HTTP Basic Auth via PAM on all non-exempt routes; administrator group required; first-frame auth on the updates WebSocket |
 | Browser-cached credentials (CSRF) | 401 announces `WWW-Authenticate: FreedomNAS`, which no browser answers with its own dialog, so credentials never enter the browser's automatic auth cache and only the page's JavaScript sends them |
 | OS command hardcoding | All commands in JSON profiles — no commands in Python |

@@ -235,7 +235,8 @@ class ConfigurationManager:
 - `config.yaml` **never** stores plaintext passwords
 - Likewise, an encrypted pool's `encrypted`/`usb_keyslot_devices` fields are
   metadata only — the wrapped keys themselves live outside `config.yaml`, in
-  `/etc/freedomnas/keyslots/<pool>.json` (see Security)
+  `/etc/freedomnas/keyslots/<pool>.json` and in the pool's
+  `org.freedomnas:keyslots` property (see Security)
 - File permissions are always `0o600`
 - `to_dict()` adds top-level `smb_shares` and `nfs_shares` aliases so the
   `ReconciliationEngine` can address them without nesting into `shares.smb`

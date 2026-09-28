@@ -89,7 +89,8 @@ When working on a specific repository:
 | `engine.py` | 670 | OS-agnostic command executor — profile loader (base `os/` fragment + per-module merge) |
 | `config.py` | 686 | YAML configuration manager |
 | `reconcile.py` | 546 | Desired-vs-current diff + apply |
-| `keymgmt.py` | 451 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped); `python -m freedomnas unlock-pools` |
+| `keymgmt.py` | 594 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped), their copy on the pool; `python -m freedomnas unlock-pools` |
+| `pool_import.py` | 576 | Inspecting and importing an existing pool: refusals, mountpoints, unlocking, its FreedomNAS configuration |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
 | `package_manager.py` | 186 | Abstract package install/remove |
