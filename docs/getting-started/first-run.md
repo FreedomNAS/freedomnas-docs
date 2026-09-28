@@ -55,6 +55,13 @@ reflashing the system disk — at the next boot, `firstboot.sh` finds it on
 the data pool and restores the system from it (see
 [Installation](installation.md)).
 
+!!! warning "What a restore does not bring back"
+    Passwords are not part of the configuration. Accounts restored onto a
+    freshly flashed disk have none, and the image's shipped `admin` /
+    `freedomnas` account is still there — sign in with it, set the restored
+    accounts' passwords under **Users**, then remove `admin`. A restore
+    step in the wizard that does this for you is planned.
+
 ## Step 5 — Review
 
 A summary of the choices. **Apply** calls `POST /api/setup/initialize`

@@ -433,9 +433,10 @@ When an importable pool carries a `.freedomnas` dataset, the installer
 offers recovery instead of installation:
 
 1. Load `config.yaml` through `ConfigurationManager`
-2. Run `ReconciliationEngine` in `disaster_recovery` mode
-3. Configuration is applied in the fixed order (hostname → timezone → pools →
-   users → services → shares)
+2. Run `ReconciliationEngine` in `declarative` mode: the system is made to
+   match the configuration exactly, in the fixed order (hostname → timezone
+   → pools → accounts → services → SSH → shares → removal of accounts); see
+   [Reconciliation Engine](../architecture/reconciler.md)
 
 ## Boot chain
 

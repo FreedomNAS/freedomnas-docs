@@ -210,14 +210,18 @@ The body is the YAML itself (no form encoding). What happens, in order:
    a file missing required sections — `422`, and **the running configuration
    is put back** untouched;
 3. `ReconciliationEngine.reconcile(mode="declarative")` applies it, in a
-   worker thread so the event loop keeps serving.
+   worker thread so the event loop keeps serving. Declarative means
+   **exactly**: accounts, SMB shares and NFS exports the file does not name
+   are removed — never an administrator, never a pool, and a removed
+   account keeps its home directory. See
+   [Reconciliation Engine](../architecture/reconciler.md).
 
 **Response:**
 
 ```json
 {
-  "applied": ["system.hostname_set", "users.create"],
-  "skipped": ["zfs.pool_import"],
+  "applied": ["system.hostname_set", "users.create", "samba.create_share"],
+  "skipped": [],
   "failed":  []
 }
 ```

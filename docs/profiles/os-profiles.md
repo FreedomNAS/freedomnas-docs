@@ -77,10 +77,11 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | Key | Command |
 |-----|---------|
 | `create` | Create OS user with explicit UID, GID, shell, groups |
-| `delete` | Delete user and home directory |
+| `delete` | Delete user and home directory (the WebUI's **Remove**) |
+| `delete_keep_home` | Delete user, keep the home directory (the reconciler) |
 | `set_password_stdin` | Set password via stdin (command for `chpasswd`), payload shaped by `password_stdin_format` |
 | `get_user_info` | Read user from `passwd` database |
-| `list_users` | List all OS users |
+| `list` | The regular accounts as `passwd` lines (UIDs 1000–65533; 1001– on FreeBSD) — what the reconciler observes |
 | `add_to_group` | Add user to supplementary group. Takes `{group}`, one group — the same name the reconciler and the installer pass |
 | `remove_from_group` | Remove user from group |
 
@@ -197,6 +198,7 @@ account removes it from Samba first.
 | Key | Command |
 |-----|---------|
 | `hostname_get` | Read current hostname |
+| `hostname_get` | Print the running hostname (`hostname`) |
 | `hostname_set` | Set hostname |
 | `ssh_service` | Not a command: the name of the SSH service (`ssh` on Debian, `sshd` elsewhere), which the installer disables and `/api/system/ssh` turns on and off |
 | `timezone_get` | Read current timezone |

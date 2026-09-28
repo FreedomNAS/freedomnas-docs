@@ -22,7 +22,7 @@ installs **any edition its host can bootstrap**, not just Debian.
 |------|--------------|-----------------|
 | **Clean install** | Provisions an edition onto a dedicated disk | The selected disk — erased completely |
 | **In-place install** | Turns the running system into a FreedomNAS | Packages, services and config only |
-| **Recovery** | Reapplies an existing `.freedomnas` configuration | Whatever the reconciler restores |
+| **Recovery** | Makes the system match an existing `.freedomnas` configuration exactly | Hostname, timezone, pools (imported), accounts, services, shares — see [Reconciliation Engine](../architecture/reconciler.md) |
 
 Recovery appears automatically when an importable pool already carries a
 `.freedomnas` dataset.
