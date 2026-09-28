@@ -56,10 +56,11 @@ List all ZFS datasets.
   "datasets": [
     {
       "name": "datapool/documents",
-      "used": "48964566016",
-      "avail": "9576649629696",
-      "refer": "48642826240",
-      "mountpoint": "/mnt/datapool/documents"
+      "used": 48964566016,
+      "avail": 9576649629696,
+      "refer": 48642826240,
+      "mountpoint": "/mnt/datapool/documents",
+      "protected": null
     }
   ]
 }
@@ -67,7 +68,101 @@ List all ZFS datasets.
 
 Fields come from the `zfs.dataset_list` profile command,
 `zfs list -Hp -o name,used,avail,refer,mountpoint` in every edition: the
-sizes are exact byte counts, passed on as the strings `zfs` prints.
+sizes are exact byte counts, as numbers (a profile without `-p` sends its
+strings unchanged). `protected` is `null`, or why the dataset must not be
+moved, renamed or destroyed from the WebUI: it belongs to the pool the
+system runs from, is `.freedomnas`, is `legacy` (fstab), mounts on a system
+directory — or a dataset inside it does (`freedomnas.datasets.subtree_reason`).
+
+---
+
+## POST /api/storage/datasets
+
+```json
+{
+  "parent": "datapool",
+  "name": "media",
+  "mountpoint_mode": "inherit",
+  "mountpoint": "",
+  "properties": { "compression": "zstd", "casesensitivity": "mixed" }
+}
+```
+
+`mountpoint_mode` is `inherit` (default), `path` (then `mountpoint`) or
+`none`. `properties` are checked against the edition's catalogue, including
+the create-only ones; empty values are left out. Runs
+`zfs.dataset_create_with` (`zfs create -o k=v … <dataset>`).
+
+`422` for a parent in the pool the system runs from, a name that is not one
+`[A-Za-z0-9][A-Za-z0-9_.:-]*` part, a dataset that exists, a missing parent,
+an unknown property or value, or a mountpoint — chosen or inherited — that
+is a system directory, already mounted, or a non-empty directory.
+
+**Response:** `{ "dataset": "datapool/media" }`
+
+---
+
+## GET /api/storage/datasets/{dataset}/dependents
+
+What a change to the dataset touches:
+
+```json
+{
+  "dataset": "datapool/media",
+  "mountpoint": "/datapool/media", "mountpoint_source": "inherited from datapool",
+  "children": ["datapool/media/films"],
+  "snapshots": ["datapool/media@daily-2026-09-28"],
+  "shares": { "smb": [ … ], "nfs": [ … ] },
+  "policies": ["datapool/media"],
+  "protected": null
+}
+```
+
+`shares` are those whose path is the mountpoint or below it.
+
+---
+
+## PUT /api/storage/datasets/{dataset}/mountpoint
+
+```json
+{ "mode": "path", "mountpoint": "/srv/media", "update_shares": true }
+```
+
+`mode` is `inherit` (`zfs inherit mountpoint`), `path` or `none`. The same
+checks as creation apply to the new place. With `update_shares`, the shares
+under the old mountpoint are re-created under the new one (SMB: the
+usershare is removed — Samba may already have dropped it, since its
+directory is gone — and added again; NFS: the export line is replaced).
+
+```json
+{ "dataset": "datapool/media", "old": "/datapool/media", "new": "/srv/media",
+  "shares": { "moved": ["smb:media"], "left": [], "warnings": [] } }
+```
+
+---
+
+## POST /api/storage/datasets/{dataset}/rename
+
+```json
+{ "new_name": "datapool/video", "update_shares": true }
+```
+
+Within the same pool; the new parent must exist. Snapshot policies of the
+dataset and its children are renamed with it. The response is that of the
+mountpoint change: an inherited mountpoint moves with the name.
+
+---
+
+## DELETE /api/storage/datasets/{dataset}?confirm=…&recursive=…&remove_shares=…
+
+`confirm` must be the dataset's full name. Without `recursive`, a dataset
+with children or snapshots is refused; without `remove_shares`, one with
+shares under its mountpoint is refused. A pool's own dataset is never
+destroyed here. Its snapshot policies, and its children's, are removed.
+
+```json
+{ "dataset": "datapool/media", "removed_shares": ["smb:media"], "warnings": [] }
+```
 
 ---
 

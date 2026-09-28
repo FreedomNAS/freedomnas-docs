@@ -137,6 +137,9 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | `load_key_prompt` | `zfs load-key -L prompt {dataset}`, the passphrase on stdin |
 | `mount_pool_auto` | Mount a pool's datasets with `canmount=on`, a real mountpoint and not mounted yet |
 | `dataset_inherit` | `zfs inherit {property} {dataset}` |
+| `dataset_create_with` | `zfs create {options} {dataset}` — `options` is a `multi_args` of `-o k=v` pairs, built only from validated values |
+| `dataset_rename` | `zfs rename {dataset} {new_name}` |
+| `dataset_destroy_recursive` | `zfs destroy -r {dataset}` |
 | `pool_leaf_devices`, `partition_of`, `disk_size`, `partition_offsets`, `partition_grow`, `pool_expand` | Grow the root pool into the free space after its partition at boot — see [ZFS Best Practices](../developer/zfs.md#growing-the-root-pool-on-a-flashed-image) |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/

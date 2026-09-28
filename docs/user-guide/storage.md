@@ -110,15 +110,55 @@ Lists all ZFS datasets with used, available and referenced space and their
 mountpoint. Data comes from `zfs list -Hp`.
 
 !!! note
-    The sizes on this tab, and the creation time and size on the Snapshots
-    tab, are shown as the raw numbers ZFS prints with `-p` — bytes, and
-    seconds since 1970 — until the page learns to format them as it does
-    for pools.
+    The creation time and size on the Snapshots tab are still shown as the
+    raw numbers ZFS prints with `-p` — seconds since 1970, and bytes.
 
-At **Advanced** level and above, each row has a **Properties** button that
-edits the dataset's ZFS properties (compression, quota, …). The catalogue
-comes from the edition's profile; expert-only properties appear only at
-**Expert** level.
+### Creating a Dataset
+
+**Create Dataset** (every UI level) asks for:
+
+| Field | Description |
+|-------|-------------|
+| **Inside** | The pool or dataset it goes in |
+| **Name** | A letter or digit, then letters, digits, `_ . : -` |
+| **Mountpoint** | **Inherit from the parent** (shown: parent's mountpoint + name), **This path**, or **Not mounted** |
+| **compression**, **quota** | Optional; left empty they are inherited |
+| **casesensitivity**, **normalization** | **Expert** level; they can only be set now, at creation. `casesensitivity=insensitive` or `mixed` suits shares used from Windows |
+
+A mountpoint is refused when it is a system directory (`/usr`, `/etc`,
+`/home`, …), something already mounted, or a directory holding files.
+
+### Mountpoint, Rename, Delete
+
+!!! info "Advanced level required"
+    These buttons, like **Properties**, are visible at **Advanced** UI level
+    and above.
+
+- **Mountpoint** moves a dataset: inherit it from the parent again, a path,
+  or not mounted. Children that inherit it move along. If shares live under
+  it, **Point them at the new place** (ticked) re-creates them at the new
+  path; untick it and they keep the old path — Samba drops a share whose
+  directory is gone, so they stop working until you fix them.
+- **Rename** gives a dataset another name within its pool; another parent
+  moves it there. An inherited mountpoint moves with the name (shares can
+  follow, as above); a mountpoint of its own stays. Snapshot schedules
+  follow the new name.
+- **Delete** destroys the dataset: type its full name to confirm. Child
+  datasets and snapshots go only if you tick **Also destroy …**; shares
+  under it are removed only if you tick **Remove these shares too** —
+  otherwise the deletion is refused. Its snapshot schedules are removed.
+
+Some datasets show a **system** badge and no buttons. Hover the badge for the
+reason: they belong to the pool the system runs from, hold the FreedomNAS
+configuration (`.freedomnas`), are mounted through `/etc/fstab` (`legacy`),
+mount on a system directory such as `/home` or `/var/lib/…`, or contain a
+dataset that does — moving or deleting them could leave the system unable
+to start.
+
+**Properties** edits the dataset's ZFS properties (compression, quota, …).
+The catalogue comes from the edition's profile; expert-only properties
+appear only at **Expert** level, and those that can only be set at creation
+are not offered.
 
 ## Snapshots Tab
 
