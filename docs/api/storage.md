@@ -28,7 +28,8 @@ OpenZFS releases. The backend splits each line by tabs and maps position
 
 A pool recorded in `config.yaml` also carries what was recorded for it
 there: `vdev_type`, `encrypted`, and its `cache_devices` and `log_devices` —
-`zpool list` does not show those.
+`zpool list` does not show those. Every pool carries `protected`: `null`, or
+why it must not be exported or destroyed (`freedomnas.pool_removal.problem`).
 
 `-p` prints exact byte counts, and the page formats them; a profile whose
 command omits `-p` sends `"3.6T"`, which is passed through as the string it
@@ -442,6 +443,51 @@ again. Users and shares that fail do not undo the import: they come back in
 
 `adopted_keyslots` is true when the keyslots of a FreedomNAS encrypted pool
 were copied to this system's keyslot directory, so it unlocks at boot.
+
+---
+
+## `GET /api/storage/pools/{pool}/removal`
+
+What exporting or destroying the pool takes along:
+
+```json
+{ "pool": "tank", "protected": null,
+  "datasets": ["tank", "tank/.freedomnas", "tank/media"],
+  "encrypted": true, "keyslots": true,
+  "shares": { "smb": [ … ], "nfs": [ … ] },
+  "policies": ["tank/media"] }
+```
+
+`shares` are those under any of its datasets' mountpoints.
+
+---
+
+## `POST /api/storage/pools/{pool}/export`
+
+```json
+{ "remove_shares": true }
+```
+
+`zpool export` (`zfs.pool_export`), never `-f`. Refused with `422` for the
+pool the system runs from, the pool whose `.freedomnas` serves the live
+configuration, a pool with a dataset mounted on a system directory or through
+fstab, and — without `remove_shares` — a pool with shares on it. After the
+export: its shares (if asked), its snapshot policies and its `config.yaml`
+entry are removed; its keyslot file stays. A busy dataset makes ZFS refuse:
+`500` with ZFS's message, and nothing else changes.
+
+```json
+{ "pool": "tank", "action": "export", "forgot_keyslots": false,
+  "removed_shares": ["smb:media"], "warnings": [] }
+```
+
+---
+
+## `DELETE /api/storage/pools/{pool}?confirm=…&remove_shares=…`
+
+`zpool destroy` (`zfs.pool_destroy`), never `-f`. `confirm` must be the
+pool's name. The same refusals and clean-up as the export, and the pool's
+keyslot file is removed too (`forgot_keyslots`).
 
 ---
 

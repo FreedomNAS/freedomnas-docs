@@ -95,6 +95,31 @@ After the import the pool is recorded in `config.yaml`, so it is imported
 again at every boot. The imported pool's own configuration is kept beside
 this system's copy as `.freedomnas/config.yaml.imported`.
 
+### Exporting and Deleting a Pool
+
+!!! info "Advanced level required"
+    Visible at **Advanced** UI level and above.
+
+Each pool card has **Export** and **Delete pool**:
+
+- **Export** takes the pool off this system (`zpool export`). Its data stays
+  on the disks and it is no longer imported at boot; **Import Pool** brings
+  it back, here or on another system. An encrypted pool keeps its keyslots
+  here, and a copy travels with the pool.
+- **Delete pool** destroys it and everything on it (`zpool destroy`) — type
+  its name to confirm. An encrypted pool's keyslots are removed, so its USB
+  key opens nothing any more.
+
+Both list the pool's datasets first. Shares on the pool go only if you tick
+**Remove these shares too**, otherwise the action is refused; its snapshot
+schedules are removed, and so is its entry in `config.yaml`. `-f` is never
+used: if something still uses a dataset, ZFS refuses and says so.
+
+Instead of the buttons, a card explains why a pool must stay: it is the pool
+the system runs from, it holds the configuration this system is using, or a
+dataset in it mounts on a system directory or through `/etc/fstab` — the same
+rule as the **system** badge on the Datasets tab.
+
 ### Cache and Log Devices
 
 !!! info "Advanced level required"

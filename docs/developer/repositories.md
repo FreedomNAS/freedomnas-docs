@@ -91,6 +91,7 @@ When working on a specific repository:
 | `reconcile.py` | 546 | Desired-vs-current diff + apply |
 | `keymgmt.py` | 594 | Encrypted-pool keyslots (USB + Master Passphrase, independently wrapped), their copy on the pool; `python -m freedomnas unlock-pools` |
 | `datasets.py` | 240 | Creating, moving, renaming and destroying datasets; which ones the WebUI must leave alone |
+| `pool_removal.py` | 82 | Exporting and destroying a pool, and which pools must stay |
 | `pool_import.py` | 585 | Inspecting and importing an existing pool: refusals, mountpoints, unlocking, its FreedomNAS configuration |
 | `orchestrator.py` | 333 | Module lifecycle + heartbeat bus |
 | `module_loader.py` | 145 | Manifest-driven module discovery/registration; first real caller of `Orchestrator`, via `python -m freedomnas serve` |
