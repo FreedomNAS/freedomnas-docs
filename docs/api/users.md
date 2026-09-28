@@ -67,6 +67,13 @@ not hold `:` — `chpasswd` reads one `user:password` per line.
    open a share
 4. `config.add_user({username, groups, shell, [uid, gid]})` — never the password
 
+If step 2, 3 or 4 fails, the account created in step 1 is taken back
+(`samba.delete_user`, then `users.delete`, i.e. `userdel -r`) before the
+error is returned: no half-created account is left on the system, unknown
+to the configuration and blocking the next attempt with "user already
+exists". When step 1 itself fails nothing is undone, so an account that
+already existed is never deleted.
+
 **Response:**
 
 ```json
@@ -78,7 +85,7 @@ not hold `:` — `chpasswd` reads one `user:password` per line.
 | Code | Detail |
 |------|--------|
 | 422 | `username` or `password` missing, password under 8 characters, a control character in either, `:` in the username |
-| 500 | OS user creation failed (duplicate username, invalid groups, etc.) |
+| 500 | OS user creation failed (duplicate username, invalid groups, etc.), or setting a password or saving the configuration failed — the account is then removed again |
 
 ---
 

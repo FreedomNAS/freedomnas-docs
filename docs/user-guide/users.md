@@ -29,6 +29,10 @@ shares straight away. Passwords are passed via stdin — never in the command
 string. Changing a password later changes both, and deleting a user removes
 it from Samba too.
 
+If any step fails — for example Samba cannot read `/etc/samba/smb.conf` —
+the error is shown and the account is removed again, so you can fix the
+cause and click **Create User** once more with the same name.
+
 !!! tip
     Who may open an SMB share is decided by that share's ACL, not by a
     group: a new share gives everyone read access and its creator full
