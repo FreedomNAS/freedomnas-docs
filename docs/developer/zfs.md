@@ -59,27 +59,38 @@ zpool create \
 
 An image is a few GB and is usually written to a larger disk. At every boot
 `firstboot.sh` runs `python3 -m freedomnas grow-root-pool` before anything
-else: it extends the root pool's partition to the end of its disk and tells
-ZFS the device grew (`zpool online -e`). It only touches the case every image
-ships — a root pool on a single partition — and does nothing once the
-partition reaches the end of the disk (less than 64 MiB left). A mirror, a
-raidz or a pool of several devices was laid out by someone and is left
-alone. A failure is logged and the boot carries on.
+else: it extends the root pool's partition into the free space that follows
+it and tells ZFS the device grew (`zpool online -e`). It only touches the
+case every image ships — a root pool on a single partition — and does
+nothing when less than 64 MiB is free between the end of the partition and
+the start of the next one, or the end of the disk if none follows. A disk
+where another partition sits right after the root pool's (a workstation
+with a swap or data partition behind it) is therefore left alone, even when
+the disk has free space elsewhere. A mirror, a raidz or a pool of several
+devices was laid out by someone and is left alone. A failure is logged and
+the boot carries on.
+
+The device is passed to `zpool online -e` exactly as the pool names it
+(`zpool list -vHP`, without `-L`): a pool imported from `/dev/disk/by-id`
+knows its device by that path, not by the `/dev/nvme0n1p2` it resolves to,
+and `zpool online` does not recognise the resolved name.
 
 The commands are the storage profile's:
 
 | Key | Linux | FreeBSD |
 |-----|-------|---------|
 | `dataset_at_path` | `zfs list -H -o name {path}` | same |
-| `pool_leaf_devices` | `zpool list -vHPL <pool>` | same |
+| `pool_leaf_devices` | `zpool list -vHP <pool>` | same |
 | `partition_of` | `lsblk` → disk, partition number, start, size | `glabel status` + `geom part list` → the same four |
 | `disk_size` | `lsblk -bdnro SIZE` | `diskinfo` |
+| `partition_offsets` | `lsblk -bnrpo START,TYPE` → byte offset of every partition on the disk | `geom part list` → the same |
 | `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u` | `gpart recover`, `gpart resize -i <n>` |
 | `pool_expand` | `zpool online -e <pool> <device>` | same |
 
 The Linux commands are verified on a loop device and on a flashed Artix
-image (a 10 GB image on a 20 GB disk boots with a 20 GB pool); the FreeBSD
-ones are not tested yet.
+image (a 10 GB image on a 20 GB disk boots with a 20 GB pool), and growing a
+pool that knows its device by a `/dev/disk/by-partuuid` path on a loop
+device; the FreeBSD ones are not tested yet.
 
 ## Building images next to the host's pools
 
