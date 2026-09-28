@@ -92,6 +92,55 @@ image (a 10 GB image on a 20 GB disk boots with a 20 GB pool), and growing a
 pool that knows its device by a `/dev/disk/by-partuuid` path on a loop
 device; the FreeBSD ones are not tested yet.
 
+## Importing an existing pool
+
+`freedomnas.pool_import` backs **Storage → Import Pool**
+(`/api/storage/pools/import*`).
+
+**Look, then import.** `inspect()` imports the pool with
+`zpool import -N -t -o readonly=on -o cachefile=none <id> fnasimport<pid>`:
+unmounted, read-only, under a temporary name that is not written to the
+pool, and not in the cache file. It reads the datasets (`zfs.dataset_tree`,
+one `zfs get -rHp` of mountpoint, canmount, encryption, keys and used),
+loads the keys it is given, reads `.freedomnas/config.yaml` if there is one,
+and exports the pool again in a `finally`. `import_pool()` then imports by
+numeric id, so it is the pool that was looked at.
+
+**What is refused.** Another system's root: a dataset with mountpoint `/`
+(except the pool's own dataset with `canmount=off`), or a dataset whose own
+(`local`/`received`) mountpoint is under `/usr`, `/etc`, `/boot`, `/var`,
+`/home` and the other system directories with `canmount` `on` or `noauto`.
+`.freedomnas` is exempt: its mountpoint is this system's state directory by
+design. Such a pool is never imported read-write.
+
+**What is a conflict.** A dataset that would be mounted (`canmount=on`) on a
+system directory only by inheritance, on something already mounted, or on a
+non-empty directory — OpenZFS on Linux mounts over a non-empty directory and
+would hide what is there. Mountpoints are projected before import: renaming
+the pool moves a default mountpoint (`/<pool>`), a new mountpoint for the
+pool's dataset moves every dataset that inherits it.
+
+**Mounting.** `zfs set mountpoint=` mounts the datasets it moves by itself,
+so `zfs.mount_pool_auto` mounts only datasets with `canmount=on`, a real
+mountpoint and `mounted=no`. The generic `mount_pool` would also mount
+`.freedomnas` (`canmount=noauto`) — over this system's configuration.
+If mounting fails, the pool's mountpoint is set back (`zfs set` of the old
+value, or `zfs inherit` if it was inherited) and the pool exported: a failed
+import leaves the pool as it found it.
+
+**Encryption.** Passphrase roots are unlocked with
+`zfs load-key -L prompt <root>`, the passphrase on stdin. Roots with a raw or
+hex key stay locked: FreedomNAS's own encrypted pools wrap their raw key in a
+keyslot file on the other system's boot disk, which is not here. At the next
+boot, `unlock-pools` asks for the passphrase of an imported pool on the
+console, as for any encrypted pool.
+
+Tested live on loop devices (a plain pool with a new mountpoint, another
+system's root, a passphrase-encrypted pool with a wrong and a right
+passphrase, a FreedomNAS pool with an SMB and an NFS share and a user) both
+through the API and by driving the dialog with Playwright. FreeBSD commands
+are untested.
+
 ## Building images next to the host's pools
 
 The image builders create the image's pool under a temporary name,

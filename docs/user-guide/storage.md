@@ -49,6 +49,43 @@ the pool is recorded in `config.yaml`.
     (`usb_devices`) is accepted by the API but has no field in the form yet.
     See [Encrypted Pools](../developer/zfs.md#encrypted-pools) for the design.
 
+### Importing a Pool
+
+**Import Pool** brings in a pool that already exists on an attached disk:
+the data pool of another FreedomNAS, or a pool some other system made.
+
+1. Choose the pool from the list. A pool marked **other system** was last
+   used by another machine: tick the confirmation that it is not in use
+   there any more.
+2. Click **Check**. The pool is imported read-only for a moment and exported
+   again — nothing on it changes. The report shows each dataset and where it
+   would mount.
+3. Adjust what the report asks for, then **Check** again:
+    - **Name on this system** — needed when a pool with that name is
+      already here.
+    - **Mountpoint** — where the pool's own dataset mounts; the datasets
+      that inherit it follow. For a pool not made by FreedomNAS, check it:
+      changing it runs `zfs set mountpoint=` on the pool.
+    - **Passphrase** — one field per encryption root. A wrong passphrase is
+      reported here, before anything is imported. A pool encrypted with a
+      raw key (like FreedomNAS's own encrypted pools, whose key is wrapped
+      on the other system's boot disk) can be imported, but stays locked.
+4. For a FreedomNAS pool, its shares are listed, ticked. The users they need
+   that do not exist here are listed too, each with a password field:
+   passwords are never stored in the configuration, so each needs a new one.
+   **Administrator, as on the other system** gives the account this
+   system's administrator group; it is off unless you tick it.
+5. Click **Import** and confirm.
+
+A pool that holds another system's root — a dataset that mounts on `/` or
+on `/usr`, `/etc`, `/boot` and the like — cannot be imported: it would mount
+over this system's own directories. A dataset that only inherits such a
+mountpoint is resolved by choosing another mountpoint for the pool.
+
+After the import the pool is recorded in `config.yaml`, so it is imported
+again at every boot. The imported pool's own configuration is kept beside
+this system's copy as `.freedomnas/config.yaml.imported`.
+
 ### Cache and Log Devices
 
 !!! info "Advanced level required"

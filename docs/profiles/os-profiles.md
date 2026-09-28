@@ -130,6 +130,13 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 | `load_key_file` | Load a raw key from a file into the pool (`zfs load-key -L file://{keyfile_path} {pool_name}`) |
 | `unload_key` | Unload a pool's encryption key |
 | `mount_all` | `zfs mount -a` — mount all datasets whose keys are loaded |
+| `pool_importable` | `zpool import` (Linux: `-d /dev/disk/by-id`) — the pools that can be imported |
+| `pool_import_inspect` | Import by id read-only, unmounted, under a temporary name, `{force}` is `-f` or empty |
+| `pool_import_id` | Import by id under `{pool_name}`, unmounted |
+| `dataset_tree` | `zfs get -rHp` of mountpoint, canmount, encryption, encryptionroot, keyformat, keystatus, used |
+| `load_key_prompt` | `zfs load-key -L prompt {dataset}`, the passphrase on stdin |
+| `mount_pool_auto` | Mount a pool's datasets with `canmount=on`, a real mountpoint and not mounted yet |
+| `dataset_inherit` | `zfs inherit {property} {dataset}` |
 | `pool_leaf_devices`, `partition_of`, `disk_size`, `partition_offsets`, `partition_grow`, `pool_expand` | Grow the root pool into the free space after its partition at boot — see [ZFS Best Practices](../developer/zfs.md#growing-the-root-pool-on-a-flashed-image) |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/

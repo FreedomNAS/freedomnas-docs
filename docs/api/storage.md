@@ -221,6 +221,108 @@ already there — and comes back in `warnings`.
 
 ---
 
+## `GET /api/storage/pools/importable`
+
+The pools `zpool import` finds on the attached disks (`zfs.pool_importable`),
+one entry per pool:
+
+```json
+{ "pools": [
+  { "name": "naspool", "id": "11200611346329343249", "state": "ONLINE",
+    "status": "The pool was last accessed by another system.",
+    "action": "The pool can be imported using its name or numeric identifier and the '-f' flag.",
+    "foreign": true, "importable": true }
+] }
+```
+
+`foreign` means the pool was last used by another host and needs `force`;
+`importable` is false for a pool that is not `ONLINE` or `DEGRADED`.
+
+---
+
+## `POST /api/storage/pools/import/inspect`
+
+Look at a pool without changing it. The pool is imported read-only, without
+mounting, under a temporary name (`zpool import -N -t -o readonly=on`), read,
+and exported again — even the host that last used it stays recorded as it
+was.
+
+```json
+{
+  "pool_id": "11200611346329343249",
+  "name": "tank",
+  "force": false,
+  "mountpoint": "/mnt/tank",
+  "passphrases": { "": "…", "secret": "…" }
+}
+```
+
+Only `pool_id` is required. `name` imports it under another name,
+`mountpoint` projects a new mountpoint for the pool's own dataset,
+`passphrases` maps encryption roots (relative to the pool, `""` for the pool
+itself) to their passphrases, which reach `zfs load-key` on stdin.
+
+The report:
+
+| Field | Meaning |
+|---|---|
+| `pool` | the listing entry, plus `final_name` |
+| `datasets` | each dataset with the mountpoint it would get, `canmount`, `used`, `encrypted`, `locked` |
+| `refused` | why this is another system's root; not empty = cannot be imported |
+| `conflicts` | datasets that would mount on a system directory, an occupied mount point or a non-empty directory |
+| `encryption_roots` | per root: `keyformat`, `unlocked`, and `error` (`passphrase required`, `wrong passphrase`, or a key that is not a passphrase) |
+| `root_mountpoint`, `current_root_mountpoint` | where the pool's dataset would mount, and where it mounts now |
+| `name_taken` | a pool with `final_name` is already imported |
+| `freedomnas` | the pool has a `.freedomnas` dataset |
+| `shares` | from its `config.yaml`: SMB and NFS shares whose path is on this pool, with the path translated to the new mountpoint, the users an SMB share needs, and `exists_here` |
+| `users` | the accounts of its `config.yaml` plus those the shares name: `uid`, `groups`, `admin`, `exists_here`, `uid_taken`, `groups_here` |
+| `config_error` | why its `config.yaml` could not be read |
+
+`422` for a pool of another system without `force`, an unknown id, a pool
+that is not importable, or a system directory as `mountpoint`.
+
+---
+
+## `POST /api/storage/pools/import`
+
+Import the pool for good. Takes the same fields as `inspect`, plus:
+
+```json
+{
+  "smb": ["media"],
+  "nfs": ["media-nfs"],
+  "users": [{ "username": "carla", "password": "…", "admin": false }]
+}
+```
+
+The pool is inspected again first, and the import is refused with `422` if
+it holds another system's root, its name is taken, a dataset would mount
+somewhere it must not, a passphrase is missing or wrong, a chosen SMB share
+needs a user that does not exist here and has no password in `users`, or a
+password breaks the rules of `POST /api/users/`.
+
+Then, in order:
+
+1. `zpool import -N` by id under the final name (`-f` only with `force`)
+2. the keys of the passphrase encryption roots; roots with another kind of key stay locked and come back in `warnings`
+3. `zfs set mountpoint=` on the pool if `mountpoint` differs from its own
+4. the datasets with `canmount=on` that are not mounted yet (`zfs.mount_pool_auto` — never `.freedomnas`, whose `canmount=noauto` would put it over this system's configuration)
+5. the pool's `config.yaml` is copied to `config.yaml.imported` beside it, before this system's copy is mirrored over it
+6. `<pool>/.freedomnas` is created if missing, and the pool recorded in `config.yaml` with `imported: true`
+7. the users: same uid as on the other system when it is free here, only the groups that exist here, this edition's administrator group only with `admin`; created like `POST /api/users/`, rollback included
+8. the shares, through the same code as `POST /api/shares/smb` and `/nfs`; one whose name is already used here is left alone
+
+A failure in steps 1–5 gives the pool its mountpoint back and exports it
+again. Users and shares that fail do not undo the import: they come back in
+`warnings`.
+
+```json
+{ "pool": "tank", "users": ["carla"], "shares": ["smb:media", "nfs:media-nfs"],
+  "kept_config": "tank/.freedomnas:config.yaml.imported", "warnings": [] }
+```
+
+---
+
 ## `POST /api/storage/pools/{pool}/devices`
 
 Attach a cache (L2ARC) or log (SLOG) device to a pool that already exists.

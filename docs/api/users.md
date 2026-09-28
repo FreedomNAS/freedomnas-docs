@@ -58,7 +58,8 @@ not hold `:` — `chpasswd` reads one `user:password` per line.
 
 **Behaviour (dual write):**
 
-1. `engine.execute("users", "create", username=..., groups=..., shell=..., uid=..., gid=...)`
+1. `engine.execute("users", "create", username=..., groups=..., shell=...)`, or
+   `users.create_with_uid` (`useradd -u`) when `uid` is given
 2. The password through `users.set_password_stdin`, on stdin, shaped by
    `users.password_stdin_format` — never in a command line
 3. Where Samba is installed (`samba.check_installed`), the same password
