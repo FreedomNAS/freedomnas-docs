@@ -144,55 +144,30 @@ it, by sourcing the target's `/etc/profile`, but it would send every command
 back through a shell that re-parses the values the engine quoted, require
 bash in every edition, and leave the host side alone.
 
-## Editions that build ZFS with DKMS
+## ZFS on Arch and Artix: no DKMS
 
-Arch and Artix install `zfs-dkms-git`, which ships no module at all: it puts
-the sources in `/usr/src/zfs-<version>/`, and pacman's `dkms` hook compiles
-them at the end of the transaction. That hook is the problem. When
-`dkms install` fails it prints
+Arch and Artix install `linux-freedomnas` and `zfs-utils-freedomnas` from the
+FreedomNAS pacman repository (see [Repositories](repositories.md)): the
+kernel package already carries `zfs.ko` and `spl.ko`, so nothing is compiled
+on the NAS. pacstrap and basestrap install no kernel of their own; the core
+packages bring `linux-freedomnas`, and its `initramfs` dependency is
+satisfied by `dracut`, so mkinitcpio never enters the system.
 
-```
-==> WARNING: `dkms install --no-depmod zfs/<version> -k <kernel>' exited 10
-```
+pacman never runs `/etc/kernel/postinst.d`, so `files.freedomnas_uki_hook`
+writes `/etc/pacman.d/hooks/90-freedomnas-uki.hook`, which calls
+`zz-dracut-uki` with the version of every kernel a transaction installs or
+upgrades (target `usr/lib/modules/*/vmlinuz`). It does nothing while the
+script is not there yet, which is the case during the installation itself:
+the installer copies `zz-dracut-uki` and builds the UKI at the bootloader
+step.
 
-and its `main()` still returns 0, so pacman succeeds. The installation then
-continues, dracut builds a UKI without ZFS because there is no module to put
-in it, and the machine drops into the initramfs shell looking for a root pool
-it cannot read. Nothing in the installation looked wrong.
-
-The build itself fails for a packaging reason. `dkms.conf` sets
-`MAKE[0]="make -C module/"`, which reaches the top-level `gitrev` target:
-
-```
-cd "/var/lib/dkms/zfs/<version>/build"; \
-@echo "  GEN     " gitrev;./scripts/make_gitrev.sh include/zfs_gitrev.h
-```
-
-`package()` copies only `scripts/dkms.postbuild` and
-`scripts/objtool-wrapper.in` into `/usr/src`, so `make_gitrev.sh` is not
-there, `make` exits 2, and DKMS treats the build as failed — even though the
-parallel jobs finished and `zfs.ko` and `spl.ko` are sitting in the build
-directory. (The stray `@echo` comes from `AM_V_GEN` landing mid-recipe; it is
-noise, the exit status is the missing script's.) The stable `zfs-dkms` has
-the same `cp` line but builds from a release tarball, where that target does
-not run, so only the `-git` package is affected.
-
-`PackagesInstaller.ensure_kernel_modules()` runs after the packages, for each
-kernel in the target that has a module tree:
-
-| Step | Action |
-|------|--------|
-| Is ZFS there? | `dkms.module_present` — `modinfo -k <kernel> -n zfs`, which prints the path or fails |
-| If not, repair | `dkms.fix_gitrev` writes an empty `scripts/make_gitrev.sh` into each `/usr/src/zfs-*/`, then `dkms.autoinstall` rebuilds |
-| Still not there | `RuntimeError`, pointing at `/var/lib/dkms/zfs/*/build/make.log` — the installation stops rather than produce a system that cannot boot |
-
-An empty script is enough because `include/zfs_gitrev.h` is generated when
-the package is built and is already in `/usr/src`; nothing has to regenerate
-it. The three actions are declared in `installer-arch.json` and
-`installer-artix.json` only, and each is behind its own `has()`, so no other
-edition changes. This check is for clean installs: an in-place install runs
-on a system whose ZFS already works, and rebuilding modules for a kernel it
-happens to keep around is not the installer's business.
+Until 2026-10 the two editions took `zfs-dkms-git` from Chaotic-AUR. Its
+`dkms.conf` reaches the top-level `gitrev` target, whose
+`scripts/make_gitrev.sh` the package does not ship, so the build exited 2
+after compiling the modules, pacman's `dkms` hook reported that as a warning
+and exited 0, and the UKI was built without ZFS. `ensure_kernel_modules()`
+still repairs and checks such a build for any edition whose profile declares
+the `dkms` actions; none does today.
 
 ## Disks that already carry a pool
 
@@ -229,7 +204,7 @@ before that confirmation.
 | 6 | Write the edition's config files | `files.*` |
 | 7 | Bind-mount the chroot | `chroot.mount` |
 | 8 | Create users — **before** packages, so PAM/Samba find them | `users.*` |
-| 9 | Third-party repositories, packages, the ZFS module check, locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `dkms.*`, `services.enable` |
+| 9 | Third-party repositories, packages, the ZFS module check (editions with `dkms.*`), locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `dkms.*`, `services.enable` |
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
 | 11 | The root pool's `zpool.cache` in the target | `rootpool.cachefile_set`, `rootpool.cachefile_install` |
 | 12 | Boot chain | `bootloader.*` |
@@ -513,10 +488,9 @@ every kernel install or update it:
 5. Resets `boot.state` to `tries-left: 3`
 
 dpkg runs `/etc/kernel/postinst.d/` on Debian. pacman does not: on Arch and
-Artix nothing calls the hook yet, so a kernel update leaves the UKI on the
-old kernel while pacman deletes that kernel's modules. A pacman hook on
-`usr/lib/modules/*/vmlinuz` that calls `zz-dracut-uki` with the new version
-fixes it; it has been tried on an Artix image and is not in the profiles yet.
+Artix the pacman hook `90-freedomnas-uki.hook` (`files.freedomnas_uki_hook`)
+calls it with the new kernel's version, so a kernel update never leaves the
+UKI on a kernel whose modules pacman has just deleted.
 
 It never aborts `dpkg`'s kernel install over a UKI or ZFS failure — it logs
 and exits 0.

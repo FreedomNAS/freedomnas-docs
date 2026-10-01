@@ -174,16 +174,14 @@ Debian and the two pacman editions need one today:
 
 - Debian's `containers`: Docker Inc. ships `docker-ce` and `containerd.io`
   from its own repository.
-- Arch's and Artix's `core`: ZFS comes from [Chaotic-AUR](https://aur.chaotic.cx),
-  whose `zfs-dkms-git` and `zfs-utils-git` build the DKMS module against the
-  upstream kernel rather than only `linux-lts`, and ship the dracut module the
-  UKI needs. The entry is Chaotic-AUR's own procedure — `pacman-key --recv-key`
-  and `--lsign-key` for its key, `pacman -U` of `chaotic-keyring` and
-  `chaotic-mirrorlist`, a `[chaotic-aur]` section appended to `pacman.conf`
-  unless it is already there — followed by `gpgconf --kill all` on the
-  target's keyring, so no `dirmngr` is left holding the root dataset busy when
-  the pool is exported. On Artix, `chaotic-keyring`'s dependency
-  `archlinux-keyring` comes from `galaxy`.
+- Arch's and Artix's `core`: the FreedomNAS pacman repository, which
+  carries `linux-freedomnas` (the kernel with OpenZFS built in),
+  `zfs-utils-freedomnas`, `topgrade-bin` and Artix's ZFS service scripts. The
+  entry downloads the repository's key, `pacman-key --add`s it and
+  `--lsign-key`s its full fingerprint, appends a `[freedomnas]` section with
+  `SigLevel = Required` to `pacman.conf` unless it is already there, and ends
+  with `gpgconf --kill all` on the target's keyring, so no `dirmngr` is left
+  holding the root dataset busy when the pool is exported.
 
 ## `pkgbuild`
 
@@ -195,22 +193,23 @@ packages and before services are enabled. An edition that lists PKGBUILD
 repositories without declaring `pkgbuild.install` stops the installation with
 an error rather than skipping them.
 
-Artix uses it for the ZFS service scripts, since Chaotic-AUR's ZFS ships
-systemd units only:
+No edition uses it today. Artix built its ZFS service scripts this way
+until they were published in the FreedomNAS pacman repository; they are now
+ordinary entries of `packages` under `init.<name>`:
 
-| Init | Repository | Services it provides |
-|------|------------|----------------------|
-| OpenRC | `https://aur.archlinux.org/zfs-openrc.git` | `zfs-import`, `zfs-mount`, `zfs-load-key`, `zfs-share`, `zfs-zed` |
-| dinit | `https://codeberg.org/sarahmeow86/zfs-dinit.git` | `zfs-mount`, `zfs-zvol`, `zfs-share`, `zed` |
+| Init | Package | Built from | Services it provides |
+|------|---------|------------|----------------------|
+| OpenRC | `zfs-openrc` | `https://codeberg.org/sarahmeow86/zfs-openrc` | `zfs-import`, `zfs-mount`, `zfs-load-key`, `zfs-share`, `zfs-zed` |
+| dinit | `zfs-dinit` | `https://codeberg.org/sarahmeow86/zfs-dinit` | `zfs-mount`, `zfs-zvol`, `zfs-share`, `zed` |
+| runit | `zfs-runit` | `https://codeberg.org/sarahmeow86/zfs-dinit` | the sysinit step, `zed`, `zfs-share` |
 
 `makepkg` refuses to run as root, so the sequence installs `git` and
 `base-devel`, creates a `freedomnas-build` system user, clones and builds as
 that user, installs the result with `pacman -U` and removes the user again.
-Both packages depend on the `-git` ZFS, which is why the package list names it.
 
 ## `dkms`
 
-Optional, declared by Arch and Artix. Three actions run in the target after
+Optional, and declared by no edition since Arch and Artix moved to `linux-freedomnas`. Three actions run in the target after
 the packages, once per kernel that has a module tree:
 
 | Key | Notes |

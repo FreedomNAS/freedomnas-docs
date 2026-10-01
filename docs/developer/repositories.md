@@ -21,10 +21,11 @@ codeberg.org/sarahmeow86/
 └── zfs-dinit                dinit services for ZFS on Artix (checked out as artix-zfs)
 ```
 
-`zfs-dinit` is not a FreedomNAS repository, but the Artix edition depends on
-it: when Artix is installed with dinit, the installer clones it into the target
-and builds it with `makepkg`, the way it builds `zfs-openrc` from the AUR for
-OpenRC.
+`zfs-dinit` and `zfs-openrc` are not FreedomNAS repositories, but the Artix
+edition depends on them: freedomnas-arch builds `zfs-dinit`, `zfs-runit`,
+`zfs-s6` and `zfs-openrc` from them and publishes them in the FreedomNAS
+pacman repository, from which the installer takes the one for the chosen
+init.
 
 `freedomnas-arch` holds the Arch PKGBUILDs of the four components, which
 used to sit in their own repositories and now build from a branch with
@@ -32,11 +33,12 @@ snapshot versions (`1.0+<commit date and time>.<commit>`), and the scripts
 and workflow that build and publish every Arch package. `linux-freedomnas`
 has a repository of its own: Arch's `linux-lts` with the OpenZFS modules
 built into the same package, plus `zfs-utils-freedomnas` at the matching
-version, so the Arch and Artix editions can drop DKMS the way Proxmox does;
-freedomnas-arch's workflow clones it. The editions
-still install `zfs-dkms-git` from Chaotic-AUR until those packages are
-published and the profiles switch; the prototype boots an Artix image under
-UEFI. The module template keeps its own PKGBUILD, since a module author
+version, so the Arch and Artix editions run without DKMS the way Proxmox
+does; freedomnas-arch's workflow clones it. freedomnas-arch publishes a
+signed pacman repository of its own to Codeberg's generic registry
+(`.../generic/freedomnas-arch/<dev|main>`), built with `repo-add`: Codeberg's
+Arch registry cuts each package's file list at 65535 bytes inside the `.db`,
+and the kernel's longer list made pacman reject the whole repository. The module template keeps its own PKGBUILD, since a module author
 copies it with the rest of the scaffolding.
 
 `pages` is the website and has to carry that name for Codeberg Pages to

@@ -129,7 +129,7 @@ Arch's `linux-lts` plus OpenZFS compiled against it, split into
 `linux-freedomnas`, `linux-freedomnas-headers` and `zfs-utils-freedomnas`;
 the kernel depends on the userspace of its own build, so pacman never pairs
 a kernel with another ZFS version. freedomnas-arch builds and publishes it,
-rebuilding only when its version is not in the registry yet.
+rebuilding only when its version is not in the repository yet.
 
 The same repository builds the Debian packages from the same tarballs,
 patches and `config.x86_64`: `debian/rules` reads the versions from the
@@ -147,8 +147,10 @@ newer, since only one can be installed. The kernel's package scripts run
 hook. Rust is enabled, as in Arch's configuration: trixie's `rustc` and
 `bindgen` satisfy the kernel.
 
-The editions still build ZFS with DKMS (`zfs-dkms-git` on Arch and Artix,
-backports on Debian) until the profiles switch.
+Arch and Artix install `linux-freedomnas` from the FreedomNAS pacman
+repository; a pacman hook rebuilds the UKI, since pacman does not run
+`/etc/kernel/postinst.d`. Debian still builds ZFS with DKMS from backports
+until its profiles switch.
 
 ## Licenses
 
