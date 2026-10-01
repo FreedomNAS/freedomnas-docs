@@ -55,12 +55,24 @@ reflashing the system disk — at the next boot, `firstboot.sh` finds it on
 the data pool and restores the system from it (see
 [Installation](installation.md)).
 
-!!! warning "What a restore does not bring back"
-    Passwords are not part of the configuration. Accounts restored onto a
-    freshly flashed disk have none, and the image's shipped `admin` /
-    `freedomnas` account is still there — sign in with it, set the restored
-    accounts' passwords under **Users**, then remove `admin`. A restore
-    step in the wizard that does this for you is planned.
+## After a restore
+
+When a freshly flashed system finds an existing configuration on an attached
+pool, it restores it at the first boot: hostname, users, shares and
+settings come back. Passwords are not part of the configuration, though,
+and the image's shipped `admin` / `freedomnas` account is still there. So
+the wizard still opens, as **Restored Configuration**, with two steps:
+
+1. **Administrator** — the same fields as Step 1 above. The hint lists the
+   restored administrators: type one of their names to take that account
+   over with the new password, and tick **Remove the account "admin"** to
+   get rid of the shipped one.
+2. **Review** — the restored hostname, where the configuration lives and
+   the other restored users. If the restored configuration had SSH on, a
+   checkbox turns it back on; until then SSH stays off.
+
+When it is done, the wizard lists the restored users that still need a
+password: set them under **Users**.
 
 ## Step 5 — Review
 
