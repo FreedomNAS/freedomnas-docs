@@ -22,6 +22,7 @@ WebUI has the documentation of its own version at `/docs/`.
 |--------|------------|----------|--------------|
 | `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | Codeberg's Debian registry |
 | Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | Codeberg's Arch registry |
+| Void (ZFS modules) | freedomnas-void | `bin/build-kmod.sh` in a Void container, Void's `zfs` DKMS source against Void's kernel | a signed xbps repository in Codeberg's generic registry |
 | FreeBSD `pkg` | freedomnas-freebsd | `bin/build-freedomnas-pkgs.sh` on FreeBSD, staging directories handed to `pkg create` | a signed pkg repository |
 | Gentoo | freedomnas-overlay | live (`-9999`) ebuilds tracking `dev` | the overlay itself |
 | Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
@@ -158,13 +159,32 @@ repository; a pacman hook rebuilds the UKI, since pacman does not run
 `zfsutils-freedomnas` from the FreedomNAS Debian registry: no DKMS, no
 `linux-image-amd64`, no ZFS from backports.
 
+## freedomnas-void
+
+Void needs no kernel of its own: its repositories carry `zfs` (OpenZFS with
+DKMS, the dracut module and a runit `zed` service), and runit-void's
+`03-filesystems.sh` already imports and mounts the pools at boot. What is
+avoided is DKMS on the NAS, which would bring `gcc` and the kernel headers
+and recompile at every kernel update.
+[freedomnas-void](https://codeberg.org/FreedomNAS/freedomnas-void) builds the
+module once per kernel, in a Void container on Codeberg's hosted runners
+(an hourly `codeberg-tiny-lazy` check, a `codeberg-medium` build of about
+three minutes only when a module is missing), and publishes
+`<series>-zfs` (e.g. `linux6.18-zfs-6.18.54.1.2.4.4.1_1`) to
+`.../generic/freedomnas-void/<dev|main>`, signed with `xbps-rindex`. The
+package depends on the exact kernel and `zfs` it was built for, since Void's
+kernel has no `CONFIG_MODVERSIONS`: a newer kernel without its module makes
+xbps refuse the update, and the NAS keeps the kernel it boots. The edition
+installs Void's `zfs` with `ignorepkg=dkms`, the kernel series package (not
+the `linux` meta package) and the module package.
+
 ## Licenses
 
 | Repositories | License |
 |--------------|---------|
 | freedomnas-core, -profiles, -webui, -installer, -module-template | MPL-2.0 |
 | freedomnas-docs, pages (the website) | MPL-2.0 |
-| freedomnas-arch, linux-freedomnas, freedomnas-deb, -freebsd, -overlay, -image-builder, -specs | GPL-2.0-or-later |
+| freedomnas-arch, linux-freedomnas, freedomnas-deb, -void, -freebsd, -overlay, -image-builder, -specs | GPL-2.0-or-later |
 
 A package keeps the license of what it packages: the FreedomNAS components
 are MPL-2.0 whichever repository builds them, `freedomnas-docs` adds the
