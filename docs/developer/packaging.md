@@ -149,8 +149,9 @@ hook. Rust is enabled, as in Arch's configuration: trixie's `rustc` and
 
 Arch and Artix install `linux-freedomnas` from the FreedomNAS pacman
 repository; a pacman hook rebuilds the UKI, since pacman does not run
-`/etc/kernel/postinst.d`. Debian still builds ZFS with DKMS from backports
-until its profiles switch.
+`/etc/kernel/postinst.d`. Debian installs `linux-image-freedomnas` and
+`zfsutils-freedomnas` from the FreedomNAS Debian registry: no DKMS, no
+`linux-image-amd64`, no ZFS from backports.
 
 ## Licenses
 

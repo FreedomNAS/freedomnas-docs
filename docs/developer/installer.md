@@ -380,20 +380,24 @@ but every command a package script runs inside the chroot speaks to that same
 2.4.x kernel module with the *target's* userland, and after the reboot the
 installed system has to import a pool it did not create.
 
-Debian stable ships 2.3.x, so the Debian edition takes the whole `zfs-linux`
-source package from backports (2.4.3 at the time of writing):
+Debian stable ships 2.3.x, so the Debian edition does not use Debian's ZFS.
+Its core packages are `linux-image-freedomnas` and `zfsutils-freedomnas` from
+the FreedomNAS Debian registry (see [Packaging](packaging.md)): the kernel
+carries the OpenZFS modules of the same build, and the userland is exactly
+their version. There is no DKMS step and no `linux-headers` package.
+
+Debian's kernel is 6.12 while linux-freedomnas follows the newer LTS, so the
+firmware comes from backports, where it matches newer hardware:
 
 ```
-Package: src:zfs-linux
+Package: src:firmware-nonfree src:firmware-free
 Pin: release n={suite}-backports
 Pin-Priority: 990
 ```
 
-written as `files.apt_pin_zfs`, with the matching `-backports` line in
+written as `files.apt_pin_firmware`, with the matching `-backports` line in
 `files.package_sources`. Backports is `NotAutomatic`, so nothing else on the
-system moves to it. The kernel stays on stable: `zfs-dkms` 2.4.3 builds against
-6.12 and `linux-headers-amd64` pulls the headers for exactly the kernel that
-gets installed.
+system moves to it.
 
 A pool created by 2.4 has three features an older implementation does not know
 — `block_cloning_endian`, `dynamic_gang_header`, `physical_rewrite`. They start
