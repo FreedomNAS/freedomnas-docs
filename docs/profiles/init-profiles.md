@@ -41,13 +41,33 @@ includes a `services` key.
 
 | Action | systemd | openrc | runit | s6 | dinit | bsd_rc |
 |--------|---------|--------|-------|-----|-------|--------|
-| start | `systemctl start {svc}` | `rc-service {svc} start` | `sv start {svc}` | `s6-svc -u /run/service/{svc}` | `dinitctl start {svc}` | `service {svc} start` |
-| stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6-svc -d /run/service/{svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
-| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6-svc -r /run/service/{svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
-| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6-service add default {svc}` | `dinitctl enable {svc}`, accepting "already enabled" | `sysrc {svc}_enable=YES` |
+| start | `systemctl start {svc}` | `rc-service {svc} start` | `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `service {svc} status \|\| service {svc} start` |
+| stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6 live stop {svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
+| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
+| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6 set enable -p {svc}`, `s6 set commit`, `s6 live install -b` | `dinitctl enable {svc}`, accepting "already enabled" | `service {svc} enable` |
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
-| enable_offline | — | — | — | — | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
-| status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6-svstat /run/service/{svc}` | `dinitctl status {svc}` | `service {svc} status` |
+| enable_offline | — | — | — | `s6 set enable -p {svc}`, `s6 set commit` | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
+| status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6 live status {svc}` | `dinitctl status {svc}` | `service {svc} status` |
+
+**bsd_rc.** `service {svc} enable|disable|enabled` let rc.subr use the
+script's own rcvar. It is not always `{svc}_enable`: `/etc/rc.d/nfsd` reads
+`nfs_server_enable`, so `sysrc nfsd_enable=YES` did nothing and
+`service nfsd start` refused to run. `start` checks `status` first because
+`service samba_server start` exits 1 when Samba is already running.
+Verified on FreeBSD 15.1 with samba416.
+
+**s6.** Artix runs s6 through s6-frontend: the stores (`/etc/s6/sv`,
+`/etc/s6/adminsv`) are compiled into a working set, so enabling is
+`s6 set enable` followed by `s6 set commit` and `s6 live install`
+(`s6-rc-set-commit` exits 0 when nothing changed). `s6 live` starts and stops
+bundles and oneshots as well as longruns, with their dependencies; the old
+`s6-svc /run/service/{svc}` only reached longruns, while package services
+such as samba-s6 are bundles (`smbd` = `smbd-srv` + `smbd-log`).
+`is_enabled` reads the prescription from `s6 set status` (`active` or
+`always`). The old `s6-service add default` targeted the pre-s6-frontend
+`adminsv/default` bundle, and its `delete` verb did not exist (`del`).
+s6 is not yet offered by the installer; after the first enable in a chroot,
+`s6 live install --init` is still needed (see the Artix notes).
 
 `enable_early` and `enable_offline` are optional and used by the installer only.
 `enable_early` is for the services a package category lists under

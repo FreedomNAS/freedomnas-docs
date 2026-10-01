@@ -83,14 +83,15 @@ performance for large file transfers in local networks.
 
 4. Click **Create Share**
 
-The entry is added to `/etc/exports` and `exportfs -ra` is called to reload.
+The entry is added to `/etc/exports` and the export table is reloaded
+(`exportfs -ra` on Linux, `service mountd onereload` on FreeBSD).
 Path, hosts and options must each be a single word: a space would split the
 export line.
 
 ### Deleting an NFS Share
 
 Click **Remove** and confirm. The entry is removed from `/etc/exports` and
-`exportfs -ra` is called.
+the export table is reloaded.
 
 ### Mounting from a Linux Client
 

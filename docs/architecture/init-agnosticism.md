@@ -83,9 +83,9 @@ automatically, merging it in last, after the OS + per-module fragments.
     ```json
     {
       "services": {
-        "start":  "service {service_name} start",
+        "start":  "service {service_name} status >/dev/null 2>&1 || service {service_name} start",
         "stop":   "service {service_name} stop",
-        "enable": "sysrc {service_name}_enable=YES",
+        "enable": "service {service_name} enable",
         "status": "service {service_name} status"
       }
     }

@@ -208,7 +208,7 @@ account removes it from Samba first.
 | `nfs_service` | string | NFS server service name |
 | `add_export` | command | Append entry to `/etc/exports` |
 | `remove_export` | command | Remove entry from `/etc/exports` |
-| `reload_exports` | command | Reload export table (`exportfs -ra`) |
+| `reload_exports` | command | Reload export table (`exportfs -ra`; FreeBSD has no `exportfs`: `service mountd onereload`) |
 | `list_exports` | command | List current exports |
 | `check_export` | command | Verify export availability |
 
@@ -216,7 +216,9 @@ account removes it from Samba first.
 Samba. On Artix: `nfs` under OpenRC (pulls in rpcbind and rpc.statd itself),
 `nfs-server` under dinit (depends on statd and rpcbind) and runit (exits
 unless `statd` and `rpcbind` are running, so all three are enabled), and the
-`nfs-server` bundle under s6.
+`nfs-server` bundle under s6. On FreeBSD the service is `nfsd` (rcvar
+`nfs_server_enable`, it pulls in `mountd` and `rpcbind`) and Samba is the
+port's `samba_server` script, which runs nmbd and smbd.
 
 ### `system`
 
