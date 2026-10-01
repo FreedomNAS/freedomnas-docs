@@ -141,7 +141,12 @@ convention the kernel packages carry the release in their name
 newest), so an update installs beside the previous kernel and the
 `-previous` UKI keeps its modules. `zfsutils-freedomnas` replaces
 `zfsutils-linux`, `zfs-zed`, `zfs-dracut` and Debian's ZFS libraries and
-enables the same systemd units; a kernel depends on it at its own version or
+enables the same systemd units. It carries `pam_zfs_key.so` but not upstream's
+`pam-configs/zfs_key` profile: that profile is `Default: yes`, so the first
+`pam-auth-update --package` any package runs puts `pam_zfs_key` in
+`common-password`, and from then on `chpasswd` fails for every account. The
+postinst reruns `pam-auth-update --package`, which drops the line on systems
+that already had it; a kernel depends on it at its own version or
 newer, since only one can be installed. The kernel's package scripts run
 `/etc/kernel/postinst.d`, so `zz-dracut-uki` rebuilds the UKI with no extra
 hook. Rust is enabled, as in Arch's configuration: trixie's `rustc` and
