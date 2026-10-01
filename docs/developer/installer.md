@@ -384,7 +384,9 @@ Debian stable ships 2.3.x, so the Debian edition does not use Debian's ZFS.
 Its core packages are `linux-image-freedomnas` and `zfsutils-freedomnas` from
 the FreedomNAS Debian registry (see [Packaging](packaging.md)): the kernel
 carries the OpenZFS modules of the same build, and the userland is exactly
-their version. There is no DKMS step and no `linux-headers` package.
+their version. There is no DKMS step and no `linux-headers` package, so
+`binutils` is listed on its own: dracut needs its `objcopy` to build the UKI,
+and before the switch it only arrived through the headers' `gcc`.
 
 Debian's kernel is 6.12 while linux-freedomnas follows the newer LTS, so the
 firmware comes from backports, where it matches newer hardware:
