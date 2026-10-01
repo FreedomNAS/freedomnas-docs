@@ -106,6 +106,26 @@ The init profile (`init/init-{name}.json`) is loaded separately, last. Its
 `services` section **replaces** the merged profile's `services` section at
 runtime.
 
+### Values that depend on the init system
+
+Some values change with the init system on the same distribution: on Artix
+the Samba service is `smb` under OpenRC but `smbd` under dinit and runit. A
+profile section can carry a `by_init` object, keyed by init name, whose values
+replace the section's own once the init system is known:
+
+```json
+"samba": {
+  "smb_service": "smbd",
+  "by_init": {
+    "openrc": { "smb_service": "smb" }
+  }
+}
+```
+
+`by_init` is removed from the merged profile, so `get_profile_value` and
+`get_profile_section` only ever see the resolved values. It holds data, never
+code: the names still live in the JSON profiles.
+
 ## Profile Search Path
 
 The engine asks `paths.profiles_dir()`, which searches, relative to the

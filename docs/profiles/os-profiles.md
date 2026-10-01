@@ -187,6 +187,13 @@ inside the profile.
 | `delete_share` | command | Delete a usershare |
 | `list_shares` | command | List current usershares |
 
+`smb_service` and `nmb_service` can differ per init system on the same
+edition; a `by_init` object overrides them (see
+[Engine](../architecture/engine.md#values-that-depend-on-the-init-system)).
+On Artix, verified against the `samba-<init>` packages: OpenRC has one `smb`
+script that starts smbd and nmbd; dinit and runit have `smbd` and `nmbd`;
+s6 has the longruns `smbd-srv`/`nmbd-srv` inside the bundles `smbd`/`nmbd`.
+
 Samba keeps its own password database: an account with no entry there cannot
 open a share, whatever its system password. Every place that sets a password
 — the Users page, the password change, the setup wizard and the installer —
@@ -204,6 +211,12 @@ account removes it from Samba first.
 | `reload_exports` | command | Reload export table (`exportfs -ra`) |
 | `list_exports` | command | List current exports |
 | `check_export` | command | Verify export availability |
+
+`nfs_service` can be overridden per init system with `by_init`, as for
+Samba. On Artix: `nfs` under OpenRC (pulls in rpcbind and rpc.statd itself),
+`nfs-server` under dinit (depends on statd and rpcbind) and runit (exits
+unless `statd` and `rpcbind` are running, so all three are enabled), and the
+`nfs-server` bundle under s6.
 
 ### `system`
 
