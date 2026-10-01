@@ -312,6 +312,11 @@ itself downloads with the *host's* trust store, but the fresh chroot has none,
 and any mirror that redirects to HTTPS (many do) makes the first `apt-get` in
 the target fail with `certificate verify failed`.
 
+Void's `xbps` method copies the repository keys into the target before
+`xbps-install -r` runs, because XBPS asks interactively before importing an
+unknown key, even with `-y`. Where the keys come from is described under
+`bootstrap_files` in the installer profile reference.
+
 ## OS-specific file contents
 
 `sources.list`, `fstab`, `hosts`, `rc.conf`, `loader.conf` and the cron hook

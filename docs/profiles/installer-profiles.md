@@ -141,6 +141,30 @@ On Artix, `base openrc` is not enough: `base`'s dependencies default to the
 dinit providers, and pacman installs dinit alongside OpenRC unless
 `elogind-openrc` is named too.
 
+Void uses `bootstrap_files` for a script rather than a configuration file.
+`xbps-install -r` on an empty root asks whether to import the repository's RSA
+key, and `-y` does not answer that question, so the bootstrap would stop
+waiting for input. `xbps-keys.sh` puts the keys into
+`{root}/var/db/xbps/keys` first, the way Void's own chroot install guide does:
+
+```json
+"bootstrap": {
+  "xbps": [
+    "sh {bootstrap_dir}/xbps-keys.sh {root} {mirror}",
+    "xbps-install -S -y -R {mirror} -r {root} base-system"
+  ]
+}
+```
+
+The script copies the host's `/var/db/xbps/keys/*.plist` (a Void host, or the
+live ISO, which extracts them from `xbps-static`). On a host without keys it
+downloads the newest `xbps-static` tarball from the mirror's `static/`
+directory, checks it against `sha256sums.txt` and extracts only
+`var/db/xbps/keys` into the target. The keys stay in the installed system, so
+later updates do not ask either. Braces in `content` that are not placeholders
+are written doubled (`{{ ... }}`), because the file goes through the same
+`{placeholder}` substitution as the commands.
+
 ## `repositories`
 
 Optional. Third-party package repositories a feature category needs, keyed by
