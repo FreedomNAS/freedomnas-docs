@@ -28,7 +28,7 @@ and also on a restored system (`restored: true`, below).
 An image leaves an empty `setup-pending` file in the edition's configuration
 directory (`/etc/freedomnas/setup-pending`, `/usr/local/etc/freedomnas/` on
 FreeBSD; `python3 -m freedomnas path setup-pending`). The installer's image
-mode, `debian/build.sh` and the FreeBSD image builder all write it.
+mode, which builds every Linux image, and the FreeBSD image builder write it.
 
 When the first boot finds a `.freedomnas` dataset on an attached pool, it
 restores that configuration, which is already marked initialized. The
