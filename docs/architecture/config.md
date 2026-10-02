@@ -34,6 +34,13 @@ anywhere, the first empty one is mounted for the wizard. The wizard moves
 the state to the pool the administrator chooses the same way
 (see [`/api/setup/initialize`](../api/setup.md)).
 
+To find it, `firstboot.sh` imports every pool with `zpool import -a -N -f
+-o cachefile=none`. The `-f` is what lets a reinstall restore: the data
+pool was last used by the old system, under another hostid, and nobody
+exported it. Nothing is mounted by the import, nothing is written to the
+cachefile, and every pool imported that way that does not carry the
+configuration is exported again.
+
 ## Shadow-Copy Pattern
 
 The configuration is a **shadow backup** of the real system state.

@@ -258,7 +258,7 @@ boot-time unlock works for the pool from then on.
 
 The read side, `keymgmt.PoolUnlocker`, is what `python -m freedomnas
 unlock-pools` runs at boot (called from `firstboot.sh`, right after `zpool
-import -a -N` and before the disaster-recovery `reconcile` call — a pool
+import -a -N -f` and before the disaster-recovery `reconcile` call — a pool
 must be unlocked before its datasets can mount). It tries the USB key first
 (scans removable partitions via the `media` profile category for a
 `freedomnas.key` file, mounts read-only), then falls back to a TTY
