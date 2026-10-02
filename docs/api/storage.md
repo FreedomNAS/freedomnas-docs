@@ -88,6 +88,7 @@ directory — or a dataset inside it does (`freedomnas.datasets.subtree_reason`)
   "name": "media",
   "mountpoint_mode": "inherit",
   "mountpoint": "",
+  "owner": "anna",
   "properties": { "compression": "zstd", "casesensitivity": "mixed" }
 }
 ```
@@ -102,7 +103,15 @@ the create-only ones; empty values are left out. Runs
 an unknown property or value, or a mountpoint — chosen or inherited — that
 is a system directory, already mounted, or a non-empty directory.
 
-**Response:** `{ "dataset": "datapool/media" }`
+The dataset's directory is then given to `owner` (default: the signed-in
+account): `directories.owner_set` and `directories.mode_set` make it that
+account's, mode `0700`, so the shares made of it are that account's alone.
+An `owner` with no account is a `422` before anything is created. A dataset
+that is not mounted (`mountpoint_mode: none`) has no directory to give, and
+a dataset whose directory could not be given is still created: the response
+then carries a `warning`.
+
+**Response:** `{ "dataset": "datapool/media", "owner": "anna" }`
 
 ---
 

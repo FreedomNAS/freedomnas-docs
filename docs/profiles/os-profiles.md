@@ -31,7 +31,7 @@ regardless of which file it physically lives in.
 | File | Owns |
 |------|------|
 | `os/os-<name>.json` | `os_name`/`os_family`/`os_version`/`init_system`, `packages`, `bootloader`, `system` |
-| `storage/storage-<name>.json` | `zfs`, `media`, `zfs_properties` |
+| `storage/storage-<name>.json` | `zfs`, `media`, `directories`, `zfs_properties` |
 | `network/network-<name>.json` | `network` |
 | `shares/shares-<name>.json` | `samba`, `nfs` |
 | `users/users-<name>.json` | `users` |
@@ -62,9 +62,15 @@ usually shipped in the module's own repo/`.deb` rather than this one.
 {
   "zfs":   { ... },
   "media": { ... },
+  "directories": { ... },
   "zfs_properties": { ... }
 }
 ```
+
+A fragment never reuses a category of `os/` or of another fragment: they
+are merged with a plain `dict.update()`, so the later one would replace the
+earlier whole (`tests/test_profile_coverage.py` in freedomnas-core checks
+this).
 
 !!! note
     No file above has a `services` key. Service management commands are in
@@ -168,6 +174,18 @@ inside the profile.
 | `mount_rw` | Mount a device writable — used only when provisioning a new `freedomnas.key` |
 | `unmount` | `umount {mountpoint}` |
 
+### `directories`
+
+Who owns the directory a dataset mounts on (`freedomnas.datasets.give_to`):
+a new dataset, or a share of one, is given to one account, mode `0700`.
+Only a data pool's dataset's own mountpoint is ever handed over.
+
+| Key | Command |
+|-----|---------|
+| `owner_get` | The owner's name (Linux: `stat -c %U {path}`; FreeBSD: `stat -f %Su {path}`) |
+| `owner_set` | `chown {owner} {path}` |
+| `mode_set` | `chmod {mode} {path}` |
+
 ### `samba`
 
 | Key | Value type | Description |
@@ -211,6 +229,7 @@ account removes it from Samba first.
 | `reload_exports` | command | Reload export table (`exportfs -ra`; FreeBSD has no `exportfs`: `service mountd onereload`) |
 | `list_exports` | command | List current exports |
 | `check_export` | command | Verify export availability |
+| `owner_options` | template | Appended to a share's options to map every client user onto its owner: `,all_squash,anonuid={uid},anongid={gid}` (Linux), ` -mapall={owner}` (FreeBSD) |
 
 `nfs_service` can be overridden per init system with `by_init`, as for
 Samba. On Artix: `nfs` under OpenRC (pulls in rpcbind and rpc.statd itself),
