@@ -28,7 +28,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `suite` | Release to bootstrap (`trixie`). **Empty with a `bootstrap.latest_suite` command** means "the newest release": FreeBSD follows whatever the mirror ships last, so its profile names no version |
 | `mirror` | Default package mirror. `mirror`, `rootfs_tarball_url` and `extra_tarball_urls` may name `{arch}` and `{suite}`, filled in once the release is known |
 | `mirrors` | `{code, label, url}` entries offered in the mirror menu |
-| `esp_size` | ESP size **in that partitioner's syntax** — `512MiB` for sgdisk, `512M` for gpart |
+| `esp_size` | ESP size **in that partitioner's syntax** — `1GiB` for sgdisk, `1G` for gpart |
 | `esp_mountpoint` | Where the ESP is mounted inside the target |
 | `bootstrap_methods` | Ordered list, e.g. `["debootstrap", "tarball"]` |
 | `bootstrap_tools` | `{method: host binary}` — a method whose binary is missing on the host is filtered out at runtime |

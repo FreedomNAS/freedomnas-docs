@@ -142,7 +142,7 @@ A **unified 2-partition layout**, identical for UEFI and BIOS:
 
 | # | Size | Type | Purpose |
 |---|------|------|---------|
-| 1 | 512 MiB | EFI System | ESP — holds the UKI and boot chain |
+| 1 | 1 GiB | EFI System | ESP — holds the UKI and boot chain |
 | 2 | Remaining | ZFS | the root pool |
 
 !!! note "No bpool, no BIOS-boot partition"
