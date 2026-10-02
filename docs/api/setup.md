@@ -120,21 +120,26 @@ before anything changes:
 3. If `pool` was given, it is created through the Storage route, which
    validates it (`422` before anything else changes) and gives it a
    `.freedomnas` dataset
-4. `system.hostname_set`, `system.timezone_set`, the Samba usershare
+4. `shadow.activate(engine, state_pool)`: creates `<state_pool>/.freedomnas`
+   if needed, copies the state directory into it and mounts it there. When
+   the state is already served from another pool's `.freedomnas` — every
+   image and install ships one on the root pool — that dataset is unmounted
+   and, once the new one is mounted, destroyed: two datasets mounting at the
+   same place never both exist. If the new one cannot be mounted the old one
+   is mounted back and the call fails. It runs before anything is written,
+   so a failure leaves the system uninitialized and the wizard can be run
+   again
+5. `system.hostname_set`, `system.timezone_set`, the Samba usershare
    directory and `smb.conf` stanza
-5. The administrator: `users.create` with the edition's sudo group for a
+6. The administrator: `users.create` with the edition's sudo group for a
    new name, then its password through `users.set_password_stdin` and,
    where Samba is installed, `samba.set_user_password`; the old account
    removed (`samba.delete_user`, `users.delete`) or given the same password.
    `root` is never removed nor changed: signed in as root with a new name,
    only the new account is set up
-6. `system.ssh_enabled: false` in `config.yaml` (SSH is off on fresh
+7. `system.ssh_enabled: false` in `config.yaml` (SSH is off on fresh
    systems; see [`/api/system/ssh`](system.md))
-7. `config.mark_initialized(edition, initialized_by="webui")`
-8. `shadow.activate(engine, state_pool)`: creates `<state_pool>/.freedomnas`
-   if needed, moves the configuration written so far from the plain state
-   directory into it, removes the copies left on the root filesystem and
-   mounts the dataset in their place
+8. `config.mark_initialized(edition, initialized_by="webui")`
 
 **Response:**
 

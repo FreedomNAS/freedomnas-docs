@@ -25,6 +25,15 @@ A pool created by one edition carries that edition's mountpoint on its
 Debian pool on FreeBSD, say — it sets the dataset's mountpoint to this
 edition's `<config_dir>/state` before mounting it.
 
+Which `.freedomnas` `firstboot.sh` serves from: the first, root pool first,
+that holds a `config.yaml`. Every image and install ships an empty one on
+its root pool, so after a reinstall the configuration is found on the data
+pool instead, and the root pool's empty dataset is destroyed — two datasets
+mounting at the same place never both exist. With no configuration
+anywhere, the first empty one is mounted for the wizard. The wizard moves
+the state to the pool the administrator chooses the same way
+(see [`/api/setup/initialize`](../api/setup.md)).
+
 ## Shadow-Copy Pattern
 
 The configuration is a **shadow backup** of the real system state.
