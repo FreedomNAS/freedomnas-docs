@@ -170,8 +170,15 @@ and recompile at every kernel update.
 module once per kernel, in a Void container on Codeberg's hosted runners
 (an hourly `codeberg-tiny-lazy` check, a `codeberg-medium` build of about
 three minutes only when a module is missing), and publishes
-`<series>-zfs` (e.g. `linux6.18-zfs-6.18.54.1.2.4.4.1_1`) to
-`.../generic/freedomnas-void/<dev|main>`, signed with `xbps-rindex`. The
+`<series>-zfs` (e.g. `linux6.18-zfs-6.18.54.1.2.4.4.1_2`, the last field
+being the repository's `revision`) to
+`.../generic/freedomnas-void/<dev|main>`, signed with `xbps-rindex`. After
+installing the modules the package runs the kernel's hooks in
+`/etc/kernel.d/post-install/` again, because `zfs` and, on an update, the
+kernel build their images before it is configured: the initramfs on plain
+Void, the UKIs on the edition, whose UKI hook skips while
+`/usr/lib/modules/<kver>/extra/zfs.ko` is missing so that it builds and
+rotates once per kernel. The
 package depends on the exact kernel and `zfs` it was built for, since Void's
 kernel has no `CONFIG_MODVERSIONS`: a newer kernel without its module makes
 xbps refuse the update, and the NAS keeps the kernel it boots. The edition
