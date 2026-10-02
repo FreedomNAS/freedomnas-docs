@@ -173,6 +173,7 @@ inside the profile.
 | `mount_ro` | Mount a device read-only (`noexec,nosuid,nodev` where supported) |
 | `mount_rw` | Mount a device writable — used only when provisioning a new `freedomnas.key` |
 | `unmount` | `umount {mountpoint}` |
+| `list_devices` | Disks and partitions for the pool form, in `lsblk -P` form (`NAME`, `PKNAME`, `SIZE` in bytes, `TYPE`, `FSTYPE`, `MOUNTPOINT`, `MODEL`, `PARTTYPE`) on every edition: Linux runs `lsblk`; FreeBSD builds the same lines from `diskinfo`, `geom disk list`, `gpart show -p`, `fstyp`, `zdb -l`, `zpool status -P`, `mount -p` and `swapctl -l`, so a disk of an imported or exported pool, or one holding a mounted or swap partition, shows as in use |
 
 ### `directories`
 
@@ -229,7 +230,20 @@ account removes it from Samba first.
 | `reload_exports` | command | Reload export table (`exportfs -ra`; FreeBSD has no `exportfs`: `service mountd onereload`) |
 | `list_exports` | command | List current exports |
 | `check_export` | command | Verify export availability |
-| `owner_options` | template | Appended to a share's options to map every client user onto its owner: `,all_squash,anonuid={uid},anongid={gid}` (Linux), ` -mapall={owner}` (FreeBSD) |
+| `default_options` | string | A share's options when none are given: `rw,sync,no_subtree_check` (Linux); empty on FreeBSD, whose exports(5) shares no option names with Linux and maps a client's root to `nobody` by default |
+| `owner_options` | template | Appended to a share's options to map every client user onto its owner: `,all_squash,anonuid={uid},anongid={gid}` (Linux), `,mapall={owner}` (FreeBSD) |
+
+FreeBSD's `export_add` writes the line exports(5) expects, checked with
+`mountd` on FreeBSD 15.1: one option group (`-ro,mapall=anna`, none when
+empty), a network as `-network 10.0.0.0/24`, a host as is, and no host at
+all for `*` (everyone). Its `export_remove` matches the path as the first
+field, since a line can be the path alone. `exportfs_reload` starts
+`mountd` when it is not running: it refuses to start at boot while
+`/etc/exports` does not exist. The installer (`files.nfs_exports`,
+`files.rc_conf`) and the image builder start that file with a `V4: /` line
+and set `nfsv4_server_enable="YES"`, so NFSv4 clients get in as well as
+NFSv3 ones (checked with a Linux client mounting `vers=4.2`); the
+reconciler does not count the `V4:` line as an export.
 
 `nfs_service` can be overridden per init system with `by_init`, as for
 Samba. On Artix: `nfs` under OpenRC (pulls in rpcbind and rpc.statd itself),
