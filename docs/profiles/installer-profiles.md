@@ -86,6 +86,8 @@ which the storage module owns for data pools.
 | `export` | `{pool_name}` |
 | `cachefile_set` | `{pool_name}`, `{cachefile}` — optional; with `cachefile_install`, gives the target a `zpool.cache` |
 | `cachefile_install` | `{cachefile}`, `{root}` — copies it to the target's cache path (Linux: `/etc/zfs/zpool.cache`) |
+| `hostid_ensure` | Run on the installing machine before the pool is created — optional; Linux: `[ -s /etc/hostid ] \|\| zgenhostid` |
+| `hostid_install` | `{root}` — optional; copies the installing machine's `/etc/hostid` into the target |
 
 ## `bootstrap`
 

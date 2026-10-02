@@ -199,14 +199,14 @@ before that confirmation.
 | 1 | Interview — disk, bootstrap method, mirror, hostname, timezone, features, users | `installer_meta`, `packages/MANIFEST.json`, the host's tz database |
 | 2 | Single confirmation | — |
 | 3 | Partition + format the ESP | `partitioning.*` |
-| 4 | Root pool, boot environment, root mounted, then the other datasets | `rootpool.create`, `create_boot_environment`, `set_bootfs`, `mount_root`, `create_datasets`, `mount_all` |
+| 4 | A hostid for the installing machine, then root pool, boot environment, root mounted, then the other datasets | `rootpool.hostid_ensure` (host), `rootpool.create`, `create_boot_environment`, `set_bootfs`, `mount_root`, `create_datasets`, `mount_all` |
 | 5 | Bootstrap the base system | `bootstrap.<method>` |
 | 6 | Write the edition's config files | `files.*` |
 | 7 | Bind-mount the chroot | `chroot.mount` |
 | 8 | Create users — **before** packages, so PAM/Samba find them | `users.*` |
 | 9 | Third-party repositories, packages, the ZFS module check (editions with `dkms.*`), locales, service enablement | `packages/*.json`, `repositories.<category>`, `bootstrap.install_base`, `dkms.*`, `services.enable` |
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
-| 11 | The root pool's `zpool.cache` in the target | `rootpool.cachefile_set`, `rootpool.cachefile_install` |
+| 11 | The installing machine's hostid and the root pool's `zpool.cache` in the target | `rootpool.hostid_install`, `rootpool.cachefile_set`, `rootpool.cachefile_install` |
 | 12 | Boot chain | `bootloader.*` |
 | 13 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
 | 14 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export`, `rootpool.export_force` |
@@ -223,6 +223,16 @@ own cache alone. Writing to the host's cache instead would be dangerous: an
 installation that stops before the export would leave the new pool there, and
 the host would import it at its next boot. The export removes the pool from the
 throwaway file only.
+
+The hostid goes the same way. A live system without `/etc/hostid` creates
+pools as hostid 0, and the installed system then boots with none either —
+until something writes one (Debian's `zfsutils` postinst does), after which
+its root pool was "last used by another system" and is not imported at boot.
+So step 4 runs `zgenhostid` on the installing machine when it has no
+`/etc/hostid`, before the pool is created, and step 11 copies that file into
+the target, over any a package generated, before the boot chain puts it into
+the initramfs and before the export. Every machine flashed with one image
+shares that hostid; a pool only compares it with whoever imported it last.
 
 Step 14's export is the one step of the cleanup that must not fail quietly.
 A pool left imported keeps the **installer host's** hostid in its label, and
