@@ -22,7 +22,7 @@ WebUI has the documentation of its own version at `/docs/`.
 |--------|------------|----------|--------------|
 | `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | Codeberg's Debian registry |
 | Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | Codeberg's Arch registry |
-| Void (ZFS modules) | freedomnas-void | `bin/build-kmod.sh` in a Void container, Void's `zfs` DKMS source against Void's kernel | a signed xbps repository in Codeberg's generic registry |
+| Void (ZFS modules, Samba configuration) | freedomnas-void | `bin/build-kmod.sh` in a Void container, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in Codeberg's generic registry |
 | FreeBSD `pkg` | freedomnas-freebsd | `bin/build-freedomnas-pkgs.sh` on FreeBSD, staging directories handed to `pkg create` | a signed pkg repository |
 | Gentoo | freedomnas-overlay | live (`-9999`) ebuilds tracking `dev` | the overlay itself |
 | Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
@@ -184,6 +184,20 @@ kernel has no `CONFIG_MODVERSIONS`: a newer kernel without its module makes
 xbps refuse the update, and the NAS keeps the kernel it boots. The edition
 installs Void's `zfs` with `ignorepkg=dkms`, the kernel series package (not
 the `linux` meta package) and the module package.
+
+`freedomnas-samba-conf` (version in `samba/version`) replaces the example
+`smb.conf` Void's `samba` installs — a writable `[homes]` share and
+`[printers]` — with the `[global]` settings FreedomNAS needs, since every
+share is a usershare. `/etc/samba/smb.conf` is a configuration file of
+`samba`, and xbps refuses two packages owning one file: the package ships
+ours as `/usr/share/freedomnas/samba/smb.conf`, depends on `samba`, and its
+INSTALL script copies it over Void's, kept as `smb.conf.void`. When `samba`
+is updated, xbps keeps the changed file and writes Void's as
+`smb.conf.new-<version>`; removing the package puts Void's back. The hourly
+check publishes it when its version is not in the registry yet. Verified on
+the real test box: installed over Void's file, kept across a reinstall of
+`samba`, Void's restored on removal, no `[homes]` or `[printers]` listed.
+
 
 ## Licenses
 

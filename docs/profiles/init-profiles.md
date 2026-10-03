@@ -41,9 +41,9 @@ includes a `services` key.
 
 | Action | systemd | openrc | runit | s6 | dinit | bsd_rc |
 |--------|---------|--------|-------|-----|-------|--------|
-| start | `systemctl start {svc}` | `rc-service {svc} start` | `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `service {svc} status \|\| service {svc} start` |
+| start | `systemctl start {svc}` | `rc-service {svc} start` | wait for `sv status {svc}`, then `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `service {svc} status \|\| service {svc} start` |
 | stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6 live stop {svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
-| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
+| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | wait for `sv status {svc}`, then `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
 | enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6 set enable -p {svc}`, `s6 set commit`, `s6 live install -b` | `dinitctl enable {svc}`, accepting "already enabled" | `service {svc} enable` |
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
 | enable_offline | — | — | — | `s6 set enable -p {svc}`, `s6 set commit` | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
@@ -55,6 +55,14 @@ script's own rcvar. It is not always `{svc}_enable`: `/etc/rc.d/nfsd` reads
 `service nfsd start` refused to run. `start` checks `status` first because
 `service samba_server start` exits 1 when Samba is already running.
 Verified on FreeBSD 15.1 with samba416.
+
+**runit.** runsvdir notices a newly linked service only on its next scan,
+every 5 s, and until that service's runsv is up `sv` fails — "unable to
+open supervise/control", or "runsv not running" when a `supervise/`
+directory is left from an earlier run. Enabling SSH in the restore wizard
+and starting it right away therefore answered 500 on Void. `start` and
+`restart` wait up to 15 s for `sv status` to answer while the service is
+linked. Verified on the real test box with Void: 2–5 s, every time.
 
 **s6.** Artix runs s6 through s6-frontend: the stores (`/etc/s6/sv`,
 `/etc/s6/adminsv`) are compiled into a working set, so enabling is

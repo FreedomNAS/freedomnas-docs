@@ -75,6 +75,18 @@ The device is passed to `zpool online -e` exactly as the pool names it
 knows its device by that path, not by the `/dev/nvme0n1p2` it resolves to,
 and `zpool online` does not recognise the resolved name.
 
+Before the pool is expanded, the last MiB of the grown partition is
+zeroed: that is where `zpool online -e` writes labels 2 and 3. An image
+written over an older one that had already grown leaves that image's pool
+labels at the end of the disk, with a higher txg than the new pool's; ZFS
+then takes them for the device's and the root pool faults ("corrupted
+data") on the first boot, before the network comes up. The area lies past
+the pool's current end, so no data is touched. Verified on the real test
+box: a Void image written over a stick whose previous Void had grown to
+14.3 GB faulted without it, and grew to an ONLINE 13 GB pool with it.
+FreeBSD is not covered yet: ZFS holds the GEOM provider open exclusively,
+so the same write is refused there.
+
 The commands are the storage profile's:
 
 | Key | Linux | FreeBSD |
@@ -84,7 +96,7 @@ The commands are the storage profile's:
 | `partition_of` | `lsblk` → disk, partition number, start, size | `glabel status` + `geom part list` → the same four |
 | `disk_size` | `lsblk -bdnro SIZE` | `diskinfo` |
 | `partition_offsets` | `lsblk -bnrpo START,TYPE` → byte offset of every partition on the disk | `geom part list` → the same |
-| `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u` | `gpart recover`, `gpart resize -i <n>` |
+| `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u`, zero the last MiB of `<device>` | `gpart recover`, `gpart resize -i <n>` |
 | `pool_expand` | `zpool online -e <pool> <device>` | same |
 
 The Linux commands are verified on a loop device and on a flashed Artix

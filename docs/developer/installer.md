@@ -91,7 +91,12 @@ installs only `smb.conf.default`); `smbd`, `nmbd` and `winbindd` then exit
 with code 1 at every boot. Their installer profiles declare
 `files.samba_conf`: a standalone-server `[global]` section that already
 carries the usershare settings the setup wizard would otherwise append.
-Debian and Void ship a default `smb.conf` and keep it.
+Debian ships a default `smb.conf` and keeps it. Void's `samba` installs
+Samba's example `smb.conf`, with a writable `[homes]` share and `[printers]`:
+the Void edition installs `freedomnas-samba-conf` from
+[freedomnas-void](packaging.md#freedomnas-void) with Samba (the `void` entry
+of `packages/samba-cifs.json`), which puts the same global-only
+configuration in its place.
 
 ## Editions that package FreedomNAS
 

@@ -15,7 +15,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
 ├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to Codeberg's Arch registry
 ├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
-├── freedomnas-void          OpenZFS modules for Void's own kernel, a signed xbps repository built on Codeberg's hosted runners
+├── freedomnas-void          OpenZFS modules for Void's own kernel and the Samba configuration, a signed xbps repository built on Codeberg's hosted runners
 └── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
 
 codeberg.org/sarahmeow86/
