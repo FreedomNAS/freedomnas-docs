@@ -48,6 +48,8 @@ includes a `services` key.
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
 | enable_offline | — | — | — | `s6 set enable -p {svc}`, `s6 set commit` | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
 | status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6 live status {svc}` | `dinitctl status {svc}` | `service {svc} status` |
+| list_all | `systemctl list-unit-files --type=service`, names without `.service` or templates | `rc-service --list` | directories in `/etc/sv` (aliases like `crond → cronie` left out) | directories in `/etc/s6/sv` | files in `/etc/dinit.d` | `service -l` |
+| is_running | `systemctl is-active --quiet {svc}` | `rc-service {svc} status` | `sv status {svc}` starts with `run:` | `s6 live status {svc}` says `up` | `dinitctl is-started {svc}` | `service {svc} onestatus` |
 
 **bsd_rc.** `service {svc} enable|disable|enabled` let rc.subr use the
 script's own rcvar. It is not always `{svc}_enable`: `/etc/rc.d/nfsd` reads
@@ -63,6 +65,14 @@ directory is left from an earlier run. Enabling SSH in the restore wizard
 and starting it right away therefore answered 500 on Void. `start` and
 `restart` wait up to 15 s for `sv status` to answer while the service is
 linked. Verified on the real test box with Void: 2–5 s, every time.
+
+`list_all`, `is_running` and `is_enabled` feed the WebUI's
+[Services API](../api/services.md). The last two print `yes` when the
+answer is yes rather than failing otherwise, so listing services does not
+log a failed command for every stopped one. `sv status` exits 0 for a
+stopped service too, hence the `run:` test on runit. Verified on Void
+(runit) and, for `rc-service --list`, on OpenRC; the dinit, s6, bsd_rc and
+systemd lines are not tested on a running system yet.
 
 `enable` is `ln -sfn`: enabling a service that is already enabled must
 not fail (plain `ln -s` answered "File exists"), and without `-n` a second

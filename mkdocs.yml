@@ -107,6 +107,7 @@ nav:
     - Users: api/users.md
     - Shares: api/shares.md
     - Updates: api/updates.md
+    - Services: api/services.md
     - Setup: api/setup.md
     - WebSocket Terminal: api/websocket.md
   - Developer Guide:

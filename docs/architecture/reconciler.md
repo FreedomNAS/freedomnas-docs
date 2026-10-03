@@ -44,8 +44,9 @@ on the strength of a list that could not be taken.
 
 ```
 1. Hostname → 2. Timezone → 3. Pools → 4. Accounts (add, group changes)
-→ 5. Feature services → 6. SSH → 7. SMB shares → 8. NFS exports
-→ 9. Removal of accounts
+→ 5. Feature services → 6. SSH → 7. Boot choices of services
+→ 8. SMB shares → 9. NFS exports
+→ 10. Removal of accounts
 ```
 
 Pools come before the shares on them, accounts before the shares that name
@@ -59,8 +60,9 @@ them, and accounts are removed last, when no share refers to them any more.
 | Group membership | only the groups FreedomNAS assigns: the edition's `sudo_group` and `share_group`, and any group the configuration lists. A user's own group, `users`, anything set up by hand is left alone | same |
 | Pools' ACL type | `acltype` becomes the edition's (`zfs.pool_acltype`: `posix` on Linux, `nfsv4` on FreeBSD) on the pool's root dataset and on any dataset that sets it locally; the rest inherit. Only the property changes: the ACLs FreedomNAS writes are the trivial ones the file mode already carries | same |
 | Share directories' group | a share with an `owner` whose directory's group is not the edition's (`directories.owner_group`: the owner's own group on Linux, `wheel` on FreeBSD) is given it with `chgrp -R`, once — files restored from another edition carry that one's group; only the directory is checked at every boot | same |
-| Feature services | enabled and started for every feature marked `enabled` | same |
+| Feature services | enabled and started for every feature marked `enabled`, unless the service is disabled at boot under `services.boot` | same |
 | SSH | turned on or off as `system.ssh_enabled` records it, when it is recorded; kept off while the image's `setup-pending` file exists ([Setup API](../api/setup.md#restored-systems)) | same |
+| Boot choices | every service under `services.boot` that `services.list_all` lists here is enabled and started, or stopped and disabled, as recorded by the WebUI's **Services**; one this system does not have is skipped | same |
 | SMB shares | before the first one, usershares are made possible (`usershares.prepare()`: smb.conf's `[global]` settings and the directory), since a restored configuration reaches a system no wizard has prepared; usershares the configuration does not name are removed; **every** recorded share is written again (`net usershare add` replaces one of the same name), so path, comment and ACL end up exactly as recorded | written again, none removed |
 | NFS exports | a line that differs from the recorded share is removed and the recorded one added; a line the configuration does not name is removed | missing lines added; a differing line is left alone, with a warning |
 | Accounts not in the configuration | removed, **home directory kept** (`users.delete_keep_home`), after leaving Samba's database | never |
