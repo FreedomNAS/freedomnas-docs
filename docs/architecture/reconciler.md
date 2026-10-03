@@ -54,12 +54,12 @@ them, and accounts are removed last, when no share refers to them any more.
 | Step | Declarative | Additive |
 |------|-------------|----------|
 | Hostname, timezone | set when different | same |
-| Pools | imported when not imported; **never exported or destroyed** | same |
-| Accounts | created when missing; group membership changed | same |
+| Pools | imported when not imported; an imported one is put in the default cachefile and its datasets mounted (`zfs.pool_cachefile_default`, `zfs.mount_pool_auto`): `firstboot.sh` leaves a restored data pool imported with `-N` and no cachefile. **Never exported or destroyed** | same |
+| Accounts | created when missing, with the `uid` the configuration records, or else the numeric owner (`directories.owner_uid_get`) of a share directory given to them — the ID a restored pool's files carry; a uid already taken here is not reused. Group membership changed | same |
 | Group membership | only the groups FreedomNAS assigns: the edition's `sudo_group` and `share_group`, and any group the configuration lists. A user's own group, `users`, anything set up by hand is left alone | same |
 | Feature services | enabled and started for every feature marked `enabled` | same |
 | SSH | turned on or off as `system.ssh_enabled` records it, when it is recorded; kept off while the image's `setup-pending` file exists ([Setup API](../api/setup.md#restored-systems)) | same |
-| SMB shares | usershares the configuration does not name are removed; **every** recorded share is written again (`net usershare add` replaces one of the same name), so path, comment and ACL end up exactly as recorded | written again, none removed |
+| SMB shares | before the first one, usershares are made possible (`usershares.prepare()`: smb.conf's `[global]` settings and the directory), since a restored configuration reaches a system no wizard has prepared; usershares the configuration does not name are removed; **every** recorded share is written again (`net usershare add` replaces one of the same name), so path, comment and ACL end up exactly as recorded | written again, none removed |
 | NFS exports | a line that differs from the recorded share is removed and the recorded one added; a line the configuration does not name is removed | missing lines added; a differing line is left alone, with a warning |
 | Accounts not in the configuration | removed, **home directory kept** (`users.delete_keep_home`), after leaving Samba's database | never |
 

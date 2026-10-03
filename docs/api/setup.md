@@ -183,7 +183,9 @@ asked for; the hostname, timezone, users, shares and the pool holding
    the sudo group. A removed shipped account also leaves `config.yaml`
 3. `ssh: true` enables and starts the SSH service; either way
    `system.ssh_enabled` records the choice
-4. The `setup-pending` file is removed
+4. `system.edition` becomes the edition running here: the configuration may
+   come from another one's install (a FreeBSD pool restored on Artix)
+5. The `setup-pending` file is removed
 
 ```json
 {

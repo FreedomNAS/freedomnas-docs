@@ -66,7 +66,11 @@ not hold `:` — `chpasswd` reads one `user:password` per line.
    through `samba.set_user_password` (`smbpasswd -a -s`), on stdin too:
    Samba keeps its own database, and an account missing from it cannot
    open a share
-4. `config.add_user({username, groups, shell, [uid, gid]})` — never the password
+4. `config.add_user({username, groups, shell, uid, gid})` — never the password.
+   `uid` and `gid` are the ones the system gave the account
+   (`users.get_user_info`), whether asked for or not: files on a pool carry
+   these numbers, and a restore on another system or edition recreates the
+   account with them ([Reconciler](../architecture/reconciler.md))
 
 If step 2, 3 or 4 fails, the account created in step 1 is taken back
 (`samba.delete_user`, then `users.delete`, i.e. `userdel -r`) before the
