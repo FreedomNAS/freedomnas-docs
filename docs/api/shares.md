@@ -58,7 +58,9 @@ matching when the hostname changes.
 
 **Owner.** A share is as writable as its directory. When `path` is the
 directory a dataset of a data pool mounts on, it is given to the owner —
-`directories.owner_set`, then `directories.mode_set` `0700` — exactly as
+`directories.owner_set`, `directories.group_set` to the edition's group for
+it (the owner's own on Linux, `wheel` on FreeBSD), then
+`directories.mode_set` `0700` — exactly as
 `POST /api/storage/datasets` does. With no `owner` in the request, a
 directory that already belongs to an account keeps it (a share the
 administrator makes of a dataset given to someone else does not take it
