@@ -44,7 +44,7 @@ includes a `services` key.
 | start | `systemctl start {svc}` | `rc-service {svc} start` | wait for `sv status {svc}`, then `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `service {svc} status \|\| service {svc} start` |
 | stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6 live stop {svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
 | restart | `systemctl restart {svc}` | `rc-service {svc} restart` | wait for `sv status {svc}`, then `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
-| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -s /etc/sv/{svc} /var/service/` | `s6 set enable -p {svc}`, `s6 set commit`, `s6 live install -b` | `dinitctl enable {svc}`, accepting "already enabled" | `service {svc} enable` |
+| enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -sfn /etc/sv/{svc} /var/service/{svc}` | `s6 set enable -p {svc}`, `s6 set commit`, `s6 live install -b` | `dinitctl enable {svc}`, accepting "already enabled" | `service {svc} enable` |
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
 | enable_offline | — | — | — | `s6 set enable -p {svc}`, `s6 set commit` | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
 | status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6 live status {svc}` | `dinitctl status {svc}` | `service {svc} status` |
@@ -63,6 +63,14 @@ directory is left from an earlier run. Enabling SSH in the restore wizard
 and starting it right away therefore answered 500 on Void. `start` and
 `restart` wait up to 15 s for `sv status` to answer while the service is
 linked. Verified on the real test box with Void: 2–5 s, every time.
+
+`enable` is `ln -sfn`: enabling a service that is already enabled must
+not fail (plain `ln -s` answered "File exists"), and without `-n` a second
+`ln -sf` follows the existing link into the service directory and leaves a
+stray `/etc/sv/<svc>/<svc>` link there. The same holds for Artix's
+`init-runit-artix.json`. Verified on the real test box (Void): enabling and
+starting a service twice, and enabling the running `sshd`, succeed without
+restarting it or leaving a stray link.
 
 **s6.** Artix runs s6 through s6-frontend: the stores (`/etc/s6/sv`,
 `/etc/s6/adminsv`) are compiled into a working set, so enabling is
