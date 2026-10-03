@@ -15,6 +15,7 @@ Returns the current update status.
   "refreshing": false,
   "error": null,
   "topgrade_configured": true,
+  "enabled_steps": ["system", "containers", "firmware"],
   "auto_snapshot": true
 }
 ```
@@ -29,6 +30,10 @@ up to 15 minutes).
 - `checked_at` — when it was taken (server local time); `null` before that
 - `refreshing` — a refresh is running; the page polls every 5 seconds meanwhile
 - `error` — why the last refresh failed, else `null`
+- `enabled_steps` — the steps saved by `POST /configure`, or the defaults
+  (`system`, `containers`, `firmware`) before anything was saved; the
+  **Configure** dialog opens with these ticked, so saving it unchanged keeps
+  them
 
 ---
 
@@ -84,7 +89,13 @@ is how `disable_tmux`, `[unstable]` and `[notifications]` used to cost us the
 by the WebSocket handler when an update starts and the file is not there —
 otherwise topgrade would run every step it knows (pip, cargo, flatpak and
 the rest) instead of the three this page offers. An existing file is never
-overwritten.
+overwritten, not even one edited by hand. A missing one is rewritten from
+the steps `config.yaml` has saved; only on a system where nothing was ever
+saved does it get the defaults, which are then recorded too. The file lives
+on the system disk and the steps on the pool, so a restored system has the
+second without the first. Verified on the real test box (Void): with
+`only = ["system"]` saved and the file deleted, an update wrote it back
+with `["system"]`; a hand-edited file was left as it was.
 
 ## topgrade itself
 

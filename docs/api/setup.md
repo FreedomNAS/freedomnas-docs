@@ -177,15 +177,23 @@ asked for; the hostname, timezone, users, shares and the pool holding
 ```
 
 1. `422` for an invalid administrator, as above, or a non-boolean `ssh`
-2. The administrator as in step 5 above. A name that already has an account
+2. `ssh: true` enables and starts the SSH service; either way
+   `system.ssh_enabled` records the choice
+3. `system.edition` becomes the edition running here: the configuration may
+   come from another one's install (a FreeBSD pool restored on Artix)
+4. The administrator as in step 5 above. A name that already has an account
    (one the restore created) is taken over, not created: it gets the
    password, and its restored entry keeps its fields and gains `admin` and
    the sudo group. A removed shipped account also leaves `config.yaml`
-3. `ssh: true` enables and starts the SSH service; either way
-   `system.ssh_enabled` records the choice
-4. `system.edition` becomes the edition running here: the configuration may
-   come from another one's install (a FreeBSD pool restored on Artix)
 5. The `setup-pending` file is removed
+
+The password changes last. When an earlier step fails the route answers
+`500` and the password the wizard was opened with still works, so the
+wizard can simply be run again; changed first, the browser's next request
+got `401` and sent the user back to a wizard that no longer accepted the
+password it knew. Verified on the real test box (Void): a forced failure
+of the SSH step left the old password working and the restore pending; the
+next attempt completed.
 
 ```json
 {
