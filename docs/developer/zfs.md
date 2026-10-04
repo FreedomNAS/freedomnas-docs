@@ -84,8 +84,16 @@ data") on the first boot, before the network comes up. The area lies past
 the pool's current end, so no data is touched. Verified on the real test
 box: a Void image written over a stick whose previous Void had grown to
 14.3 GB faulted without it, and grew to an ONLINE 13 GB pool with it.
-FreeBSD is not covered yet: ZFS holds the GEOM provider open exclusively,
-so the same write is refused there.
+On FreeBSD GEOM refuses writes to the partition ZFS holds open, even with
+`kern.geom.debugflags=16`; with that flag it does accept them on the disk
+under it, so the step writes the same MiB through the disk, at the
+partition's offset from `geom part list`, and puts the flag back to what it
+was whatever `dd` returns. Verified in a QEMU VM: the images-10 FreeBSD
+image written over a 20 GB disk where an older FreeBSD build had grown
+(labels 2 and 3 of that pool at txg 129 against 117) suspended the root pool
+with `vdev.corrupt_data`; with the fix, an image whose labels were at txg 146
+against the old pool's 163 grew to an ONLINE 18.5 GB pool, all four labels
+the new pool's, a clean scrub, and the same after a reboot.
 
 The commands are the storage profile's:
 
@@ -96,13 +104,14 @@ The commands are the storage profile's:
 | `partition_of` | `lsblk` → disk, partition number, start, size | `glabel status` + `geom part list` → the same four |
 | `disk_size` | `lsblk -bdnro SIZE` | `diskinfo` |
 | `partition_offsets` | `lsblk -bnrpo START,TYPE` → byte offset of every partition on the disk | `geom part list` → the same |
-| `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u`, zero the last MiB of `<device>` | `gpart recover`, `gpart resize -i <n>` |
+| `partition_grow` | `sfdisk --relocate gpt-bak-std`, `sfdisk -N <n>` with `, +`, `partx -u`, zero the last MiB of `<device>` | `gpart recover`, `gpart resize -i <n>`, zero the last MiB of the partition through `<disk>` with `kern.geom.debugflags=16` |
 | `pool_expand` | `zpool online -e <pool> <device>` | same |
 
 The Linux commands are verified on a loop device and on a flashed Artix
 image (a 10 GB image on a 20 GB disk boots with a 20 GB pool), and growing a
 pool that knows its device by a `/dev/disk/by-partuuid` path on a loop
-device; the FreeBSD ones are not tested yet.
+device. The FreeBSD ones are verified in a QEMU VM (UEFI, virtio disk) and
+the grow on the real test box from a USB stick.
 
 ## Importing an existing pool
 
