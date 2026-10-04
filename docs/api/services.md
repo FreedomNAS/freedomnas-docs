@@ -3,7 +3,8 @@
 Every service the edition's init knows, its state, and whether it starts at
 boot. The commands come from the init profile (`services.list_all`,
 `services.is_running`, `services.is_enabled`, `start`, `stop`, `restart`,
-`enable`, `disable`), so the routes are the same on every edition.
+`enable`, `disable`), so the routes are the same on every edition. The WebUI's
+[Services page](../user-guide/services.md) uses them.
 
 ## GET /api/services/
 

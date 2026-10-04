@@ -39,18 +39,6 @@ system, and the choice is kept in the configuration, so it is restored with
 everything else after a reinstall. While it is on, anyone who can reach the
 system and knows an administrator's password can log in.
 
-## Services
-
-*Advanced level.* Every service of the edition's init, with whether it is
-running, and what FreedomNAS uses it for (SSH, SMB, NFS). **Start**,
-**Stop** and **Restart** act now and last until the next boot; stopping
-asks first, since whatever depends on the service stops working — stopping
-the SSH service ends SSH logins. The filter narrows the list by name or role.
-
-*Expert level* adds **At boot**: **Enable** and **Disable** decide whether
-the service starts at boot. The choice is kept in the configuration, like
-the SSH setting above, so a reboot or a restore keeps it.
-
 ## UI Level
 
 Select your preferred interface complexity level. See [UI Levels](ui-levels.md)

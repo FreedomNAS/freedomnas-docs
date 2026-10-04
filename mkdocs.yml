@@ -80,6 +80,7 @@ nav:
     - Network: user-guide/network.md
     - Users: user-guide/users.md
     - Updates: user-guide/updates.md
+    - Services: user-guide/services.md
     - System Settings: user-guide/system.md
     - UI Levels: user-guide/ui-levels.md
   - Architecture:

@@ -76,6 +76,7 @@ on `<html>`, stored in `localStorage`.
 | `network.js` | Interface list, edit IP modal |
 | `users.js` | User table, create/delete |
 | `updates.js` | Topgrade runner, status polling |
+| `services.js` | Services page: list, filter, start/stop/restart, enable/disable at boot |
 | `system.js` | Hostname save, reboot/shutdown confirm |
 
 ## deps.py — Dependency Injection

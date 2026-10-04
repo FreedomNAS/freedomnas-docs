@@ -28,14 +28,14 @@ Full control of the system. Recommended for experienced users.
 - Timezone configuration
 - Reboot and shutdown buttons
 - Update configuration
-- Services: start, stop and restart (System page)
+- Services page: start, stop and restart
 
 ### Expert
 
 Everything in Advanced, plus diagnostic and low-level information.
 
 - Everything in Advanced
-- Services: enable or disable at boot (System page)
+- Services page: enable or disable at boot
 - Terminal always visible hint on Updates page
 - Extended diagnostic cards
 - Raw system info panels
