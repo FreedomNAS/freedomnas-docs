@@ -43,5 +43,9 @@ bash -c 'eval "$(ssh-agent -s)" && ssh-add ~/.ssh/codeberg-nas && git push'
 
 ## Branch Strategy
 
-- `main` — stable, always deployable
+- `dev` — where work happens; every push publishes snapshots
+- `main` — stable, always deployable: `dev` is moved onto it only once a
+  snapshot has been tested on real hardware, and the release is tagged
+  (`v0.9.9` is the first). In freedomnas-image-builder and
+  freedomnas-module-template `master` follows `main`.
 - Feature branches for larger changes (optional for solo work)
