@@ -936,3 +936,65 @@ The diff answers `{ "changes": [ { "change": "modified", "type": "file",
 at most 5000 changes are returned, `total` counts them all. ZFS's refusals —
 a held snapshot, a snapshot clones depend on — come back as `500` with its
 message.
+
+
+---
+
+## Local replication
+
+Each transfer is a job in `freedomnas.replication`, run in a thread. The
+pipelines are the profile's: they write the shell's PID and the `zfs send -vP`
+progress lines into `/run/freedomnas/replication/<id>.pid|.progress`, which is
+how a job reports its progress and how it is cancelled
+(`zfs.replication_cancel`, `pkill -INT -P {pid}`). Jobs live in the WebUI
+process: they are listed until it restarts.
+
+### `GET /api/storage/replication/jobs`
+
+```json
+{ "jobs": [ { "id": 3, "kind": "replicate", "state": "running",
+  "source": "tank/data@s2", "from": "tank/data@s1", "target": "backup/data",
+  "done": 896830656, "total": 2151268360, "error": "",
+  "started": 1791138570.1, "finished": null } ] }
+```
+
+`state` is `running`, `done`, `failed` (with ZFS's message in `error`) or
+`cancelled`; a finished job reports `done` equal to `total`.
+
+### `POST /api/storage/replication/replicate` · `/send-to-file`
+
+```json
+{ "snapshot": "tank/data@s2", "from": "tank/data@s1", "intermediates": false,
+  "replicate": false, "raw": false, "compressed": true, "large_blocks": true,
+  "embed": false, "props": false, "holds": false, "skip_missing": false,
+  "target": "backup/data", "force": false, "no_mount": true, "resumable": true,
+  "exclude_mountpoint": true, "name_mode": "exact" }
+```
+
+`from` is an older snapshot or a bookmark (`dataset#name`) of the same
+dataset. `send-to-file` takes `file` instead of the receiving options: an
+absolute path whose directory exists and is not a system directory; the
+profile's `set -C` refuses an existing file, and so does the API (`422`).
+`replicate` refuses a target on the system's pool, the FreedomNAS
+configuration dataset, a pool that does not exist, and a target another
+running job is writing into. The answer is the new job.
+
+### `POST /api/storage/replication/receive-from-file`
+
+`{ "file": "/backup/data.zfs", "target": "backup/restored", "force": false, "no_mount": true }`
+
+### `POST /api/storage/replication/estimate`
+
+The same body as `replicate`; answers `{ "size": 2151268360 }` from
+`zfs send -nvP`.
+
+### `POST /api/storage/replication/jobs/{id}/cancel`
+
+`404` for an unknown job, `409` for one that is not running.
+
+### `GET /api/storage/replication/resumable` · `POST /resume` · `POST /abort`
+
+`resumable` lists the datasets with a `receive_resume_token` that no running
+job is writing into. `resume` takes `{ "target": "backup/data" }` and reads
+the token from ZFS itself — the client never sends one; `abort` is
+`zfs receive -A`.

@@ -335,6 +335,46 @@ Scheduled snapshots are named `freedomnas-<interval>-<YYYYmmdd-HHMMSS>` — see
 For manual snapshots, use any descriptive name: it starts with a letter or
 digit and holds letters, digits and `_ . : -` — no spaces.
 
+## Replication Tab
+
+!!! info "Advanced level required"
+    The Replication tab is visible at **Advanced** UI level and above.
+
+Copies a snapshot with `zfs send | zfs receive` to another dataset of this NAS
+— typically on a second pool used for backups — or into a stream file, and
+back from one. Sending to another machine is not offered yet.
+
+**Send a snapshot**:
+
+1. Choose the **Snapshot** to send.
+2. **Incremental from**: leave **Nothing** for a full copy, or choose an older
+   snapshot (or a bookmark) of the same dataset that the target already has:
+   only what changed since then is sent. **Include the snapshots in between**
+   also copies every snapshot between the two.
+3. **Send to** a dataset — one that does not exist yet is created by the
+   transfer; the system's pool is refused — or to a stream file on a
+   dataset. An existing file is never overwritten.
+4. **Stream options**: **Replication stream** takes the children,
+   properties, snapshots and clones along; **Raw** keeps encrypted data
+   encrypted, so the copy needs no key; **Compressed** and **Large blocks**
+   (ticked) send the blocks as they are on disk. Expert level adds embedded
+   data, properties, holds and skipping missing snapshots.
+5. **Receiving side**: by default what arrives is not mounted, the transfer
+   can be resumed if it stops, and the mountpoint is not copied, so the copy
+   never mounts over the original. At Expert level, **Roll the target back
+   if it changed (-F)** lets an incremental land on a target that was
+   modified — destroying what the source does not have.
+6. **Estimate size** tells how much will be sent; **Start** begins.
+
+**Transfers** lists every transfer since the WebUI started, with its
+progress, speed and — when it failed — ZFS's message. **Cancel** stops a
+running one. A resumable transfer that stopped (cancelled, or the NAS was
+restarted) appears under **Interrupted receives**: **Resume** continues
+from where it stopped, **Discard** throws away what was received.
+
+**Receive from a stream file** loads a file written by **A stream file** into
+a dataset.
+
 ## Disks Tab
 
 The health of every disk in the system, read with `smartctl` (from

@@ -166,6 +166,8 @@ this).
 | `bookmark_list`, `bookmark_create`, `bookmark_destroy` | Bookmarks: list, `zfs bookmark {snapshot} {bookmark}`, destroy |
 | `volume_create`, `volume_create_sparse` | `zfs create [-s] -V {size} {options} {dataset}` — `options` is the same multi-arg as `dataset_create_with` |
 | `dataset_promote` | `zfs promote {dataset}` |
+| `replicate`, `replicate_resume`, `send_to_file`, `receive_from_file` | Local replication pipelines (shell templates): `echo $$ > {pid_file}`, then `zfs send -vP … 2> {progress_file}` piped into `zfs receive`, or `> {file}` under `set -C`, or `zfs receive … < {file}`. `send_flags`, `receive_flags` and `incremental` are `multi_args` built by `freedomnas.replication` |
+| `send_estimate`, `receive_abort`, `resume_tokens`, `replication_cancel` | `zfs send -nvP`, `zfs receive -A`, `zfs get receive_resume_token`, `pkill -INT -P {pid}` |
 | `userspace`, `groupspace` | `zfs userspace|groupspace -Hp -o type,name,used,quota,objused,objquota {dataset}` |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
