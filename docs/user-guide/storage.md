@@ -137,6 +137,61 @@ understand the selected device will be erased** and confirm: everything on
 the device is destroyed. The **×** next to an attached device detaches it.
 Neither kind holds data, so detaching loses nothing.
 
+### Pool Details and Devices
+
+!!! info "Advanced level required"
+    Visible at **Advanced** UI level and above. At the Assisted level a pool is
+    created and imported with the defaults and nothing else is shown.
+
+**Details and devices** on a pool card opens the pool's own page:
+
+- its state, and — when something is wrong — ZFS's own explanation of the
+  problem and of what to do about it;
+- the last scrub or resilver, or its progress while it runs (the page
+  refreshes itself every few seconds until it is done), and how many data
+  errors ZFS knows of;
+- every vdev, grouped by role (data, special, dedup, log, cache, hot
+  spares), with each device's state and read/write/checksum error counts.
+
+The buttons above the tables act on the whole pool:
+
+| Button | What it does |
+|--------|--------------|
+| **Start scrub** / **Pause scrub** / **Stop scrub** | Read every block and repair what a redundant copy allows |
+| **Start TRIM** / **Stop TRIM** | Tell SSDs which blocks are free |
+| **Clear errors** | Reset the error counters after the cause has been fixed |
+| **Add vdevs** | Add data, special, dedup or spare vdevs (see below) |
+| **History** | Every command ever run on the pool, newest first |
+
+Each device has an **Actions…** menu: **Take offline** / **Bring online**,
+**Replace…** (by a free disk, or by the new disk put in the same place),
+**Attach a mirror…** (turns a single disk into a mirror, or adds a copy to a
+mirror), **Detach** (a mirror member), **Expand to full size** (after a
+smaller disk was replaced by a bigger one), **Clear errors**, and **Remove
+from pool** for top-level vdevs, spares, cache and log devices. Replacing or
+attaching erases the new disk and starts a resilver. When ZFS refuses — for
+example removing a data vdev from a pool with RAID-Z vdevs, or detaching the
+last copy of the data — its own message is shown.
+
+**Add vdevs** lists the free disks; for each one choose **Data vdev 1–4**,
+**Special (metadata)**, **Dedup table** or **Hot spare**. Data vdevs use the
+layout chosen above the list; special and dedup vdevs become a mirror when
+they get two or more disks. A data vdev usually cannot be removed again, so
+match the redundancy of the vdevs already in the pool. The same per-disk
+choice appears in **Create Pool** at the Advanced level, to create a pool with
+several data vdevs and special, dedup or spare vdevs in one go; leaving every
+disk on **Not used** creates the usual single-vdev pool.
+
+!!! warning "Expert level"
+    At the **Expert** level the pool page also offers **Pool properties**
+    (autotrim, autoexpand, autoreplace, comment, failmode, listsnapshots,
+    delegation, multihost, compatibility), **Initialize free space**,
+    **Create** / **Discard checkpoint** (the whole pool can be rewound to it at
+    the next import), **Upgrade features** and **New GUID**, plus **Take
+    offline until reboot** for a device and internal events in the history.
+    Upgrade and New GUID are refused on the pool the system boots from: the
+    boot loader or the initramfs might no longer find it.
+
 ## Datasets Tab
 
 Lists all ZFS datasets with used, available and referenced space and their

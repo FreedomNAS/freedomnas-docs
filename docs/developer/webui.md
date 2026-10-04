@@ -71,7 +71,7 @@ on `<html>`, stored in `localStorage`.
 | `auth.js` | Login form, credential check, post-login redirect |
 | `setup.js` | 3-step wizard state machine |
 | `dashboard.js` | System info polling, module health cards |
-| `storage.js` | Pool/dataset/snapshot CRUD, Disks tab (SMART health, self-tests), tab switching |
+| `storage.js` | Pool/dataset/snapshot CRUD, pool page (status, scrub/TRIM, device actions, add vdevs, history, pool properties), Disks tab (SMART health, self-tests), tab switching |
 | `shares.js` | SMB/NFS CRUD, inline delete confirm |
 | `network.js` | Interface list, edit IP modal |
 | `users.js` | User table, create/delete |

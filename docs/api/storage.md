@@ -550,6 +550,120 @@ its own message, which is the right place for it to come from.
 
 ---
 
+## Creating a pool with several vdevs
+
+`POST /api/storage/pools` also takes a `vdevs` list. When it is present it
+replaces `vdev_type` and `devices`:
+
+```json
+{ "name": "tank", "vdevs": [
+  { "class": "data", "type": "raidz2", "devices": ["/dev/sda", "/dev/sdb", "/dev/sdc"] },
+  { "class": "data", "type": "raidz2", "devices": ["/dev/sdd", "/dev/sde", "/dev/sdf"] },
+  { "class": "special", "type": "mirror", "devices": ["/dev/nvme0n1", "/dev/nvme1n1"] },
+  { "class": "spare", "devices": ["/dev/sdg"] } ] }
+```
+
+`class` is `data`, `special`, `dedup` or `spare`; `type` is empty (one disk
+or a stripe), `mirror`, `raidz1`, `raidz2` or `raidz3`. Special and dedup
+vdevs are one disk or a mirror; spares are never grouped. `422` for an
+unknown class or type, too few devices for the type (mirror and raidz1 two,
+raidz2 three, raidz3 four), a device listed twice, or a device that is not a
+`/dev/` path. `freedomnas.pools.vdev_spec` turns the list into the words
+`zpool create` takes; they reach it through the same `devices` multi-arg, so
+the encrypted path works unchanged. The list is recorded as the pool's
+`vdevs` in `config.yaml`.
+
+---
+
+## `GET /api/storage/pools/{pool}/status`
+
+The pool as `zpool status -j --json-int -P` describes it (`zfs.pool_status_json`,
+parsed by `freedomnas.pools.parse_status`):
+
+```json
+{ "name": "tank", "state": "DEGRADED", "system": false,
+  "status": "One or more devices has been taken offline by the administrator. …",
+  "action": "Online the device using 'zpool online' …",
+  "error_count": 0,
+  "scan": { "function": "SCRUB", "state": "SCANNING", "percent": 25.0,
+            "done": 100, "total": 400, "errors": 0, "paused": false,
+            "start_time": 1791124795, "end_time": null },
+  "removing": false, "checkpoint": false,
+  "groups": [ { "role": "data", "vdevs": [
+    { "name": "mirror-0", "path": "", "type": "mirror", "state": "DEGRADED",
+      "read_errors": 0, "write_errors": 0, "checksum_errors": 0, "size": 960495616,
+      "depth": 0, "parent_type": "", "children": [ … ] } ] } ] }
+```
+
+`groups[].role` is `data`, `special`, `dedup`, `log`, `cache` or `spare`.
+`status` and `action` are ZFS's own text on one line, empty when the pool is
+healthy. `scan` is `null` until the first scrub. `system` is true for the pool
+the system boots from. `404` for a pool that is not imported.
+
+## `POST /api/storage/pools/{pool}/scrub` · `/trim` · `/initialize`
+
+`{ "action": "start" }` — `scrub` takes `start`, `pause`, `stop`; `trim`
+takes `start`, `suspend`, `cancel`; `initialize` takes `start`, `cancel`.
+Anything else is `422`.
+
+## `POST /api/storage/pools/{pool}/clear`
+
+`{}` clears the error counters of the whole pool, `{ "device": "/dev/sda1" }`
+those of one device.
+
+## `POST /api/storage/pools/{pool}/device`
+
+```json
+{ "action": "replace", "device": "/dev/sdb1", "new_device": "/dev/sdf" }
+```
+
+| `action` | Command |
+|----------|---------|
+| `online` | `zpool online` |
+| `offline` | `zpool offline` |
+| `offline_temporary` | `zpool offline -t` — back at the next reboot |
+| `expand` | `zpool online -e` |
+| `replace` | `zpool replace` — without `new_device`, in place |
+| `attach` | `zpool attach` — `new_device` becomes a mirror of `device` |
+| `detach` | `zpool detach` |
+| `remove` | `zpool remove` — also updates the recorded cache/log devices |
+| `cancel_remove` | `zpool remove -s` — no `device` needed |
+
+`device` is a name or path as `/status` reports it; one with whitespace, a
+control character or a leading `-` is `422`. `new_device` must be a `/dev/`
+path. ZFS's refusals come back as `500` with its message.
+
+## `POST /api/storage/pools/{pool}/vdevs`
+
+`{ "vdevs": [ … ] }`, the same list as for creating a pool:
+`zpool add {pool} {words}`. The groups are appended to the pool's `vdevs` in
+`config.yaml`. Cache and log devices keep using `POST /pools/{pool}/devices`.
+
+## `GET /api/storage/pools/{pool}/history?internal=…`
+
+`{ "pool": "tank", "internal": false, "lines": ["2026-10-04.19:15:07 zpool set comment=… tank [user 0 (root) on nas:linux]", …] }`
+— `zpool history -l`, or `-il` with `internal=true`, oldest first.
+
+## `GET /api/storage/pool-properties` · `GET|PUT /api/storage/pools/{pool}/properties`
+
+The catalogue comes from the profile's `zpool_properties`, with the same
+fields as `zfs_properties` (`level`, `type` — `enum` or `text` —, `values`,
+`default`, `help`). `GET` returns `{ "properties": { "autotrim": { "value": "off",
+"source": "default" }, … } }` for the properties in the catalogue only. `PUT`
+takes `{ "autotrim": "on", "comment": "…" }`; an unknown property, a value
+outside an enum or text that is not printable or longer than 256 characters
+is `422`. The answer is `{ "applied": [...], "failed": [...] }`, `207` when
+something failed. `cachefile` and `bootfs` are not in the catalogue: FreedomNAS
+manages them itself.
+
+## `POST /api/storage/pools/{pool}/checkpoint` · `/upgrade` · `/reguid`
+
+`checkpoint` creates one, `{ "discard": true }` discards it. `upgrade` enables
+every supported feature, `reguid` gives the pool a new GUID; both are `422` on
+the pool the system boots from.
+
+---
+
 ## `GET /api/storage/properties`
 
 The ZFS properties this edition supports, as a catalogue.

@@ -31,7 +31,7 @@ regardless of which file it physically lives in.
 | File | Owns |
 |------|------|
 | `os/os-<name>.json` | `os_name`/`os_family`/`os_version`/`init_system`, `packages`, `bootloader`, `system` |
-| `storage/storage-<name>.json` | `zfs`, `media`, `directories`, `zfs_properties` |
+| `storage/storage-<name>.json` | `zfs`, `media`, `directories`, `zfs_properties`, `zpool_properties` |
 | `network/network-<name>.json` | `network` |
 | `shares/shares-<name>.json` | `samba`, `nfs` |
 | `users/users-<name>.json` | `users` |
@@ -63,7 +63,8 @@ usually shipped in the module's own repo/`.deb` rather than this one.
   "zfs":   { ... },
   "media": { ... },
   "directories": { ... },
-  "zfs_properties": { ... }
+  "zfs_properties": { ... },
+  "zpool_properties": { ... }
 }
 ```
 
@@ -149,6 +150,14 @@ this).
 | `dataset_destroy_recursive` | `zfs destroy -r {dataset}` |
 | `pool_member_devices` | `zpool status -LP`: every pool's leaf devices with symlinks resolved, so the Disks tab can say which pool uses a disk |
 | `pool_leaf_devices`, `partition_of`, `disk_size`, `partition_offsets`, `partition_grow`, `pool_expand` | Grow the root pool into the free space after its partition at boot — see [ZFS Best Practices](../developer/zfs.md#growing-the-root-pool-on-a-flashed-image) |
+| `pool_status_json` | `zpool status -j --json-int -P {pool_name}` — the pool page (needs OpenZFS 2.3 or later) |
+| `pool_scrub_pause`, `pool_trim`, `pool_trim_suspend`, `pool_trim_cancel`, `pool_initialize`, `pool_initialize_cancel` | Scrub pause, TRIM and initialize, besides `pool_scrub` / `pool_scrub_stop` |
+| `pool_clear`, `pool_clear_device` | `zpool clear` of the pool or one `{device}` |
+| `pool_offline_temporary`, `pool_replace`, `pool_replace_in_place`, `pool_attach`, `pool_detach`, `pool_remove_cancel` | Device actions of the pool page, besides `pool_online`, `pool_offline`, `pool_expand`, `pool_remove_device` |
+| `pool_add_vdevs` | `zpool add {pool_name} {devices}` — `devices` is the multi-arg built by `freedomnas.pools.vdev_spec` |
+| `pool_history`, `pool_history_internal` | `zpool history -l` / `-il` |
+| `pool_get_all`, `pool_set` | `zpool get -Hp -o property,value,source all` / `zpool set {property}={value}` |
+| `pool_checkpoint`, `pool_checkpoint_discard`, `pool_upgrade`, `pool_reguid` | Expert-level pool operations |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
 `mount_all` actions back the ZFS pool encryption feature: independent
