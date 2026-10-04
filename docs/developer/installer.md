@@ -447,7 +447,18 @@ Which chain is built depends on what the target profile declares, not on an
 - `bootloader.build_uki` present → a dracut **Unified Kernel Image** (kernel
   + initramfs + cmdline in one PE binary) on the ESP, plus
   `bootloader.build_uki_recovery` for the `ro single` recovery entry and the
-  `zz-dracut-uki` hook so future kernel updates rebuild both
+  `zz-dracut-uki` hook so future kernel updates rebuild both. FreedomNAS's
+  own dracut modules (`assets/dracut/`, today `91freedomnas-rootwait`, which
+  holds the initramfs until the root pool's disks are there — a USB stick
+  appears after the zfs module's single import) are copied into the target
+  right after the base configuration, before any package: that
+  configuration writes the `uki.conf` that enables them, and Debian's
+  dracut builds an initramfs as soon as it is configured, failing the
+  whole package installation when a module it names is missing. With
+  systemd in the initramfs (Debian) the module also creates
+  `lib/dracut/need-initqueue` at build time, without which
+  `dracut-initqueue.service` never runs, and orders
+  `zfs-import-{cache,scan}.service` after it
 - otherwise `bootloader.install_efi_loader` → the edition's native loader
   (FreeBSD's reads ZFS directly and needs no UKI)
 
