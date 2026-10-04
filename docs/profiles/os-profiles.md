@@ -158,6 +158,15 @@ this).
 | `pool_history`, `pool_history_internal` | `zpool history -l` / `-il` |
 | `pool_get_all`, `pool_set` | `zpool get -Hp -o property,value,source all` / `zpool set {property}={value}` |
 | `pool_checkpoint`, `pool_checkpoint_discard`, `pool_upgrade`, `pool_reguid` | Expert-level pool operations |
+| `dataset_list` | `zfs list -Hp -o name,used,avail,refer,mountpoint,type,mounted,origin` — readers use the first five columns, the WebUI the rest when present |
+| `snapshot_list` | `zfs list -t snapshot -Hp -o name,creation,used,referenced,userrefs,clones` |
+| `snapshot_destroy_recursive`, `snapshot_rollback_recursive`, `snapshot_rename` | `zfs destroy -r`, `zfs rollback -r`, `zfs rename {snapshot} {new_snapshot}` |
+| `snapshot_holds`, `snapshot_hold`, `snapshot_release` | `zfs holds -Hp`, `zfs hold {tag}`, `zfs release {tag}` |
+| `snapshot_diff`, `snapshot_diff_to` | `zfs diff -FHt {snapshot} [{target}]` |
+| `bookmark_list`, `bookmark_create`, `bookmark_destroy` | Bookmarks: list, `zfs bookmark {snapshot} {bookmark}`, destroy |
+| `volume_create`, `volume_create_sparse` | `zfs create [-s] -V {size} {options} {dataset}` — `options` is the same multi-arg as `dataset_create_with` |
+| `dataset_promote` | `zfs promote {dataset}` |
+| `userspace`, `groupspace` | `zfs userspace|groupspace -Hp -o type,name,used,quota,objused,objquota {dataset}` |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
 `mount_all` actions back the ZFS pool encryption feature: independent

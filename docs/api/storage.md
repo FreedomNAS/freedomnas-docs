@@ -193,15 +193,23 @@ List all ZFS snapshots.
   "snapshots": [
     {
       "name": "rpool/ROOT/debian@pre-update-20260718",
-      "creation": "1784370600",
-      "used": "1288490188"
+      "dataset": "rpool/ROOT/debian",
+      "snapshot": "pre-update-20260718",
+      "creation": 1784370600,
+      "used": 1288490188,
+      "referenced": 2147483648,
+      "holds": 0,
+      "clones": []
     }
   ]
 }
 ```
 
-From `zfs.snapshot_list`, `zfs list -t snapshot -Hp -o name,creation,used`:
-`creation` is seconds since 1970 and `used` a byte count.
+From `zfs.snapshot_list`, `zfs list -t snapshot -Hp -o
+name,creation,used,referenced,userrefs,clones`, parsed by
+`freedomnas.snapshots.parse_list`: `creation` is seconds since 1970, `used`
+and `referenced` byte counts, `holds` the number of holds. A profile that
+prints only the first three columns gives only those three fields.
 
 ---
 
@@ -845,3 +853,86 @@ Starts a SMART self-test (`short` or `long`) on a disk `smartctl --scan`
 lists, by its name (`sda`, `nvme0`). Any other disk is a 404, any other type
 a 400.
 
+
+
+---
+
+## Dataset administration
+
+### `GET /api/storage/datasets` — extra fields
+
+With the profile's `zfs.dataset_list` printing
+`name,used,avail,refer,mountpoint,type,mounted,origin`, each dataset also has
+`type` (`filesystem` or `volume`), `mounted` (boolean) and `origin` (the
+snapshot a clone was made from, empty otherwise).
+
+### `POST /api/storage/volumes`
+
+```json
+{ "parent": "tank/vms", "name": "win11", "size": "40G", "sparse": true,
+  "blocksize": "16K", "properties": { "compression": "zstd" } }
+```
+
+`zfs create [-s] -V {size} -o … {parent}/{name}` (`zfs.volume_create`,
+`zfs.volume_create_sparse`) through `freedomnas.datasets.create_volume`.
+`422` for a size that is not a number with K, M, G, T or P, a block size
+other than 4K–128K, a property outside the catalogue, a name in several
+parts, a parent that does not exist, or the system's pool.
+
+### `POST /api/storage/datasets/{name}/mount` · `/unmount` · `/promote`
+
+`zfs mount`, `zfs unmount`, `zfs promote`. Unmount and promote are `422` for
+the datasets the system needs (`freedomnas.datasets.change_problem`: the
+system's pool, the FreedomNAS configuration, legacy and system mountpoints).
+
+### `POST /api/storage/datasets/{name}/inherit`
+
+`{ "property": "compression" }` — `zfs inherit`. The property is one of the
+catalogue (not create-only) or a user property; anything else is `422`.
+
+### `GET|PUT /api/storage/datasets/{name}/user-properties`
+
+`GET` returns the properties with a colon in their name, with value and
+source. `PUT { "com.example:note": "text" }` sets them; a name that is not
+lowercase-with-a-colon, or a value that is not printable, is `422`.
+
+### `GET|PUT /api/storage/datasets/{name}/quotas`
+
+`GET ?kind=user|group` — `zfs userspace|groupspace -Hp -o
+type,name,used,quota,objused,objquota`:
+
+```json
+{ "kind": "user", "entries": [ { "type": "POSIX User", "name": "sarah",
+  "used": 1024, "quota": 53687091200, "objused": 3, "objquota": null } ] }
+```
+
+`PUT { "kind": "user", "name": "sarah", "quota": "50G", "objquota": "100000" }`
+sets `userquota@sarah` and `userobjquota@sarah` (`none` removes a limit).
+
+---
+
+## Snapshot administration
+
+Every `{snapshot}` is `dataset@name`; anything else — a missing `@`, a part
+that starts with `-` or holds a space — is `422`
+(`freedomnas.snapshots.split_name`). `POST /api/storage/snapshots` checks the
+same, and takes `"recursive": true` for `zfs snapshot -r`.
+
+| Request | Command |
+|---------|---------|
+| `DELETE /snapshots/{snapshot}?recursive=…` | `zfs destroy [-r]` — also forgets it in `config.yaml`'s recorded snapshots |
+| `POST /snapshots/{snapshot}/rollback` `{ "destroy_newer": true }` | `zfs rollback [-r]` — `422` for the system's own datasets |
+| `POST /snapshots/{snapshot}/clone` `{ "target": "tank/copy" }` | `zfs clone` — the target is in the same pool, does not exist yet, has an existing parent and is not a system dataset |
+| `POST /snapshots/{snapshot}/rename` `{ "new_name": "kept" }` | `zfs rename` to `dataset@kept`; the recorded name follows |
+| `POST /snapshots/{snapshot}/hold` · `/release` `{ "tag": "keep" }` | `zfs hold` / `zfs release` |
+| `GET /snapshots/{snapshot}/holds` | `zfs holds -Hp` → `{ "holds": [ { "tag": "keep", "time": 1700000000 } ] }` |
+| `GET /snapshots/{snapshot}/diff?to=…` | `zfs diff -FHt` against the dataset now, or a later snapshot of the same dataset |
+| `POST /snapshots/{snapshot}/bookmark` `{ "name": "b1" }` | `zfs bookmark` → `dataset#b1` |
+| `GET /bookmarks` | `zfs list -t bookmark -Hp -o name,creation` |
+| `DELETE /bookmarks/{dataset#name}` | `zfs destroy` of the bookmark (`#` encoded as `%23`) |
+
+The diff answers `{ "changes": [ { "change": "modified", "type": "file",
+"path": "/tank/a/x", "new_path": "…" } ], "total": 12, "truncated": false }`;
+at most 5000 changes are returned, `total` counts them all. ZFS's refusals —
+a held snapshot, a snapshot clones depend on — come back as `500` with its
+message.

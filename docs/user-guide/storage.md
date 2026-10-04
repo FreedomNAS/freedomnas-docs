@@ -246,14 +246,59 @@ to start.
 **Properties** edits the dataset's ZFS properties (compression, quota, …).
 The catalogue comes from the edition's profile; expert-only properties
 appear only at **Expert** level, and those that can only be set at creation
-are not offered.
+are not offered. A property set on the dataset itself has a **Reset** button
+next to its name: it goes back to the value inherited from the parent.
+
+### More: mount, quotas, snapshots, volumes
+
+!!! info "Advanced level required"
+    Visible at **Advanced** UI level and above; the Expert entries only at
+    **Expert** level.
+
+Each dataset that is not a system one has a **More…** menu:
+
+- **Mount** / **Unmount** — a dataset whose mountpoint is a path. Shares on an
+  unmounted dataset stop working until it is mounted again.
+- **User and group quotas…** — how much each user or group uses on the
+  dataset and the limit set for them; set a space limit (`50G`, `none`) and,
+  at Expert level, a limit on the number of files.
+- **Show snapshots** — opens the Snapshots tab filtered on the dataset.
+- **Promote** (Expert, clones only) — the clone stops depending on the
+  snapshot it was made from; the origin becomes a clone of it instead.
+- **User properties…** (Expert) — free properties with a colon in the name,
+  such as `com.example:note`, inherited by the children like any other.
+
+**Create Volume** creates a zvol — a block device rather than a directory,
+for virtual machines or iSCSI — inside a dataset: its size (`40G`), whether
+it is thin provisioned (space taken only when written) and its block size.
+A volume has no mountpoint.
 
 ## Snapshots Tab
 
 !!! info "Advanced level required"
     The Snapshots tab is only visible at **Advanced** UI level and above.
 
-Lists all ZFS snapshots with their creation time and used space.
+Lists all ZFS snapshots with their creation time, the space each one holds
+on its own (**Used**), the size of the data it refers to (**Referenced**),
+its holds and the clones made from it. The box above the table filters by
+dataset or name.
+
+Each snapshot has an **Actions…** menu:
+
+| Action | What it does |
+|--------|--------------|
+| **Roll back…** | The dataset goes back to how it was at the snapshot; everything written since is lost. Snapshots taken after it are listed and destroyed too. Refused for the system's own datasets. |
+| **Clone…** | A writable dataset that starts as the snapshot, in the same pool |
+| **Rename…** | Another name for the snapshot, same dataset |
+| **Holds…** | Add or release holds: a held snapshot cannot be destroyed |
+| **Changes since…** | Every file created, modified, renamed or removed since the snapshot, compared with the dataset now or with a later snapshot |
+| **Bookmark…** (Expert) | Keeps the point in time of the snapshot, as the base of an incremental send, after the snapshot is destroyed |
+| **Destroy…** | Destroys it — optionally the snapshot of the same name on every child dataset too |
+
+Tick several snapshots and **Destroy selected** destroys them one after the
+other, stopping at the first that ZFS refuses (a hold, or a clone that
+depends on it). At Expert level the bookmarks are listed below the
+snapshots, each with a **Delete** button.
 
 ### Creating a Snapshot
 
@@ -262,7 +307,8 @@ Lists all ZFS snapshots with their creation time and used space.
 
 1. Click **Create Snapshot** (top right of the Storage page)
 2. Enter the dataset path (e.g. `datapool/documents`) and a **Snapshot Name**
-3. Click **Create Snapshot**
+3. Tick **Also every child dataset** to snapshot the children at the same moment
+4. Click **Create Snapshot**
 
 The API call: `POST /api/storage/snapshots`
 
@@ -286,7 +332,8 @@ taken recursively on the system's pool and every pool recorded in
 Scheduled snapshots are named `freedomnas-<interval>-<YYYYmmdd-HHMMSS>` — see
 [Scheduled Work](../architecture/snapshots.md).
 
-For manual snapshots, use any descriptive name without spaces.
+For manual snapshots, use any descriptive name: it starts with a letter or
+digit and holds letters, digits and `_ . : -` — no spaces.
 
 ## Disks Tab
 
