@@ -93,10 +93,18 @@ once built as `1.0` were deleted from the registries, so a machine that
 already has one installed needs a downgrade by hand (`apt install
 <package>=<version>`, `pacman -Suu`).
 
-The Debian edition's installer adds the registry with both components,
-`trixie main dev`: the snapshots are in `dev` and sort above the `0.9.9-1` in
-`main`, and topgrade, which follows upstream releases, is published to
-`main` only.
+The Debian edition's installer adds the registry with one component only,
+`trixie main` or `trixie dev`, never both: the snapshots in `dev` sort above
+the releases in `main`, so a machine reading both would leave the releases
+for the snapshots. The component is the installer's channel, read from the
+`CHANNEL` file beside its `setup.py` (`dev` when there is none, as in a git
+checkout). The image builder writes it from the branch it builds:
+`live/build.sh` and `common/vm-install.sh` take `FNAS_CHANNEL`, which
+build-images sets to `main` for a run on `main` and to `dev` otherwise, and
+without it the installer checkout's own branch decides. The installer's
+`.deb` carries `main` when it is a release and `dev` when it is a snapshot.
+The kernel, zfsutils and topgrade, which follows upstream releases, are
+published to both components.
 
 Each component is versioned from its own repository, so the WebUI and the
 documentation of one snapshot carry different commits. What matters is the
