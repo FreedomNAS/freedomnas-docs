@@ -29,6 +29,7 @@ Full control of the system. Recommended for experienced users.
 - Reboot and shutdown buttons
 - Update configuration
 - Services page: start, stop and restart
+- Disks tab: why a disk needs attention, last self-test, short self-test
 
 ### Expert
 
@@ -36,6 +37,7 @@ Everything in Advanced, plus diagnostic and low-level information.
 
 - Everything in Advanced
 - Services page: enable or disable at boot
+- Disks tab: long self-test and the full SMART attribute table
 - Terminal always visible hint on Updates page
 - Extended diagnostic cards
 - Raw system info panels

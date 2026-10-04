@@ -147,6 +147,7 @@ this).
 | `dataset_rename` | `zfs rename {dataset} {new_name}` |
 | `pool_destroy` | `zpool destroy {pool_name}` — never `-f` |
 | `dataset_destroy_recursive` | `zfs destroy -r {dataset}` |
+| `pool_member_devices` | `zpool status -LP`: every pool's leaf devices with symlinks resolved, so the Disks tab can say which pool uses a disk |
 | `pool_leaf_devices`, `partition_of`, `disk_size`, `partition_offsets`, `partition_grow`, `pool_expand` | Grow the root pool into the free space after its partition at boot — see [ZFS Best Practices](../developer/zfs.md#growing-the-root-pool-on-a-flashed-image) |
 
 The `pool_create_encrypted`/`pool_keystatus`/`load_key_file`/`unload_key`/
@@ -174,6 +175,9 @@ inside the profile.
 | `mount_rw` | Mount a device writable — used only when provisioning a new `freedomnas.key` |
 | `unmount` | `umount {mountpoint}` |
 | `list_devices` | Disks and partitions for the pool form, in `lsblk -P` form (`NAME`, `PKNAME`, `SIZE` in bytes, `TYPE`, `FSTYPE`, `MOUNTPOINT`, `MODEL`, `PARTTYPE`) on every edition: Linux runs `lsblk`; FreeBSD builds the same lines from `diskinfo`, `geom disk list`, `gpart show -p`, `fstyp`, `zdb -l`, `zpool status -P`, `mount -p` and `swapctl -l`, so a disk of an imported or exported pool, or one holding a mounted or swap partition, shows as in use |
+| `smart_scan` | `smartctl --scan -j`: the disks the Disks tab lists, and the only ones a self-test may run on |
+| `smart_info` | `smartctl -a -j -n standby {device}`: everything SMART knows about one disk, in JSON (the same format on Linux and FreeBSD); `-n standby` leaves a sleeping disk asleep. No `-d`: the scan reports SATA disks as `scsi`, and passing that on hides their ATA attributes |
+| `smart_test` | `smartctl -t {test_type} {device}`: start a `short` or `long` self-test |
 
 ### `directories`
 

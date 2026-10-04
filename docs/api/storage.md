@@ -678,3 +678,56 @@ alone** — the scheduler only ever destroys what it is still asked to manage.
 | Code | Detail |
 |------|--------|
 | 404 | no policy for that dataset |
+
+## `GET /api/storage/disks/`
+
+Every disk `smartctl --scan` finds, read with `smartctl -a -j -n standby`
+(a disk in standby is not woken up) and matched to the pools that use it
+(`zpool status -LP`, through `list_devices` for partitions).
+
+```json
+{
+  "available": true,
+  "disks": [
+    {
+      "name": "sda",
+      "path": "/dev/sda",
+      "pools": ["tank"],
+      "model": "ST9500325AS",
+      "serial": "S2W518DB",
+      "size": 500107862016,
+      "kind": "HDD",
+      "protocol": "ATA",
+      "health": "warning",
+      "reasons": ["25 reallocated sectors", "24 transfer (CRC) errors: check the cable"],
+      "temperature": 31,
+      "power_on_hours": 14391,
+      "counters": {"reallocated": 25, "reported_uncorrect": 5269, "pending": 0,
+                   "offline_uncorrectable": 0, "crc_errors": 24},
+      "last_test": {"type": "Short offline", "status": "Completed without error",
+                    "passed": true, "hours": 13611},
+      "test_running": null,
+      "error_count": 4885,
+      "attributes": [{"id": 5, "name": "Reallocated_Sector_Ct", "value": 99, "worst": 99,
+                      "thresh": 36, "raw": "25", "when_failed": ""}]
+    }
+  ]
+}
+```
+
+`health` is `ok`, `warning`, `failing`, `standby` or `unknown` (no SMART
+data); `reasons` says why. `kind` is `HDD`, `SSD` or `NVMe`. For an NVMe,
+`counters` holds `percentage_used`, `media_errors` and `available_spare`.
+`test_running` is `{"remaining_percent": N}` while a self-test runs. When
+`smartctl` is not installed the answer is `{"available": false, "disks": []}`.
+
+## `POST /api/storage/disks/{disk}/test`
+
+```json
+{"type": "short"}
+```
+
+Starts a SMART self-test (`short` or `long`) on a disk `smartctl --scan`
+lists, by its name (`sda`, `nvme0`). Any other disk is a 404, any other type
+a 400.
+

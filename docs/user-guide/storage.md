@@ -233,6 +233,37 @@ Scheduled snapshots are named `freedomnas-<interval>-<YYYYmmdd-HHMMSS>` — see
 
 For manual snapshots, use any descriptive name without spaces.
 
+## Disks Tab
+
+The health of every disk in the system, read with `smartctl` (from
+`smartmontools`, installed with FreedomNAS on every edition) — the pools tab
+says whether ZFS is happy, this one says whether the hardware under it is.
+
+Each disk gets one verdict:
+
+| Badge | Meaning |
+|-------|---------|
+| **OK** | SMART reports nothing worrying |
+| **Attention** | Signs of wear: reallocated, pending or unreadable sectors, errors the disk could not correct, transfer (CRC) errors — often a bad cable — entries in the disk's error log, a failed last self-test, or a worn NVMe |
+| **Failing** | The disk's own SMART check fails, an attribute is below its failure threshold, or an NVMe raises a critical warning or runs out of spare capacity |
+| **Asleep** | The disk is in standby; FreedomNAS does not wake it up just to read it |
+| **No SMART data** | The disk, or the USB adapter it sits behind, does not report SMART |
+
+Every level shows the verdict, model, size, serial, the pool the disk
+belongs to, its temperature and how many hours it has been powered on, with
+a plain hint when a disk needs attention.
+
+*Advanced level* adds why the verdict is what it is, the last self-test,
+and a **Short self-test** button (about two minutes; the disk stays usable).
+
+*Expert level* adds a **Long self-test** (reads the whole surface, can take
+hours) and the full table of SMART attributes with the number of errors in
+the disk's log.
+
+If `smartmontools` is missing — a system installed before it was added —
+the tab says so instead of failing. The API is described in
+[Storage API](../api/storage.md#get-apistoragedisks).
+
 ## ZFS Best Practices
 
 - **Device names may change**: the Create Pool form lists disks as

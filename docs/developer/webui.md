@@ -17,10 +17,10 @@ api/
 websocket/
 └── terminal.py       Topgrade streaming — see WebSocket Terminal
 frontend/
-├── templates/        11 Jinja2 templates
+├── templates/        12 Jinja2 templates
 └── static/
     ├── css/main.css  Complete CSS design system
-    ├── js/           10 JS modules
+    ├── js/           11 JS modules
     └── img/          logo.png, logo_cut.png
 ```
 
@@ -71,7 +71,7 @@ on `<html>`, stored in `localStorage`.
 | `auth.js` | Login form, credential check, post-login redirect |
 | `setup.js` | 3-step wizard state machine |
 | `dashboard.js` | System info polling, module health cards |
-| `storage.js` | Pool/dataset/snapshot CRUD, tab switching |
+| `storage.js` | Pool/dataset/snapshot CRUD, Disks tab (SMART health, self-tests), tab switching |
 | `shares.js` | SMB/NFS CRUD, inline delete confirm |
 | `network.js` | Interface list, edit IP modal |
 | `users.js` | User table, create/delete |
