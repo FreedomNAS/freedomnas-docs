@@ -79,7 +79,7 @@ change gets a version of its own:
 
 | Format | Snapshot version |
 |--------|------------------|
-| `.deb` | `0.9.9+<yyyymmdd>.<commit>-1` |
+| `.deb` | `0.9.9+<yyyymmddHHMMSS>.<commit>-1` (UTC) |
 | Arch | `0.9.9+<yyyymmddHHMMSS>.<commit>-1` |
 | Gentoo (live ebuilds) | `0.9.9+git.<commit>` in `VERSION` and the documentation |
 | FreeBSD | `0.9.9.<yyyymmddhhmm>` (pkg's own form) |
