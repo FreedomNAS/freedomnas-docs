@@ -75,7 +75,17 @@ boot, and their first-boot reconcile finishes with no failure.
 The base version is the upstream half of each component's
 `debian/changelog` (`0.9.10`), and raising it is a decision someone makes. A
 build from `main` is that base; a build from `dev` is a snapshot, so every
-change gets a version of its own:
+change gets a version of its own.
+
+A build from `main` does not take the tip of the branch: the workflows
+(build-images, and publish-packages in freedomnas-deb and freedomnas-arch)
+look up the newest release tag, `vX.Y.Z`, and check every repository out
+at it. The tag has the same name in every FreedomNAS repository, so a
+release is cut by raising the version on `dev`, moving `main` onto it and
+tagging every repository; until the tag exists, `main` keeps building the
+previous release. An image built at a tag reports the plain version, without
+the snapshot suffix.
+
 
 | Format | Snapshot version |
 |--------|------------------|
