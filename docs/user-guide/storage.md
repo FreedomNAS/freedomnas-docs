@@ -182,6 +182,12 @@ choice appears in **Create Pool** at the Advanced level, to create a pool with
 several data vdevs and special, dedup or spare vdevs in one go; leaving every
 disk on **Not used** creates the usual single-vdev pool.
 
+**Live I/O** shows what the pool is reading and writing right now, measured
+every two seconds with `zpool iostat`: a graph of the last two minutes (read
+and write throughput) and a table with operations and bytes per second for
+the pool and for each vdev and device. Measuring stops when you leave the
+page.
+
 !!! warning "Expert level"
     At the **Expert** level the pool page also offers **Pool properties**
     (autotrim, autoexpand, autoreplace, comment, failmode, listsnapshots,
@@ -191,6 +197,16 @@ disk on **Not used** creates the usual single-vdev pool.
     offline until reboot** for a device and internal events in the history.
     Upgrade and New GUID are refused on the pool the system boots from: the
     boot loader or the initramfs might no longer find it.
+
+### ARC — read cache in RAM
+
+!!! info "Advanced level required"
+    Visible at **Advanced** UI level and above.
+
+Above the pool cards, the **ARC** card shows how much RAM ZFS uses as read
+cache, its current target and maximum, and the share of reads served from
+RAM since boot. When a pool has a cache device, the L2ARC size and its hit
+rate are shown too. A high hit rate means most reads never touch the disks.
 
 ## Datasets Tab
 
@@ -267,6 +283,18 @@ Each dataset that is not a system one has a **More…** menu:
   snapshot it was made from; the origin becomes a clone of it instead.
 - **User properties…** (Expert) — free properties with a colon in the name,
   such as `com.example:note`, inherited by the children like any other.
+
+- **Delegated permissions…** (Expert) — let ordinary users or groups run
+  some `zfs` commands on the dataset themselves (`zfs allow`), for example
+  `snapshot,send` for a backup user. Grant to **Users**, **Groups**,
+  **Everyone**, **Whoever creates a dataset below** (permissions the creator
+  of a new child dataset gets on it), or define a **permission set**
+  (`@name`) to reuse in other grants. **Applies to** limits a grant to this
+  dataset only or to the datasets below it. Beside the ticked permissions,
+  more permissions, property names or `@sets` can be typed, comma separated.
+  The list at the top shows what is delegated now, with **Revoke** on each
+  line. Delegation works only when the pool's `delegation` property is on
+  (the default).
 
 **Create Volume** creates a zvol — a block device rather than a directory,
 for virtual machines or iSCSI — inside a dataset: its size (`40G`), whether
@@ -374,6 +402,26 @@ from where it stopped, **Discard** throws away what was received.
 
 **Receive from a stream file** loads a file written by **A stream file** into
 a dataset.
+
+## Events Tab
+
+!!! warning "Expert level required"
+    The Events tab is visible at the **Expert** UI level only.
+
+The ZFS event log (`zpool events`): what the ZFS kernel module reported since
+boot — pools imported or changed, scrubs and resilvers started and finished,
+device errors and checksum problems — newest first. Click an event to see
+all its fields. Error reports are shown in red.
+
+- **Filter** searches the event names and their fields.
+- **Errors only** keeps the error reports.
+- **Hide command history** (ticked by default) leaves out the
+  `history_event` entries, one for every `zpool`/`zfs` command run, which
+  would otherwise fill the list.
+- **Clear all** empties the log for every pool. Use it after a problem has
+  been fixed, to see whether new errors show up.
+
+The log lives in kernel memory: it starts empty after a reboot.
 
 ## Disks Tab
 

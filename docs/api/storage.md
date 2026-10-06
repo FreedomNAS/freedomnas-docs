@@ -998,3 +998,86 @@ The same body as `replicate`; answers `{ "size": 2151268360 }` from
 job is writing into. `resume` takes `{ "target": "backup/data" }` and reads
 the token from ZFS itself — the client never sends one; `abort` is
 `zfs receive -A`.
+
+---
+
+## Delegated permissions
+
+`zfs allow` / `zfs unallow`. Who and which permissions reach the profile as
+`multi_args`, which the engine does not check for a leading `-`, so
+`freedomnas.delegation` validates them: permissions and properties are
+lower-case names (`send:raw`, `@set` allowed), users and groups are plain
+account names.
+
+### `GET /api/storage/delegations/{dataset}/list`
+
+```json
+{ "dataset": "tank/data", "delegations": [
+  { "section": "Local+Descendent permissions", "who": "user", "name": "backup",
+    "scope": "both", "perms": ["send", "snapshot"] },
+  { "section": "Permission sets", "who": "set", "name": "@backup",
+    "scope": "both", "perms": ["hold", "send"] } ] }
+```
+
+`who` is `user`, `group`, `everyone`, `create` (create-time permissions) or
+`set`; `scope` is `both`, `local` or `descendent`.
+
+### `POST /api/storage/delegations/{dataset}/grant` · `/revoke`
+
+```json
+{ "who": "user", "names": "backup,sarah", "scope": "both",
+  "perms": ["snapshot", "send"] }
+```
+
+`names` (for `user`/`group`) and `perms` take a list or a comma-separated
+string; `set` holds the `@name` when `who` is `set`. `create` and `set`
+always apply to the dataset and its children. A grant needs at least one
+permission; a revoke without permissions removes everything that principal
+has. `422` for an invalid name, permission or scope, `404` for another
+action.
+
+## Events, I/O and ARC
+
+### `GET /api/storage/events` · `POST /api/storage/events/clear`
+
+`zpool events -H -v`, newest first (at most 1000):
+
+```json
+{ "events": [ { "time": "Oct  4 2026 20:51:02.123456789",
+  "class": "sysevent.fs.zfs.scrub_finish", "short": "scrub_finish",
+  "error": false, "pool": "tank",
+  "fields": { "pool": "tank", "pool_guid": "0x…", "…": "…" } } ] }
+```
+
+`error` is true for `ereport.*` classes. `clear` empties the log of every
+pool (`zpool events -c`) and answers `{ "cleared": true }`.
+
+### `GET /api/storage/pools/{pool}/iostat`
+
+One second of `zpool iostat -Hpvy`: the pool first, then each vdev and
+device. Rates are per second.
+
+```json
+{ "pool": "tank", "devices": [
+  { "name": "tank", "alloc": 5368709120, "free": 26843545600,
+    "read_ops": 12, "write_ops": 340, "read_bytes": 98304,
+    "write_bytes": 41943040 },
+  { "name": "mirror-0", "…": "…" } ] }
+```
+
+The call takes about a second; the pool page polls it every two seconds
+while it is open.
+
+### `GET /api/storage/arc`
+
+```json
+{ "size": 4294967296, "target": 4294967296, "max": 8589934592,
+  "min": 268435456, "hits": 1203345, "misses": 41020, "hit_ratio": 96.7,
+  "l2_size": 0, "l2_hits": 0, "l2_misses": 0, "l2_hit_ratio": null }
+```
+
+Read from `/proc/spl/kstat/zfs/arcstats` on Linux or
+`kstat.zfs.misc.arcstats` on FreeBSD. A ratio is `null` until there has been
+a hit or a miss; `404` when the system has no ARC statistics (ZFS not
+loaded).
+
