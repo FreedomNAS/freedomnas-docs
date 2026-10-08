@@ -119,6 +119,10 @@ this).
 | `mac_set` | Give `{interface}` the MAC address `{mac}` of its first port (FreeBSD: `net.link.bridge.inherit_mac=1`, `if_bridge` loaded by the loader) |
 | `port_activate` / `virtual_activate` | Bring a port, then the bridge/bond/VLAN, up with its configuration |
 | `virtual_delete` / `port_release` | Remove `{interface}` and what keeps it across reboots; give `{port}` back to the default configuration (DHCP) |
+| `wg_write` | Write the WireGuard file for `{interface}` from stdin, `0600` (one `sh -c`: commands fed on stdin never get a shell) |
+| `wg_apply` / `wg_remove` / `wg_exists` | Bring it up so it survives a reboot (NetworkManager import; FreeBSD `wg-quick` + `rc.conf`, output to `/var/log/freedomnas-wireguard.log` because wg-quick leaves a route monitor holding stdout), take it away, print `yes` when it is there |
+| `wg_dump` | `wg show {interface} dump` |
+| `qr_svg` | QR code of stdin as SVG (`qrencode -t SVG -o -`) |
 | `checkpoint_create` | Take a checkpoint that undoes itself after `{rollback_seconds}` and print its id (NetworkManager `CheckpointCreate` through `gdbus`, flags 3: destroy older ones, delete new connections on rollback; FreeBSD: copies of `rc.conf`/`resolvconf.conf` and a `daemon(8)` timer) |
 | `checkpoint_destroy` / `checkpoint_rollback` | Keep the change made since `{checkpoint}`, or undo it now |
 | `apply_config` | Apply pending network configuration |

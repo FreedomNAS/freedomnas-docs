@@ -217,3 +217,18 @@ uses it.
 
 `GET /api/network/config` also returns `entries`: every entry of
 `network.interfaces` (type, ports, parent, mode, master, MAC address).
+
+## WireGuard
+
+All routes need authentication. The private key never leaves the server in
+any response (`GET /api/network/config` leaves it out too).
+
+| Route | What it does |
+|-------|--------------|
+| `GET /api/network/wireguard` | `{"server": {...address, listen_port, endpoint, dns, public_key}, "peers": [{name, address, public_key, latest_handshake, rx, tx, endpoint}]}`, or `{"server": null}` |
+| `POST /api/network/wireguard` | `{"endpoint", "listen_port"?, "address"?, "dns"?}` → creates `fnas_wg1` (`wg_write` with the wg-quick file on stdin, `wg_apply`); 409 if it exists, 422 for a bad value |
+| `DELETE /api/network/wireguard` | `wg_remove` and forget it |
+| `POST /api/network/wireguard/peers` | `{"name"}` → a new device: `{"peer", "config", "qr_svg"}` — the configuration holds its private key and is returned only here (`qr_svg` from `network.qr_svg`, `qrencode -t SVG`) |
+| `DELETE /api/network/wireguard/peers/{name}` | the device can no longer connect |
+
+Status comes from `network.wg_dump` (`wg show <if> dump`).

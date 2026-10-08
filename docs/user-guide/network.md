@@ -135,6 +135,43 @@ bridges, as long as their ports are there.
 | Linux | NetworkManager connections `fnas-fnas_bridge1` (type bridge/bond/vlan) and one `fnas-fnas_lanN` per port, attached to it |
 | FreeBSD | `cloned_interfaces` + `ifconfig_bridgeN_name` / `ifconfig_laggN_name`, `ifconfig_<name>` with the address and `addm`/`laggproto`/`laggport`, ports `ifconfig_<port>="up"`; VLANs `vlans_<parent>` + `create_args_<name>="vlan <ID>"` |
 
+## WireGuard VPN
+
+!!! info "Expert level required"
+    The **WireGuard VPN** card is only visible at **Expert** UI level.
+
+A VPN to reach the NAS itself — shares, WebUI, SSH — from a phone or a
+laptop outside your home.
+
+1. Fill in the card and click **Create VPN**:
+
+| Field | Description | Default |
+|-------|-------------|---------|
+| **Public address** | the name or IP your devices reach your home at from the internet (a dynamic DNS name if your IP changes) | — |
+| **Port (UDP)** | forward it on your router to the NAS | `51820` |
+| **VPN network** | the NAS's address inside the VPN; must not overlap a network the NAS is on | `10.10.0.1/24` |
+| **DNS for the devices** | optional | — |
+
+2. **Add device**: give it a name. The dialog shows its configuration as a
+   **QR code** (scan it with the WireGuard app) and as text, with
+   **Download .conf** for a computer. It holds the device's private key and
+   is **shown only once**: the NAS keeps only the public key.
+3. Each device gets the next free address; its row shows the last contact
+   and the traffic. **Remove** stops that device at once.
+
+The devices reach the NAS at its VPN address (`10.10.0.1` by default), not
+the rest of your LAN. **Remove VPN** deletes it; creating it again makes a
+new key, so every device needs a new configuration.
+
+The NAS's side is kept in `config.yaml` (with its private key, so a restore
+brings the same VPN back and the devices keep working) and written in the
+wg-quick format, `0600`: `/etc/freedomnas/wireguard/fnas_wg1.conf`,
+imported into NetworkManager as `fnas-fnas_wg1`, on Linux;
+`/usr/local/etc/wireguard/fnas_wg1.conf` with `wireguard_enable`/
+`wireguard_interfaces` in `rc.conf` on FreeBSD. It needs `wireguard-tools`
+and `qrencode` (installed with FreedomNAS; on systems installed before,
+install them by hand).
+
 ## Network Stack
 
 Every Linux edition manages the network with NetworkManager; FreeBSD uses
