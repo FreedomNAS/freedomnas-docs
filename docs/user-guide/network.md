@@ -39,14 +39,42 @@ once, kept across reboots, and recorded in `config.yaml`:
 
 | Edition | Where it is kept |
 |---------|------------------|
-| Debian | a NetworkManager connection of its own, `fnas-<interface>`, which takes precedence over the automatic one |
-| Arch, Artix, Gentoo, Void | a block between `# freedomnas begin <interface>` and `# freedomnas end <interface>` in `/etc/dhcpcd.conf`, applied with `dhcpcd -n <interface>` |
+| Debian, Arch, Artix, Gentoo, Void | a NetworkManager connection of its own, `fnas-<interface>`, which takes precedence over the automatic one |
 | FreeBSD | `rc.conf` (`ifconfig_<interface>`, `defaultrouter`) and `resolvconf.conf`, through `sysrc` |
 
 Setting a new address replaces the previous one; `network.set_dynamic_ip`
-removes it again (the `fnas-` connection, or the `dhcpcd.conf` block) and
+removes it again (the `fnas-` connection, or the `rc.conf` entry) and
 the interface goes back to DHCP. The reconciler does not restore interfaces:
 after reflashing the system disk, set the address again.
+
+## Network Stack
+
+Every Linux edition manages the network with NetworkManager; FreeBSD uses
+`rc.conf`. A fresh install gets its address over DHCP from NetworkManager's
+automatic wired connection, and DNS servers end up in `/etc/resolv.conf`
+(through systemd-resolved on Debian and Arch, openresolv on Artix and Void).
+
+| Edition | Services enabled by the installer |
+|---------|-----------------------------------|
+| Debian, Arch | `NetworkManager` (systemd) |
+| Artix OpenRC, Gentoo | `NetworkManager` (starts `dbus` itself) |
+| Artix dinit | `NetworkManager` (depends on `dbus`) |
+| Artix runit, Void | `dbus` and `NetworkManager` |
+
+### Systems installed with dhcpcd
+
+Arch, Artix, Gentoo and Void installs made before NetworkManager became the
+stack use dhcpcd. Move them over from the console, not over SSH:
+
+1. Install NetworkManager (`networkmanager` + `networkmanager-<init>` on
+   Artix, `NetworkManager` on Void, `net-misc/networkmanager` on Gentoo)
+2. Stop and disable `dhcpcd`, then enable and start `NetworkManager`
+   (and `dbus` on runit). Never run both: dhcpcd rewrites
+   `/etc/resolv.conf` behind NetworkManager's back.
+3. If the system had a static address, the block between
+   `# freedomnas begin <interface>` and `# freedomnas end <interface>` in
+   `/etc/dhcpcd.conf` is no longer read: set the address again from this
+   page.
 
 !!! warning
     Changing the IP address of the interface you're using to access the

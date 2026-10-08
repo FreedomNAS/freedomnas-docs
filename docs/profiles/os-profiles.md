@@ -98,7 +98,7 @@ this).
 |-----|---------|
 | `list_interfaces` | List all interfaces in JSON format |
 | `list_interfaces_json` | Detailed interface info (FreeBSD: `ifconfig -j`) |
-| `set_static_ip` | Static IPv4 address that survives a reboot: NetworkManager connection `fnas-{interface}` (Debian), a marked block in `/etc/dhcpcd.conf` + `dhcpcd -n` (Arch, Artix, Gentoo, Void), `sysrc` (FreeBSD) |
+| `set_static_ip` | Static IPv4 address that survives a reboot: NetworkManager connection `fnas-{interface}` (Linux editions), `sysrc` (FreeBSD) |
 | `set_dynamic_ip` | Undo it: back to DHCP |
 | `apply_config` | Apply pending network configuration |
 | `get_interface_details` | Read details of one interface |
