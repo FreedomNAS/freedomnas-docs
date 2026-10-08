@@ -95,6 +95,45 @@ alone, so a normal boot never re-applies the network.
 | Debian, Arch, Artix, Gentoo, Void | a NetworkManager connection of its own, `fnas-<interface>`, which takes precedence over the automatic one |
 | FreeBSD | `rc.conf` (`ifconfig_<interface>`, `ifconfig_<interface>_ipv6`, `defaultrouter`, `ipv6_defaultrouter`) and `resolvconf.conf`, through `sysrc` |
 
+## Bridges, Bonds and VLANs
+
+!!! info "Advanced level required"
+    **Add bridge, bond or VLAN** and **Remove** are only visible at
+    **Advanced** UI level and above; Spanning Tree only at **Expert**.
+
+| Type | What it is for | Name |
+|------|----------------|------|
+| **Bridge** | joins network cards into one network: virtual machines and containers get addresses on your LAN through it | `fnas_bridge1`, `fnas_bridge2`, … |
+| **Bond** | several cards working as one. **LACP** (802.3ad) adds their speed and needs a switch that supports it; **Failover** uses one card and switches to another when its link goes down | `fnas_bond1`, … |
+| **VLAN** | a tagged virtual network (802.1Q) on a card, bond or bridge | `fnas_vlan<ID>`, e.g. `fnas_vlan10` |
+
+- The ports of a bridge or a bond are network cards (`fnas_lanN`) not
+  already used elsewhere. A bond needs at least two.
+- A bridge or a bond **takes the MAC address of its first port**, so a
+  DHCP reservation on your router keeps giving the same address. On
+  FreeBSD the bridge inherits it through `net.link.bridge.inherit_mac=1`
+  (and `if_bridge` is loaded at boot so the setting exists in time); a
+  lagg does it by itself.
+- It **takes over the address settings of its first port**, and its ports
+  have no address of their own: a card shows *Port of fnas_bridge1* and
+  has no **Configure** button. Configure the bridge or bond instead.
+- A new VLAN gets its address by DHCP; change it with **Configure**.
+- Creating or removing one runs under the same 90-second checkpoint as a
+  change of address: if you lose the WebUI, it is undone by itself.
+- **Remove** gives the ports back to DHCP. A bond or bridge that a VLAN
+  still uses cannot be removed.
+- On FreeBSD a bridge always has the MTU of its ports, and Spanning Tree
+  is not set.
+
+The reconciler creates them again at boot when the system does not have
+them (after a reflash or on new hardware), bonds and VLANs first, then
+bridges, as long as their ports are there.
+
+| Edition | Where it is kept |
+|---------|------------------|
+| Linux | NetworkManager connections `fnas-fnas_bridge1` (type bridge/bond/vlan) and one `fnas-fnas_lanN` per port, attached to it |
+| FreeBSD | `cloned_interfaces` + `ifconfig_bridgeN_name` / `ifconfig_laggN_name`, `ifconfig_<name>` with the address and `addm`/`laggproto`/`laggport`, ports `ifconfig_<port>="up"`; VLANs `vlans_<parent>` + `create_args_<name>="vlan <ID>"` |
+
 ## Network Stack
 
 Every Linux edition manages the network with NetworkManager; FreeBSD uses

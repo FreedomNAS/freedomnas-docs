@@ -111,6 +111,13 @@ this).
 | `dns_set` / `dns_auto` | DNS servers `{dns}` (IPv4) and `{dns6}` (IPv6), search domains `{dns_search}`; or the ones DHCP gives |
 | `mtu_set` / `mtu_auto` | MTU `{mtu}`, or the default |
 | `connection_activate` | Apply what the steps above wrote (NetworkManager: `nmcli --wait 45 connection up`; FreeBSD: `service netif restart {interface}`, `service routing restart`, `resolvconf -u`) |
+| `bridge_create` / `bond_create` / `vlan_create` | Create `{interface}` (VLAN: on `{parent}` with ID `{vlan_id}`) so it survives a reboot |
+| `bridge_stp_on` / `bridge_stp_off` | Spanning Tree on the bridge (FreeBSD: nothing) |
+| `bond_mode_lacp` / `bond_mode_failover` | Bond mode: 802.3ad / active-backup (FreeBSD lagg: `lacp` / `failover`) |
+| `bridge_port_add` / `bond_port_add` | Make `{port}` a port of `{interface}`, without an address of its own |
+| `mac_set` | Give `{interface}` the MAC address `{mac}` of its first port (FreeBSD: `net.link.bridge.inherit_mac=1`, `if_bridge` loaded by the loader) |
+| `port_activate` / `virtual_activate` | Bring a port, then the bridge/bond/VLAN, up with its configuration |
+| `virtual_delete` / `port_release` | Remove `{interface}` and what keeps it across reboots; give `{port}` back to the default configuration (DHCP) |
 | `checkpoint_create` | Take a checkpoint that undoes itself after `{rollback_seconds}` and print its id (NetworkManager `CheckpointCreate` through `gdbus`, flags 3: destroy older ones, delete new connections on rollback; FreeBSD: copies of `rc.conf`/`resolvconf.conf` and a `daemon(8)` timer) |
 | `checkpoint_destroy` / `checkpoint_rollback` | Keep the change made since `{checkpoint}`, or undo it now |
 | `apply_config` | Apply pending network configuration |

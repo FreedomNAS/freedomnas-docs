@@ -177,3 +177,39 @@ token is single use and only valid for the change that is waiting.
 ### POST /api/network/revert
 
 **Auth required:** yes. Undoes the pending change at once.
+
+### POST /api/network/virtual
+
+**Auth required:** yes. Creates a bridge, bond or VLAN under the checkpoint
+(202, pending, plus `entry`: what will be saved).
+
+```json
+{"type": "bridge", "ports": ["fnas_lan1"], "stp": false, "config": {"method": "dhcp"}}
+{"type": "bond", "ports": ["fnas_lan1", "fnas_lan2"], "mode": "lacp", "config": {...}}
+{"type": "vlan", "parent": "fnas_lan1", "vlan_id": 10, "config": {...}}
+```
+
+`config` takes the same fields as `PUT /interfaces/{name}`. `mode` is
+`lacp` or `failover`. The name is chosen by the server (`fnas_bridgeN`,
+`fnas_bondN`, `fnas_vlan<ID>`); a bridge or bond records the MAC address of
+its first port. Steps: `<type>_create`, the address steps,
+`bridge_stp_on|off` or `bond_mode_lacp|failover`, `<type>_port_add` per
+port, `mac_set`, `port_activate` per port, `virtual_activate`.
+
+On confirmation the entry is saved under `network.interfaces` and each
+port's entry gets `master` (and loses its own `config`). `PUT
+/interfaces/{port}` on a port answers 409.
+
+| Code | Detail |
+|------|--------|
+| 422 | Unknown type, a port that does not exist or is already used, fewer than two ports for a bond, a VLAN ID outside 1–4094 or already used |
+
+### DELETE /api/network/virtual/{name}
+
+**Auth required:** yes. Removes a bridge, bond or VLAN under the
+checkpoint (`virtual_delete`, `port_release` per port; the ports go back to
+DHCP). 404 for anything else, 409 while a VLAN or another interface still
+uses it.
+
+`GET /api/network/config` also returns `entries`: every entry of
+`network.interfaces` (type, ports, parent, mode, master, MAC address).
