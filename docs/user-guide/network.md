@@ -16,6 +16,30 @@ The list comes from the edition's `network.list_interfaces` command
 (`ip -j addr show` on Linux) or, on FreeBSD, `network.list_interfaces_json`.
 The refresh button in the page header reloads it.
 
+## Interface Names
+
+Every physical network card gets a FreedomNAS name, the same on every
+edition: `fnas_lan1`, `fnas_lan2`, … — instead of `enp3s0`, `eth0` or
+`em0`, which depend on the distribution and the hardware. The name follows
+the card's **MAC address**, recorded in `config.yaml`
+(`network.interfaces_mapping`), so it never moves to another card:
+
+- a new install or a freshly written image names its cards at the first
+  boot, in the order the system lists them
+- a card whose MAC is recorded always gets its own name back
+- when a recorded card is gone — the configuration was restored onto new
+  hardware, or a card was replaced — its name, and the addresses
+  configured under it, go to a card that has no name yet; the boot log of
+  the reconciler says which (`fnas_lan1 moved to the card … (it was on …)`)
+- cards still left over get the next free numbers
+
+The names are kept by the system itself, so they are there from the very
+start of every boot: a udev rule per card in
+`/etc/udev/rules.d/70-freedomnas-net.rules` on Linux,
+`ifconfig_<driver>_name="fnas_lanN"` in `rc.conf` on FreeBSD. The cards
+are renamed live only at boot, when a name is missing: renaming the card
+you are connected through would cut the connection.
+
 ## Configuring an Interface
 
 !!! info "Advanced level required"

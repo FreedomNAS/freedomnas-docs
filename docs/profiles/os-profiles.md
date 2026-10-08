@@ -100,6 +100,10 @@ this).
 | `list_interfaces_json` | Detailed interface info (FreeBSD: `ifconfig -j`) |
 | `set_static_ip` | Static IPv4 address that survives a reboot: NetworkManager connection `fnas-{interface}` (Linux editions), `sysrc` (FreeBSD) |
 | `set_dynamic_ip` | Undo it: back to DHCP |
+| `list_physical` | Physical cards, one per line: `name mac driver` (Linux: those with `/sys/class/net/<name>/device`; FreeBSD: `ifconfig -l ether` minus cloned interfaces, driver from `ifconfig -v`) |
+| `names_clear` / `name_persist` | Forget the FreedomNAS names, then give card `{mac}` (`{driver}` on FreeBSD) the name `{new_name}` from the next boot on: udev rule in `/etc/udev/rules.d/70-freedomnas-net.rules`, or `ifconfig_{driver}_name` in `rc.conf` |
+| `rename_interface` | Rename `{old_name}` to `{new_name}` now |
+| `connection_rename` | Move the configuration of `{old_name}` to `{new_name}`: the `fnas-` NetworkManager connection, or the `ifconfig_` lines in `rc.conf` |
 | `connection_ensure` | Create the `fnas-{interface}` NetworkManager connection if missing (FreeBSD: nothing) |
 | `connection_exists` | Print `yes` when FreedomNAS already configured `{interface}` (the reconciler leaves it alone) |
 | `ipv4_dhcp` / `ipv4_static` | IPv4 by DHCP, or `{ip}/{cidr}` with `{gateway}` (may be empty) |
