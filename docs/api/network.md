@@ -133,6 +133,7 @@ when the change is confirmed.
 | `dns_search` | list or string | search domains |
 | `ipv6_method` | `auto` (default), `static`, `disabled` | |
 | `ipv6`, `ipv6_prefix`, `ipv6_gateway` | IPv6 address, 1–128 (default 64), IPv6 address or empty | `static` only |
+| `routes` | list of `{"destination", "gateway"}`, or lines `destination gateway` | static routes through this interface; not the default route |
 | `mtu` | 576–9216, or empty for the interface default | |
 
 **Response 202:** the pending change, plus a one-time `token`:
@@ -144,7 +145,10 @@ when the change is confirmed.
 
 The steps run in the background: `network.connection_ensure`, then
 `ipv4_dhcp` or `ipv4_static`, `ipv6_auto`/`ipv6_static`/`ipv6_disabled`,
-`dns_set` or `dns_auto`, `mtu_set` or `mtu_auto`, `connection_activate`.
+`dns_set` or `dns_auto`, `mtu_set` or `mtu_auto`, `routes_set`, `connection_activate`.
+For a bridge, bond or VLAN the same address steps run inside its own steps
+(ports, mode and MAC written again, `virtual_activate`), without creating it
+again: on FreeBSD they share one `rc.conf` line with the address.
 If one fails the checkpoint is rolled back at once and the pending change
 shows `state: "failed"` with the error.
 

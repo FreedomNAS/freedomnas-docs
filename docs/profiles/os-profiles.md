@@ -110,6 +110,7 @@ this).
 | `ipv6_auto` / `ipv6_static` / `ipv6_disabled` | IPv6 automatic, `{ipv6}/{ipv6_prefix}` with `{ipv6_gateway}`, or off |
 | `dns_set` / `dns_auto` | DNS servers `{dns}` (IPv4) and `{dns6}` (IPv6), search domains `{dns_search}`; or the ones DHCP gives |
 | `mtu_set` / `mtu_auto` | MTU `{mtu}`, or the default |
+| `routes_set` | Replace the static routes of `{interface}` with `{routes}`: words `destination=gateway` (a `multi_args` variable). NetworkManager `ipv4.routes`/`ipv6.routes`; FreeBSD `static_routes`/`ipv6_static_routes` entries `rt_<interface>_N` |
 | `connection_activate` | Apply what the steps above wrote (NetworkManager: `nmcli --wait 45 connection up`; FreeBSD: `service netif restart {interface}`, `service routing restart`, `resolvconf -u`) |
 | `bridge_create` / `bond_create` / `vlan_create` | Create `{interface}` (VLAN: on `{parent}` with ID `{vlan_id}`) so it survives a reboot |
 | `bridge_stp_on` / `bridge_stp_off` | Spanning Tree on the bridge (FreeBSD: nothing) |

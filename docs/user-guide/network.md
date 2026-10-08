@@ -59,6 +59,7 @@ you are connected through would cut the connection.
 | **Search Domains** | domains tried for short names | `lan, home.arpa` |
 | **IPv6** (Expert) | *Automatic*, *Static address* or *Disabled* | |
 | **IPv6 Address** / **Prefix** / **Gateway** (Expert) | static only | `fd00::50` / `64` / `fd00::1` |
+| **Static Routes** (Expert) | one per line: a network and the gateway that reaches it through this interface; IPv4 or IPv6 (IPv6 needs IPv6 on) | `10.20.0.0/16 192.168.1.254` |
 | **MTU** (Expert) | empty for the default; 9000 for jumbo frames, only if every device on the network supports them | `9000` |
 
 3. Click **Apply**
