@@ -93,6 +93,7 @@ the snapshot suffix.
 | Arch | `0.9.11+<yyyymmddHHMMSS>.<commit>-1` |
 | Gentoo (live ebuilds) | `0.9.11+git.<commit>` in `VERSION` and the documentation |
 | FreeBSD | `0.9.11.<yyyymmddhhmm>` (pkg's own form) |
+| Void | `0.9.11.<yyyymmddHHMMSS>_1` (xbps refuses `+`; release `0.9.11_1`) |
 | Images | `0.9.11+<yyyymmddHHMMSS>.<commit>` |
 
 `0.9.11+...` sorts after `0.9.11` and before `1.0` everywhere.
