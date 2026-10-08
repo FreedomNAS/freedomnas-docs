@@ -30,7 +30,7 @@ init.
 
 `freedomnas-arch` holds the Arch PKGBUILDs of the four components, which
 used to sit in their own repositories and now build from a branch with
-snapshot versions (`0.9.10+<commit date and time>.<commit>`), and the scripts
+snapshot versions (`0.9.11+<commit date and time>.<commit>`), and the scripts
 and workflow that build and publish every Arch package. `linux-freedomnas`
 has a repository of its own: Arch's `linux-lts` with the OpenZFS modules
 built into the same package, plus `zfs-utils-freedomnas` at the matching

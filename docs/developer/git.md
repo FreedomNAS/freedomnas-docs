@@ -46,7 +46,7 @@ bash -c 'eval "$(ssh-agent -s)" && ssh-add ~/.ssh/codeberg-nas && git push'
 - `dev` — where work happens; every push publishes snapshots
 - `main` — stable, always deployable: `dev` is moved onto it only once a
   snapshot has been tested on real hardware, and the release is tagged
-  (`v0.9.9` is the first, `v0.9.10` the next). In freedomnas-image-builder and
+  (`v0.9.9` is the first, then `v0.9.10`, `v0.9.11`). In freedomnas-image-builder and
   freedomnas-module-template `master` follows `main`.
 - Images: built from `main` they are the stable images and install only
   from the `main` package component; built from `dev` they install only
