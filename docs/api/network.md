@@ -91,3 +91,89 @@ All four fields are required. `dns` may be a list or a space-separated string.
 !!! warning
     Changing the IP of the interface you are using to access the WebUI will
     immediately disconnect your session. Reconnect at the new address.
+
+---
+
+## Interface configuration with automatic rollback
+
+The Network page uses these routes. A change is applied under a
+**checkpoint**: unless it is confirmed within 90 seconds
+(`ROLLBACK_SECONDS`), the system puts the previous configuration back by
+itself, so a wrong address cannot lock the administrator out. On Linux the
+checkpoint is NetworkManager's own (`CheckpointCreate` over D-Bus with
+`gdbus`, rollback timeout 90 s); on FreeBSD a copy of `rc.conf` and
+`resolvconf.conf` plus a `daemon(8)` timer that restores them. Only one
+change can wait for confirmation at a time. `config.yaml` is written only
+when the change is confirmed.
+
+### GET /api/network/config
+
+**Auth required:** yes
+
+```json
+{
+  "interfaces": {
+    "eth0": {"method": "static", "ip": "192.168.1.50", "cidr": 24, "gateway": "192.168.1.1",
+             "dns": ["1.1.1.1"], "dns_search": ["lan"], "ipv6_method": "auto", "mtu": null}
+  },
+  "rollback_seconds": 90,
+  "pending": {"pending": false}
+}
+```
+
+### PUT /api/network/interfaces/{name}
+
+**Auth required:** yes
+
+| Field | Values | Notes |
+|-------|--------|-------|
+| `method` | `dhcp` (default) or `static` | IPv4 |
+| `ip`, `cidr`, `gateway` | IPv4 address, 1–32, IPv4 address or empty | `static` only; the gateway must be inside the subnet |
+| `dns` | list, or a string separated by spaces/commas | IPv4 and IPv6 servers; at least one with `static`; empty with DHCP = the servers DHCP gives |
+| `dns_search` | list or string | search domains |
+| `ipv6_method` | `auto` (default), `static`, `disabled` | |
+| `ipv6`, `ipv6_prefix`, `ipv6_gateway` | IPv6 address, 1–128 (default 64), IPv6 address or empty | `static` only |
+| `mtu` | 576–9216, or empty for the interface default | |
+
+**Response 202:** the pending change, plus a one-time `token`:
+
+```json
+{"pending": true, "interface": "eth0", "state": "applying", "seconds_left": 89,
+ "config": {...}, "error": null, "token": "…"}
+```
+
+The steps run in the background: `network.connection_ensure`, then
+`ipv4_dhcp` or `ipv4_static`, `ipv6_auto`/`ipv6_static`/`ipv6_disabled`,
+`dns_set` or `dns_auto`, `mtu_set` or `mtu_auto`, `connection_activate`.
+If one fails the checkpoint is rolled back at once and the pending change
+shows `state: "failed"` with the error.
+
+| Code | Detail |
+|------|--------|
+| 409 | Another change is waiting for confirmation |
+| 422 | A value is not valid (the message says which) |
+| 500 | The checkpoint could not be created: nothing was applied |
+
+### GET /api/network/pending
+
+**Auth required:** yes. `{"pending": false}` (with `"expired": true` when
+the last change was undone because nobody confirmed it), or the pending
+change with `state` = `applying`, `waiting` or `failed` and `seconds_left`.
+
+### POST /api/network/confirm
+
+**Auth required:** yes. Keeps the change (destroys the checkpoint) and
+saves the configuration into `config.yaml` under
+`network.interfaces[].config`. 409 when nothing is waiting or it is too
+late.
+
+### POST /api/network/confirm-token
+
+**Auth required:** no — `{"token": "…"}`, the token `PUT` returned. When
+the address changes, the browser moves to the new address and calls this
+route from there: reaching it is the proof that the new settings work. The
+token is single use and only valid for the change that is waiting.
+
+### POST /api/network/revert
+
+**Auth required:** yes. Undoes the pending change at once.

@@ -16,36 +16,60 @@ The list comes from the edition's `network.list_interfaces` command
 (`ip -j addr show` on Linux) or, on FreeBSD, `network.list_interfaces_json`.
 The refresh button in the page header reloads it.
 
-## Editing IP Configuration
+## Configuring an Interface
 
 !!! info "Advanced level required"
-    The **Edit IP** button is only visible at **Advanced** UI level and above.
-    The loopback interface has none.
+    The **Configure** button is only visible at **Advanced** UI level and
+    above. IPv6 and MTU are only shown at **Expert** level. The loopback
+    interface has none.
 
-1. Click **Edit IP** on an interface card
+1. Click **Configure** on an interface card
 2. Fill in the dialog:
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| **IP Address** | IPv4 address | `192.168.1.50` |
-| **Prefix** | Subnet mask as CIDR | `24` |
-| **Gateway** | Default gateway | `192.168.1.1` |
-| **DNS Servers** | DNS addresses, separated by spaces or commas | `1.1.1.1 8.8.8.8` |
+| **IPv4** | *Automatic (DHCP)* or *Static address* | |
+| **IP Address** / **Prefix** | static only | `192.168.1.50` / `24` |
+| **Gateway** | static only, inside the subnet; may stay empty | `192.168.1.1` |
+| **DNS Servers** | IPv4 or IPv6 addresses, separated by commas. Required with a static address; empty with DHCP means the servers DHCP gives | `1.1.1.1, 9.9.9.9` |
+| **Search Domains** | domains tried for short names | `lan, home.arpa` |
+| **IPv6** (Expert) | *Automatic*, *Static address* or *Disabled* | |
+| **IPv6 Address** / **Prefix** / **Gateway** (Expert) | static only | `fd00::50` / `64` / `fd00::1` |
+| **MTU** (Expert) | empty for the default; 9000 for jumbo frames, only if every device on the network supports them | `9000` |
 
 3. Click **Apply**
 
-The address is set with the edition's `network.set_static_ip`, applied at
-once, kept across reboots, and recorded in `config.yaml`:
+### Confirmation and automatic rollback
+
+A network change can cut you off from the WebUI, so it is never final
+straight away:
+
+- the system takes a checkpoint, applies the change and waits **90 seconds**
+  for a confirmation; without one it **puts the previous configuration
+  back by itself**
+- if the address of the page you are using stays the same, a dialog shows
+  the countdown with **Keep these settings** and **Undo now**
+- if you gave the interface a **new static address**, the browser **moves to
+  the new address by itself**: reaching it confirms the change. Log in
+  again there (the browser treats a new address as a new site, and shows
+  the certificate warning again)
+- if you switched to **DHCP** and the address changes, the browser cannot
+  know the new one: look it up on your router or on the console, and open
+  the Network page there within 90 seconds — a banner offers **Keep**
+- if the new settings cannot be applied at all (a cable unplugged, no DHCP
+  answer), they are undone at once and the error is shown
+
+The configuration is written to `config.yaml` only once it is confirmed.
+After reflashing the system disk, or on new hardware with the same
+interface names, the reconciler gives each interface its configuration
+back at boot. An interface that already has its `fnas-<interface>`
+connection (FreeBSD: an `ifconfig_<interface>` line in `rc.conf`) is left
+alone, so a normal boot never re-applies the network.
 
 | Edition | Where it is kept |
 |---------|------------------|
 | Debian, Arch, Artix, Gentoo, Void | a NetworkManager connection of its own, `fnas-<interface>`, which takes precedence over the automatic one |
-| FreeBSD | `rc.conf` (`ifconfig_<interface>`, `defaultrouter`) and `resolvconf.conf`, through `sysrc` |
-
-Setting a new address replaces the previous one; `network.set_dynamic_ip`
-removes it again (the `fnas-` connection, or the `rc.conf` entry) and
-the interface goes back to DHCP. The reconciler does not restore interfaces:
-after reflashing the system disk, set the address again.
+| FreeBSD | `rc.conf` (`ifconfig_<interface>`, `ifconfig_<interface>_ipv6`, `defaultrouter`, `ipv6_defaultrouter`) and `resolvconf.conf`, through `sysrc` |
 
 ## Network Stack
 

@@ -30,6 +30,7 @@ is still accepted as another name for `declarative`, because the
 | Part | How | Unreadable → |
 |------|-----|--------------|
 | Hostname, timezone | `network.hostname_get` (`hostnamectl --static` on systemd editions, else `hostname`), `system.timezone_get` | set again |
+| Network interfaces | `network.list_interfaces` — their names | left alone |
 | Pools | `zfs.pool_list` — the imported ones | imported again |
 | Accounts | `users.list` (UIDs 1000–65533, 1001– on FreeBSD; `root` left out), each with `users.list_groups` | created if missing, nothing removed |
 | SMB shares | `samba.list_shares` (`net usershare list`) | written again, nothing removed |
@@ -43,10 +44,10 @@ on the strength of a list that could not be taken.
 `compute_diff(desired, observed, mode)` returns the steps in a fixed order:
 
 ```
-1. Hostname → 2. Timezone → 3. Pools → 4. Accounts (add, group changes)
-→ 5. Feature services → 6. SSH → 7. Boot choices of services
-→ 8. SMB shares → 9. NFS exports
-→ 10. Removal of accounts
+1. Hostname → 2. Timezone → 3. Network interfaces → 4. Pools
+→ 5. Accounts (add, group changes) → 6. Feature services → 7. SSH
+→ 8. Boot choices of services → 9. SMB shares → 10. NFS exports
+→ 11. Removal of accounts
 ```
 
 Pools come before the shares on them, accounts before the shares that name
@@ -55,6 +56,7 @@ them, and accounts are removed last, when no share refers to them any more.
 | Step | Declarative | Additive |
 |------|-------------|----------|
 | Hostname, timezone | set when different | same |
+| Network interfaces | an interface under `network.interfaces` with a `config`, present on this system and holding no FreedomNAS configuration (`network.connection_exists`: no `fnas-<interface>` connection, no `ifconfig_<interface>` line on FreeBSD), gets it back through the same steps as the Network page, without a checkpoint. A configured interface is left alone, so a boot never takes the network down; one this system does not have is skipped | same |
 | Pools | imported when not imported; an imported one is put in the default cachefile and its datasets mounted (`zfs.pool_cachefile_default`, `zfs.mount_pool_auto`): `firstboot.sh` leaves a restored data pool imported with `-N` and no cachefile. **Never exported or destroyed** | same |
 | Accounts | created when missing, with the `uid` the configuration records, or else the numeric owner (`directories.owner_uid_get`) of a share directory given to them — the ID a restored pool's files carry; a uid already taken here is not reused. Group membership changed | same |
 | Group membership | only the groups FreedomNAS assigns: the edition's `sudo_group` and `share_group`, and any group the configuration lists. A user's own group, `users`, anything set up by hand is left alone | same |

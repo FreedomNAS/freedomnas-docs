@@ -100,6 +100,15 @@ this).
 | `list_interfaces_json` | Detailed interface info (FreeBSD: `ifconfig -j`) |
 | `set_static_ip` | Static IPv4 address that survives a reboot: NetworkManager connection `fnas-{interface}` (Linux editions), `sysrc` (FreeBSD) |
 | `set_dynamic_ip` | Undo it: back to DHCP |
+| `connection_ensure` | Create the `fnas-{interface}` NetworkManager connection if missing (FreeBSD: nothing) |
+| `connection_exists` | Print `yes` when FreedomNAS already configured `{interface}` (the reconciler leaves it alone) |
+| `ipv4_dhcp` / `ipv4_static` | IPv4 by DHCP, or `{ip}/{cidr}` with `{gateway}` (may be empty) |
+| `ipv6_auto` / `ipv6_static` / `ipv6_disabled` | IPv6 automatic, `{ipv6}/{ipv6_prefix}` with `{ipv6_gateway}`, or off |
+| `dns_set` / `dns_auto` | DNS servers `{dns}` (IPv4) and `{dns6}` (IPv6), search domains `{dns_search}`; or the ones DHCP gives |
+| `mtu_set` / `mtu_auto` | MTU `{mtu}`, or the default |
+| `connection_activate` | Apply what the steps above wrote (NetworkManager: `nmcli --wait 45 connection up`; FreeBSD: `service netif restart {interface}`, `service routing restart`, `resolvconf -u`) |
+| `checkpoint_create` | Take a checkpoint that undoes itself after `{rollback_seconds}` and print its id (NetworkManager `CheckpointCreate` through `gdbus`, flags 3: destroy older ones, delete new connections on rollback; FreeBSD: copies of `rc.conf`/`resolvconf.conf` and a `daemon(8)` timer) |
+| `checkpoint_destroy` / `checkpoint_rollback` | Keep the change made since `{checkpoint}`, or undo it now |
 | `apply_config` | Apply pending network configuration |
 | `get_interface_details` | Read details of one interface |
 

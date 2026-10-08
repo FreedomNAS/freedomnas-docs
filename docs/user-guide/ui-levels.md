@@ -23,7 +23,7 @@ Full control of the system. Recommended for experienced users.
 
 - Everything in Assisted
 - Snapshot creation and management
-- Network interface IP editing
+- Network interface configuration: DHCP or static IPv4, DNS servers and search domains
 - Removing users
 - Timezone configuration
 - Reboot and shutdown buttons
@@ -37,6 +37,7 @@ Everything in Advanced, plus diagnostic and low-level information.
 
 - Everything in Advanced
 - Services page: enable or disable at boot
+- Network: IPv6 (automatic, static, disabled) and MTU
 - Disks tab: long self-test and the full SMART attribute table
 - Terminal always visible hint on Updates page
 - Extended diagnostic cards
