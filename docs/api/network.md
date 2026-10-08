@@ -232,3 +232,11 @@ any response (`GET /api/network/config` leaves it out too).
 | `DELETE /api/network/wireguard/peers/{name}` | the device can no longer connect |
 
 Status comes from `network.wg_dump` (`wg show <if> dump`).
+
+### DELETE /api/network/interfaces/{name}
+
+**Auth required:** yes. Forgets the saved configuration of an interface
+this system does not have: `network.connection_forget`, then the entry and
+its MAC mapping leave `config.yaml`. 404 when nothing is saved for it; 409
+when the interface is present, is a bridge/bond/VLAN/WireGuard, or is still
+a port or parent of another entry.

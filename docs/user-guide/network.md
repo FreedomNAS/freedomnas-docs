@@ -40,6 +40,19 @@ start of every boot: a udev rule per card in
 are renamed live only at boot, when a name is missing: renaming the card
 you are connected through would cut the connection.
 
+### Interfaces no longer on the system
+
+After a restore onto other hardware, or when a card is removed, the
+configuration can hold settings for an interface the system does not have
+(for example `enp3s0` from another edition, saved before names followed the
+MAC address). The Network page shows it as a card marked **Not on this
+system**, with its saved settings, and **Forget** (Advanced level) deletes
+them: the entry, its MAC address in `network.interfaces_mapping`, and what
+the system still kept under that name (the `fnas-<name>` NetworkManager
+connection, or the `ifconfig_<name>` lines of `rc.conf`). An interface that
+is present, a bridge, bond, VLAN or WireGuard (they have **Remove**), or a
+card another interface still uses as a port or parent is not forgotten.
+
 ## Configuring an Interface
 
 !!! info "Advanced level required"
