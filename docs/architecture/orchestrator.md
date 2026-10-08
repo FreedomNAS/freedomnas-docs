@@ -87,7 +87,7 @@ its `health_check()` is `health()[0]`.
 |--------|--------|------------------|
 | StorageModule | `"storage"` | `zfs.pool_list` — no imported pool DEGRADED, FAULTED, REMOVED or UNAVAIL, recorded or not (a system set up from an image does not record its root pool) |
 | NetworkModule | `"network"` | `network.list_interfaces` — at least one non-loopback interface up: `operstate` from Linux's `ip -j addr show` JSON, any Ethernet name from FreeBSD's `ifconfig -l -ether` |
-| SharesModule | `"shares"` | `services.status` for each enabled feature's service; names the ones that are down |
+| SharesModule | `"shares"` | `services.status` for the service of each enabled share feature and of each kind of share the configuration holds (a restored or imaged system has shares but may record no features); the detail counts the SMB and NFS shares and names the services that are down |
 | UsersModule | `"users"` | `users.get_user_info` for each configured user; names the missing ones |
 | UpdatesModule | `"updates"` | the configuration can be read; says whether topgrade is configured |
 
