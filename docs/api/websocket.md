@@ -81,11 +81,16 @@ All messages are JSON objects.
    reporting each as a `stdout` line. A failed snapshot is reported as a
    `stderr` warning, the other pools are still snapshotted, and the update
    still runs
-4. Launch the command with `asyncio.create_subprocess_exec`, stdin on
+4. Back up the running UKI with `bootloader.uki_backup` (`zz-dracut-uki
+   --backup <snapshot name>`, an empty name when no snapshot was taken),
+   streaming its output as `stdout` lines. A profile without the command
+   (FreeBSD) skips the step; a failure is a `stderr` warning and the update
+   still runs
+5. Launch the command with `asyncio.create_subprocess_exec`, stdin on
    `/dev/null`
-5. Stream stdout and stderr line by line; both pipes keep being drained after
+6. Stream stdout and stderr line by line; both pipes keep being drained after
    the client disconnects, so the update is never blocked halfway
-6. Send `{"exit_code": N}` and close
+7. Send `{"exit_code": N}` and close
 
 ## JavaScript Consumer
 

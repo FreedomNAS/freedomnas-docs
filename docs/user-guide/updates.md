@@ -56,10 +56,17 @@ Snapshot created: datapool@pre-update-YYYYmmdd-HHMMSS (recursive)
 ```
 
 A pool whose snapshot fails is reported as a warning; the others are still
-taken and the update still runs. When the update brings a new kernel, the
-boot image of the old one is kept as the `-previous` UKI and paired with
-this snapshot, so kernel and system can be rolled back together (see
-[ZFS](../developer/zfs.md#uki-pairing)).
+taken and the update still runs. Right after it, the boot image the system
+is running is copied to the `-previous` UKI and paired with this snapshot:
+
+```
+zz-dracut-uki: copied /boot/efi/EFI/Linux/debian-uki.efi (kernel 6.18.54-3-freedomnas) to /boot/efi/EFI/Linux/debian-uki-previous.efi
+zz-dracut-uki: previous UKI paired with snapshot rpool/ROOT/debian@pre-update-YYYYmmdd-HHMMSS
+```
+
+so kernel and system can be rolled back together (see
+[ZFS](../developer/zfs.md#uki-pairing)). A new kernel whose boot image would
+lack ZFS is never made the active one.
 
 ## Configuring Updates
 

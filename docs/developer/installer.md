@@ -165,8 +165,11 @@ writes `/etc/pacman.d/hooks/90-freedomnas-uki.hook`, which calls
 `zz-dracut-uki` with the version of every kernel a transaction installs or
 upgrades (target `usr/lib/modules/*/vmlinuz`). It does nothing while the
 script is not there yet, which is the case during the installation itself:
-the installer copies `zz-dracut-uki` and builds the UKI at the bootloader
-step.
+the installer links `zz-dracut-uki` and builds the UKI at the bootloader
+step. A second hook, `89-freedomnas-uki-backup.hook`
+(`files.freedomnas_uki_backup_hook`), runs `zz-dracut-uki --backup` as a
+`PreTransaction` hook on the same target, before the new kernel is
+unpacked.
 
 Until 2026-10 the two editions took `zfs-dkms-git` from Chaotic-AUR. Its
 `dkms.conf` reaches the top-level `gitrev` target, whose
@@ -486,7 +489,10 @@ runs under UEFI.
 | File | Purpose |
 |------|---------|
 | `EFI/Linux/<edition>-uki.efi` | Active UKI — every normal boot |
-| `EFI/Linux/<edition>-uki-previous.efi` | Previous UKI — rotated in by `zz-dracut-uki` |
+| `EFI/Linux/<edition>-uki.kernel` | Kernel version inside the active UKI |
+| `EFI/Linux/<edition>-uki-previous.efi` | Rollback UKI — the one the system ran before the last kernel change |
+| `EFI/Linux/<edition>-uki-previous.kernel` | Kernel version inside the rollback UKI |
+| `EFI/Linux/<edition>-uki-previous.snapshot` | The `pre-update-*` snapshot of the root dataset it pairs with |
 | `EFI/Linux/<edition>-recovery.efi` | Recovery UKI — `ro single` |
 | `EFI/BOOT/BOOTX64.efi` | Copy of the active UKI — what UEFI firmware starts without an NVRAM entry |
 | `EFI/FreedomNAS/boot.state` | `tries-left: 3`, reset on each new kernel |
@@ -514,17 +520,49 @@ dracut then refuses with `Can't write to /boot/efi/EFI/Linux`.
 
 ### zz-dracut-uki hook
 
-Deployed to `/etc/kernel/postinst.d/` from `freedomnas-profiles/assets/`. On
-every kernel install or update it:
+`/etc/kernel/postinst.d/zz-dracut-uki` is a symlink to
+`<install_root>/profiles/assets/zz-dracut-uki`, so a new freedomnas-profiles
+package updates the hook too (installations made before 2026-10-09 have a
+copy). It has two modes.
 
-1. Rotates the current UKI to `-previous.efi`
-2. Records the most recent `pre-update-*` ZFS snapshot name, pairing the old
-   kernel with the matching filesystem state for rollback
-3. Rebuilds the active UKI and copies it to `EFI/BOOT/BOOTX64.efi` — a
-   fallback left behind would boot the old kernel against the new kernel's
-   modules
-4. Rebuilds the recovery UKI (`ro single`)
-5. Resets `boot.state` to `tries-left: 3`
+**Backup**, `zz-dracut-uki --backup [<snapshot>]`, before anything is
+installed. It copies the active UKI to `-previous.efi` (with its `.kernel`)
+and pairs it with `<snapshot>`, or else with the newest `pre-update-*`
+snapshot of the root dataset taken after the active UKI was built; with
+none, the pairing file is removed and a warning logged. It does nothing
+when the rollback slot already holds the running UKI, and refuses when the
+running kernel is not the one in the active UKI — the system then booted
+from the rollback slot, and that slot is the good one. Called by:
+
+| Caller | When |
+|--------|------|
+| WebUI update (`bootloader.uki_backup`) | right after the pre-update snapshot, with its name |
+| Debian, Gentoo | `/etc/kernel/preinst.d/zz-dracut-uki` (`files.uki_backup_hook`, a symlink: a call from `preinst.d` is a backup) |
+| Arch, Artix | pacman `PreTransaction` hook `89-freedomnas-uki-backup.hook` |
+| Void | `/etc/kernel.d/pre-install/10-freedomnas-uki-backup` |
+
+**Build**, `zz-dracut-uki <kernel-version>`, after the kernel is installed:
+
+1. Builds nothing while `modinfo -k <version> zfs` fails: the zfs module for
+   that kernel is not there yet (DKMS, `@module-rebuild`, Void's
+   `linux<series>-zfs`), and a UKI without it cannot import the root pool
+2. Builds the new UKI to `<name>.efi.new` and checks with `objcopy` and
+   `lsinitrd` that its initramfs carries `zfs.ko`; if not, the new file is
+   deleted and the active UKI and `BOOTX64.efi` stay as they are
+3. Rotates the active UKI to `-previous.efi` only when no backup ran first
+   and the active UKI holds another kernel: a second run for the same
+   kernel (Void runs its hooks again once `linux<series>-zfs` is in place)
+   rebuilds in place and leaves the rollback slot alone
+4. Moves the new UKI into place, writes `<name>.kernel`, and copies it to
+   `EFI/BOOT/BOOTX64.efi` — a fallback left behind would boot the old
+   kernel against the new kernel's modules
+5. Rebuilds the recovery UKI (`ro single`) the same way, keeping the old one
+   if the new one fails or has no `zfs.ko`
+6. Resets `boot.state` to `tries-left: 3`
+
+On 2026-10-05 a Void update ran the old hook twice: the first run built a
+UKI without `zfs.ko` and the second rotated it into the rollback slot over
+the good one. Steps 1–3 are what prevents that now.
 
 dpkg runs `/etc/kernel/postinst.d/` on Debian. pacman does not: on Arch and
 Artix the pacman hook `90-freedomnas-uki.hook` (`files.freedomnas_uki_hook`)

@@ -329,14 +329,16 @@ Snapshot names must not contain spaces. Use hyphens.
 
 ### UKI pairing
 
-The `zz-dracut-uki` kernel post-install hook looks for the most recent
-`pre-update-*` snapshot on `rpool/ROOT/debian` and records its name in
-`EFI/Linux/debian-uki-previous.snapshot` on the ESP. This pairs the
-rotated-out (previous) UKI with the matching filesystem state so a kernel
-rollback and a filesystem rollback can be done together.
+Before a kernel is installed, `zz-dracut-uki --backup` copies the running
+UKI to `EFI/Linux/<edition>-uki-previous.efi` and records the snapshot of the
+root dataset it pairs with in `<edition>-uki-previous.snapshot` on the ESP,
+so a kernel rollback and a filesystem rollback can be done together (see
+[the hook](installer.md#zz-dracut-uki-hook)).
 
-Updates run from the WebUI take that snapshot themselves, before the
-kernel is installed. Updating by hand, take it first:
+Updates run from the WebUI take that snapshot themselves and pass its name
+to the backup. Updating by hand, take it first: the package manager's
+pre-install hook pairs the UKI with the newest `pre-update-*` snapshot taken
+since the UKI was built, and with none when there is no such snapshot:
 
 ```bash
 zfs snapshot -r rpool@pre-update-$(date +%Y%m%d-%H%M%S)

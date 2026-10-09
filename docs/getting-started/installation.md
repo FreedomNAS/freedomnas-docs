@@ -234,8 +234,9 @@ FreeBSD's own loader reads ZFS directly and is installed instead.
        plus a recovery UKI with `ro single`
     3. `efibootmgr` registers the UKI as a UEFI boot entry, and the UKI is
        copied to the fallback path `EFI/BOOT/BOOTX64.efi`
-    4. The `zz-dracut-uki` hook is deployed to `/etc/kernel/postinst.d/` so
-       future kernel updates rebuild both UKIs automatically
+    4. The `zz-dracut-uki` hook is linked into `/etc/kernel/postinst.d/` so
+       future kernel updates rebuild both UKIs automatically, and the
+       package manager's pre-install hook backs up the running UKI first
 
 === "BIOS/Legacy"
 
