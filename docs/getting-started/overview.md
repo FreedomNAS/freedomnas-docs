@@ -24,8 +24,8 @@ WebUI-only path for an already-installed system:
 "flash and go" experience as Raspberry Pi OS. On first boot the image
 imports any ZFS pools, unlocks encrypted ones, and either reconciles an
 existing `.freedomnas` configuration or launches the first-run wizard.
-Debian and FreeBSD images are the primary/official editions; Void and Artix
-are early "exotic" community editions still being built out.
+Debian and FreeBSD images are the primary/official editions; Void, Artix and
+Gentoo are early "exotic" community editions still being built out.
 
 Use this if you're installing FreedomNAS from scratch on a dedicated
 machine — it's the actively maintained path.

@@ -51,7 +51,8 @@ our own: `linux-firmware` alone is 660 MB.
 
 ### Images installed in a VM
 
-The Artix images (`artix/build.sh <openrc|dinit|runit> [image] [size]`) are
+The Artix, Debian, Void and Gentoo images (`artix/build.sh <openrc|dinit|runit> [image] [size]`,
+`<edition>/build.sh [image] [size]`) are
 not assembled on the build host: `common/vm-install.sh` boots the live ISO
 in QEMU with an empty raw image as its only disk and a second disc labelled
 `FNASSEED`. The live ISO's `.bash_profile` finds that disc and runs its
@@ -69,6 +70,16 @@ on real hardware, and the host imports no pool and needs no pacman: only
 QEMU (with KVM) and xorriso. A build takes about six minutes; the 10 GB
 image compresses to about 2.4 GB. The OpenRC, dinit and runit images all
 boot, and their first-boot reconcile finishes with no failure.
+
+The Gentoo image installs from a stage3, whose filename is date-stamped, so
+the installer would ask for its URL: `gentoo/build.sh` reads Gentoo's
+`latest-stage3-amd64-openrc.txt` pointer and passes the newest one as
+`FNAS_ROOTFS_URL` (set it to pin another). OpenZFS is compiled for
+gentoo-kernel-bin inside the VM, so this image takes the longest. The
+Gentoo chroot gets its own tmpfs `/run` (`installer-gentoo.json`
+`chroot.mount`): with the live system's `/run`, `net-misc/openssh`'s
+post-install restart of sshd started the live system's sshd from the
+target, which kept the root pool busy and failed the export.
 
 ## Versions
 
