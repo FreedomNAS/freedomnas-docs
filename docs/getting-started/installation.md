@@ -305,6 +305,23 @@ pulled in), enables their services through the init profile, deploys
 `firstboot.sh` + `supervisor.sh` with the cron `@reboot` hook, and writes
 `config.yaml`.
 
+### Trying FreedomNAS on an existing Debian
+
+On Debian 13 (trixie), one package sets up the FreedomNAS repository and its
+signing key, so nothing has to be typed by hand but these lines:
+
+```bash
+curl -LO https://codeberg.org/api/packages/FreedomNAS/debian/pool/trixie/main/freedomnas-repository_1.0_all.deb
+sudo apt install ./freedomnas-repository_1.0_all.deb
+sudo apt update
+sudo apt install freedomnas-installer
+sudo freedomnas-install --mode inplace
+```
+
+The downloaded file can also be opened with the desktop's package installer
+instead of the second line. It follows the releases; the same package under
+`pool/trixie/dev/` follows the development snapshots.
+
 The WebUI starts at the next boot, or immediately with:
 
 ```bash

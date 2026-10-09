@@ -124,8 +124,9 @@ the whole run: on Arch and Artix an unconfigured system ended at
 `` Command failed: `/usr/bin/sudo /usr/bin/pacman -Syu` ``. The flag holds
 whether or not `topgrade.toml` has been written yet.
 
-On Debian, `run_topgrade` also sets `DEBIAN_FRONTEND=noninteractive`, and the
-installer's `/etc/sudoers.d/freedomnas` keeps it through `sudo`
+On Debian, `run_topgrade` also sets `DEBIAN_FRONTEND=noninteractive`, and
+`/etc/sudoers.d/freedomnas-debconf`, installed by the `freedomnas-profiles`
+package, keeps it through `sudo`
 (`Defaults env_keep += "DEBIAN_FRONTEND"`): without a terminal debconf would
 otherwise try Dialog, Readline and Teletype in turn and print a dozen
 `debconf: unable to initialize frontend` lines before settling on

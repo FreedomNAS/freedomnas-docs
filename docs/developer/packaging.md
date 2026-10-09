@@ -121,6 +121,21 @@ without it the installer checkout's own branch decides. The installer's
 The kernel, zfsutils and topgrade, which follows upstream releases, are
 published to both components.
 
+`freedomnas-repository` (freedomnas-deb's `bin/build-repository-deb.sh`)
+carries the APT source and the registry's signing key, built once per
+component: the one in `main` writes `trixie main`, the one in `dev` writes
+`trixie dev`. It writes `/etc/apt/sources.list.d/freedomnas.sources` and
+`/usr/share/keyrings/freedomnas-archive-keyring.asc`, and removes the
+installer's one-line `freedomnas.list` (apt refuses the same repository
+twice with different `Signed-By` keys). The key's SHA-256 is recorded in
+freedomnas-deb's `checksums/repository-key.sha256`; a build with a
+different key fails until that file is replaced and the version raised.
+
+The `freedomnas-profiles` package also installs
+`/etc/sudoers.d/freedomnas-debconf` (`Defaults env_keep += "DEBIAN_FRONTEND"`),
+so the `DEBIAN_FRONTEND=noninteractive` that `updates.run_topgrade` sets on
+Debian survives topgrade's `sudo apt-get`.
+
 Each component is versioned from its own repository, so the WebUI and the
 documentation of one snapshot carry different commits. What matters is the
 release: the WebUI writes its version to `<root>/webui/VERSION`, the
