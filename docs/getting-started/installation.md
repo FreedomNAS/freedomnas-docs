@@ -86,6 +86,11 @@ console, where `freedomnas-install` starts by itself, and on the serial
 console; the network comes up over DHCP. The system runs from the read-only
 ISO, with `/tmp` and `/var` in memory.
 
+For machines that cannot take a flashed image, it is the way to install the
+FreeBSD edition. For now only the development builds publish it: the
+`images-<n>` releases of a dev run of build-images carry
+`freedomnas-live-freebsd.iso` next to the Linux live ISO and the images.
+
 ## Prerequisites
 
 - A live/rescue environment of the right family: the FreedomNAS live ISO, or

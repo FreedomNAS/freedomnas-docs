@@ -87,8 +87,10 @@ same order.
 ## Editions whose Samba ships no smb.conf
 
 Arch, Artix and Gentoo package Samba without `/etc/samba/smb.conf` (Gentoo
-installs only `smb.conf.default`); `smbd`, `nmbd` and `winbindd` then exit
-with code 1 at every boot. Their installer profiles declare
+installs only `smb.conf.default`), and FreeBSD's `samba416` without
+`/usr/local/etc/smb4.conf`; `smbd`, `nmbd` and `winbindd` then exit
+with code 1 at every boot, and the installer's `smbpasswd -a` for the
+administrator fails ("Can't load smb4.conf"). Their installer profiles declare
 `files.samba_conf`: a standalone-server `[global]` section that already
 carries the usershare settings the setup wizard would otherwise append.
 Debian ships a default `smb.conf` and keeps it. Void's `samba` installs
