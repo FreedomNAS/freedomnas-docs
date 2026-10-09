@@ -11,14 +11,14 @@ the Linux editions, `/usr/local/etc/freedomnas` on FreeBSD.
 | Priority | Path | Notes |
 |----------|------|-------|
 | Primary | `<config_dir>/state/config.yaml` | Where the `.freedomnas` dataset mounts |
-| Active | `<config_dir>/state/config.yaml` | Mounted ZFS dataset `rpool/.freedomnas` |
+| Active | `<config_dir>/state/config.yaml` | Mounted ZFS dataset `<pool>/.freedomnas`, on the pool chosen in the setup wizard |
 | Fallback | `<config_dir>/config.yaml` | Backup copy |
 
-The installer writes to `<target root><config_dir>/state/config.yaml`.
-Post-install, the ZFS dataset `rpool/.freedomnas` is mounted at
-`<config_dir>/state` with `canmount=noauto`; the storage profile's
-`create_state_dataset` uses the same directory, and a core test checks the
-two agree on every edition.
+The installer writes `<target root><config_dir>/state/config.yaml` on the
+root filesystem, not initialized, and creates no dataset. The setup wizard
+creates `<pool>/.freedomnas` (`canmount=noauto`, mounted at
+`<config_dir>/state`) through the storage profile's `create_state_dataset` and
+moves that file into it (`shadow.activate`).
 
 A pool created by one edition carries that edition's mountpoint on its
 `.freedomnas` dataset. When `firstboot.sh` finds it on another edition — a
@@ -26,11 +26,12 @@ Debian pool on FreeBSD, say — it sets the dataset's mountpoint to this
 edition's `<config_dir>/state` before mounting it.
 
 Which `.freedomnas` `firstboot.sh` serves from: the first, root pool first,
-that holds a `config.yaml`. Every image and install ships an empty one on
-its root pool, so after a reinstall the configuration is found on the data
-pool instead, and the root pool's empty dataset is destroyed — two datasets
-mounting at the same place never both exist. With no configuration
-anywhere, the first empty one is mounted for the wizard. The wizard moves
+that holds a `config.yaml`. Images and installs no longer create one on the
+root pool; systems made before that ship an empty one there, so after a
+reinstall the configuration is found on the data pool instead, and an empty
+root-pool dataset is destroyed — two datasets mounting at the same place
+never both exist. With no configuration anywhere, the first empty one is
+mounted for the wizard. The wizard moves
 the state to the pool the administrator chooses the same way
 (see [`/api/setup/initialize`](../api/setup.md)).
 

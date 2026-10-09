@@ -18,16 +18,18 @@ every OS command — including the chroot invocation — comes from
 |------|--------------|-----------------|
 | `clean` | Partition, root pool, bootstrap, users, packages, FreedomNAS, boot chain, `config.yaml` | The selected disk — erased completely |
 | `inplace` | Installs the missing packages, enables their services, wires the WebUI, records the configuration | The running system's packages and config only |
-| `recovery` | Hands an existing `.freedomnas` `config.yaml` to the `ReconciliationEngine` | Whatever the reconciler changes |
+| `recovery` | `--mode recovery` only: hands the running system's `config.yaml` to the `ReconciliationEngine` | Whatever the reconciler changes |
 
-`recovery` is offered automatically when an importable pool already carries a
-`.freedomnas` dataset.
+The menu offers only `clean` and `inplace`. Restoring a FreedomNAS onto a new
+system disk is not an installer mode: install, and the first boot restores the
+configuration it finds on another pool (see [State and restore](#state-and-restore)).
 
 ```sh
 sudo freedomnas-install                        # menu-driven
 sudo freedomnas-install --mode inplace
 sudo freedomnas-install --mode clean --target void
 sudo freedomnas-install --dry-run              # print every command, execute none
+sudo freedomnas-install --quiet                # steps only, no command output on screen
 ```
 
 `--dry-run` needs neither root nor a target disk. It is the fastest way to
@@ -65,7 +67,7 @@ same call therefore works against `/mnt` during a clean install and against
 | `lib/packages_installer.py` | Category selection via `PackageManager`, install, `services.enable`. `PackagesInstaller.disable_ssh()` leaves every clean install with SSH off: `system.ssh_service` is disabled through the init profile (`services.disable_offline` where an init profile defines it — none does yet — otherwise `services.disable`, run with `check=False`, so an init that cannot disable inside a chroot leaves the service as its package set it), which matters where the package enables itself (Debian's `openssh-server`); it is turned on from the WebUI |
 | `lib/core_installer.py` | Copies core/profiles/webui/docs into the target, wires first boot. A source counts only if it holds the file that proves it is a real copy (`__init__.py`, `api/main.py`, `index.html`): a removed package leaves `__pycache__` directories behind, and copying that skeleton gave a target whose WebUI could not start. The documentation comes from the installed `<root>/docs` or a built `freedomnas-docs/site`; without one the target has no offline documentation and the installer says so |
 | `lib/bootloader_installer.py` | UKI + Clover, or the edition's native loader |
-| `lib/state_installer.py` | The `config.yaml` shadow copy on `.freedomnas`, created on the new root pool at the end of a clean install (`rootpool.create_state_dataset`). In image mode (`Configuration.image_mode`, set by freedomnas-image-builder's vm-install) neither the dataset nor `config.yaml` is written: the image boots into the setup wizard, which puts `.freedomnas` on the pool its owner chooses |
+| `lib/state_installer.py` | The installation's `config.yaml` (not initialized) in the state directory on the root filesystem, the `setup-pending` file, and the read-only search of the other pools for a configuration to restore — see [State and restore](#state-and-restore). No `.freedomnas` dataset is created |
 | `lib/target_installer.py` | Clean-install orchestration |
 | `lib/inplace_installer.py` | In-place orchestration |
 | `tests/dryrun_smoke.py` | End-to-end dry run of both modes, no root needed |
@@ -218,7 +220,7 @@ before that confirmation.
 | 10 | core + profiles + webui, plus the first-boot hook | file I/O + `files.webui_cron` |
 | 11 | The installing machine's hostid and the root pool's `zpool.cache` in the target | `rootpool.hostid_install`, `rootpool.cachefile_set`, `rootpool.cachefile_install` |
 | 12 | Boot chain | `bootloader.*` |
-| 13 | Save `config.yaml` to `.freedomnas` | `ConfigurationManager` |
+| 13 | Save `config.yaml` (not initialized) to the state directory, write `setup-pending` = `install` | `ConfigurationManager`, file I/O |
 | 14 | Undo the chroot-only policy files, unmount, export the pool | `chroot.finalize`, `chroot.unmount`, `rootpool.export`, `rootpool.export_force` |
 
 Step 11 exists because a pool created with an altroot (`-R`) has
@@ -268,10 +270,44 @@ wait, then `rootpool.export_force`. If the pool is still listed after that,
 the completion dialog says so and **does not offer a reboot** — it gives the
 `zpool export` command to run first.
 
-The resulting layout — ESP + `rpool/ROOT/<edition>` + `rpool/.freedomnas` —
+The resulting layout — ESP + `rpool/ROOT/<edition>`, no `.freedomnas` —
 is deliberately identical to what `freedomnas-image-builder` produces: an
 installed machine and a flashed image must look the same to the reconciler
 and the WebUI.
+
+## State and restore
+
+Neither install mode creates a `.freedomnas` dataset. A fresh root pool that
+carried one would compete with the dataset on a data pool that outlived the
+old system, and `firstboot.sh` would have to guess which is the real
+configuration.
+
+- **Clean install** — `StateWriter.save(initialized=False)` writes the
+  installer's answers (hostname, timezone, users, root pool, features) to
+  `config.yaml` in the state directory on the root filesystem, and
+  `mark_setup_pending("install")` writes `install` into `setup-pending`.
+- **First boot** — `firstboot.sh` imports every pool and mounts the first
+  `.freedomnas` holding a `config.yaml` over the state directory. Found: the
+  reconciler restores it, and the setup wizard asks only for the
+  administrator and SSH (`_finish_restore`). Not found: the setup wizard runs,
+  and `shadow.activate` moves the installer's `config.yaml` into the
+  `.freedomnas` it creates on the pool the administrator picks.
+- **Password** — `setup-pending` holding `install` tells the WebUI
+  (`ConfigurationManager.setup_pending_kind()`, `/api/setup/status`
+  `password_chosen`) that the administrator chose the password in the
+  installer: the wizard accepts it. An image's empty `setup-pending` still
+  requires a new one, because an image's password is public.
+- **Image mode** (`Configuration.image_mode`, set by freedomnas-image-builder's
+  vm-install) writes no `config.yaml` at all and an empty `setup-pending`.
+
+Right after the disk is chosen, `StateWriter.find_restorable()` looks for a
+configuration the first boot would restore: every pool `rootpool.list_importable`
+reports, except the one on the chosen disk, is imported **read-only** with
+`rootpool.probe_import` — `-N -f -o readonly=on -o cachefile=none`, under a
+temporary name (`fnasprobe<N>`) and a temporary altroot, so another pool
+named `rpool` cannot touch the live system — its `.freedomnas` is mounted,
+`config.yaml` read for the hostname and edition, and the pool exported again.
+A dialog lists what was found and asks to keep those disks attached.
 
 ## In-place install
 
@@ -287,9 +323,10 @@ packages, get the system. On a machine already running a supported OS:
    is registered.
 4. Optionally a FreedomNAS admin account is created; otherwise the system's
    existing accounts are kept.
-5. The installation is recorded in `config.yaml`, on the `.freedomnas`
-   dataset of a pool you choose — or under `/etc/freedomnas/` if there is no
-   pool to host it.
+5. The installation is recorded in `config.yaml` in the state directory, not
+   initialized, with `setup-pending`: the setup wizard puts it on a
+   `.freedomnas` dataset of the pool you pick there. A system with no pool at
+   all keeps it under `/etc/freedomnas/`, initialized.
 
 No disk is partitioned, no boot chain is touched.
 
@@ -435,8 +472,8 @@ target ships (`/usr/share/zfs/compatibility.d/openzfs-2.3-linux` and so on).
 
 ## Recovery mode
 
-When an importable pool carries a `.freedomnas` dataset, the installer
-offers recovery instead of installation:
+`--mode recovery` (command line only) reapplies the running system's
+configuration:
 
 1. Load `config.yaml` through `ConfigurationManager`
 2. Run `ReconciliationEngine` in `declarative` mode: the system is made to
@@ -729,16 +766,39 @@ another pool, the script says so in the log.
 
 ### Logger
 
-Class-level static methods (`Logger.info`, `.warn`, `.error`, `.command`).
+Class-level static methods (`Logger.info`, `.warn`, `.error`, `.command`,
+`.output`, `.still_running`, `.section`).
 Coloured terminal output plus `/var/log/freedomnas-install.log` (falls back
 to a tempfile when that path isn't writable). `Logger.command()` prints every
 resolved profile command before it runs — and, under `--dry-run`, instead of
 running it.
 
-The same file handler is attached to the core's `FreedomNAS` logger, so the
-**full** stdout and stderr of a command that failed are in the log. The
-exception — and therefore the error dialog — carries only the last dozen
-lines of each, which is where a package manager states why it gave up.
+Every command's output is shown and logged **while it runs**:
+`ExecutionContext._run` sets the core engine's `output_listener` for the
+duration of the call, the engine then runs the command with `Popen` and hands
+each line to `Logger.output()` — dimmed and indented on screen (stderr in
+yellow), prefixed `|` (stdout) or `!` (stderr) in the log. A command that has
+printed nothing for a minute gets a `… still running after Nm` line, so a
+long `emerge` or `dracut` is told apart from a hung one. `--quiet` keeps the
+screen to the steps and the commands; the log always has everything, the
+output of commands that succeeded included.
+
+The exception — and therefore the error dialog — still carries only the last
+dozen lines of a failed command, which is where a package manager states why
+it gave up; the full output is in the log above it.
+
+### Diagnostics on failure
+
+`lib/diagnostics.py` records what the machine looked like when something went
+wrong, **before** `cleanup()` unmounts the target and exports the pool and the
+evidence is gone. `collect()` runs when a step of a clean or in-place install
+raises, and when the root pool cannot be exported at the end. It writes the
+reason, the full Python traceback, and the output of every command in the
+host profile's `diagnostics` section (see
+[Installer Profiles](../profiles/installer-profiles.md#diagnostics)) to the
+screen, to the log, and to
+`/var/log/freedomnas-install-diagnostics-<YYYYmmdd-HHMMSS>.txt`. Each command
+has 30 s and its failure never hides the others.
 
 ### DialogManager
 

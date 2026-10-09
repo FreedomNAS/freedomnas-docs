@@ -22,10 +22,13 @@ installs **any edition its host can bootstrap**, not just Debian.
 |------|--------------|-----------------|
 | **Clean install** | Provisions an edition onto a dedicated disk | The selected disk — erased completely |
 | **In-place install** | Turns the running system into a FreedomNAS | Packages, services and config only |
-| **Recovery** | Makes the system match an existing `.freedomnas` configuration exactly | Hostname, timezone, pools (imported), accounts, services, shares — see [Reconciliation Engine](../architecture/reconciler.md) |
 
-Recovery appears automatically when an importable pool already carries a
-`.freedomnas` dataset.
+**Reinstalling a FreedomNAS** needs no special mode. Install onto the new
+system disk and leave the data disks attached: right after you choose the disk,
+the installer tells you which pools hold a FreedomNAS configuration, and the
+first boot of the new system restores it — users, shares, network and
+settings — through the [Reconciliation Engine](../architecture/reconciler.md).
+The setup wizard then asks only for the administrator and SSH.
 
 !!! warning "Data loss (clean install only)"
     A clean install partitions the selected disk. Everything on it is
@@ -111,11 +114,22 @@ sudo freedomnas-install                        # menu-driven
 sudo freedomnas-install --mode inplace         # skip the mode menu
 sudo freedomnas-install --mode clean --target void
 sudo freedomnas-install --dry-run              # print every command, run none
+sudo freedomnas-install --quiet                # steps only, no command output
 ```
 
 `--dry-run` needs neither root nor a disk: it resolves and prints every
 command the run would execute. It is the safest way to see what an install
 will actually do before committing to it.
+
+While it installs, the installer shows the output of every command as it
+runs (package downloads, compilation, the UKI build), and a `still running`
+line when a command has been silent for a minute. Everything also goes to
+`/var/log/freedomnas-install.log`. When a step fails, the installer first
+saves what the machine looked like — the error with its traceback, the
+running processes, what is still inside the target, mounts, pools, kernel
+messages, free space — on screen, in the log and in
+`/var/log/freedomnas-install-diagnostics-<date>.txt`, then cleans up. Attach
+that file when reporting a failed installation.
 
 ---
 
@@ -129,6 +143,7 @@ destructive happens before the confirmation screen.
 | Question | Notes |
 |----------|-------|
 | Edition | Only editions this host can bootstrap; community editions are marked |
+| Notice | Some editions warn before the first question — Gentoo compiles part of the system (always OpenZFS, more with Virtualization or Containers) and can take an hour or more on a modest CPU |
 | Disk | Listed by the profile's `list_disks`; resolved to a stable `/dev/disk/by-id/` path where the platform has one |
 | Bootstrap method | Native bootstrapper or rootfs tarball — only methods whose tool exists on the host |
 | Mirror | From the edition's own mirror list, or a custom URL |
@@ -167,10 +182,12 @@ rpool/
 ├── ROOT/
 │   └── <edition>    canmount=noauto, mountpoint=/    ← bootfs
 ├── home             setuid=off
-├── var/
-│   └── log          atime=on
-└── .freedomnas      canmount=noauto, mountpoint=/etc/freedomnas/state
+└── var/
+    └── log          atime=on
 ```
+
+There is no `.freedomnas` dataset yet: the setup wizard creates it on the pool
+you choose there, or the first boot restores one found on another pool.
 
 `/boot` is a plain directory inside `rpool/ROOT/<edition>` — the kernel and
 initramfs live in the UKI on the ESP, not in ZFS.
@@ -275,10 +292,14 @@ ESP/
 
 #### 10. Save the configuration
 
-`config.yaml` is written to the `.freedomnas` dataset
-(`/etc/freedomnas/state/config.yaml`, `/usr/local/etc/freedomnas/state/config.yaml` on FreeBSD), recording hostname, timezone, users,
-the pool and the installed features. This file survives reinstallation and is
-what disaster recovery reads.
+The installer's answers — hostname, timezone, users, the root pool and the
+installed features — go to `config.yaml` in the state directory
+(`/etc/freedomnas/state/`, `/usr/local/etc/freedomnas/state/` on FreeBSD), and
+the system is left waiting for the setup wizard. On the first boot, either a
+`.freedomnas` configuration found on another pool is restored, or the wizard
+runs and moves this `config.yaml` onto a `.freedomnas` dataset on the pool you
+pick. That dataset is what survives a reinstallation. The wizard accepts the
+administrator password you chose in the installer.
 
 #### 11. Cleanup and reboot
 
@@ -295,10 +316,11 @@ nothing is bootstrapped, and the boot chain is left alone.
 1. Choose the optional features to install.
 2. Optionally create a dedicated FreedomNAS administrator account — or keep
    the accounts the system already has.
-3. Choose which existing ZFS pool should hold the `.freedomnas`
-   configuration dataset. Without a pool, the configuration is stored under
-   `/etc/freedomnas/` instead.
-4. Confirm.
+3. Confirm.
+
+The pool that holds the `.freedomnas` configuration dataset is chosen
+afterwards, in the WebUI's setup wizard. A system with no ZFS pool keeps the
+configuration under `/etc/freedomnas/`.
 
 The installer then installs the missing packages with the system's own
 package manager (the operation is idempotent, so only what's missing is

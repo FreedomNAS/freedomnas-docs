@@ -14,6 +14,7 @@ wizard replaces.
 {
   "initialized": false,
   "restored": false,
+  "password_chosen": false,
   "edition": null,
   "detected_edition": "debian"
 }
@@ -21,7 +22,10 @@ wizard replaces.
 
 `detected_edition` is the profile the engine detected (`engine.os_type`).
 `initialized` is false while the wizard still has to run: before any setup,
-and also on a restored system (`restored: true`, below).
+and also on a restored system (`restored: true`, below). `password_chosen` is
+true when the installer left the system (`setup-pending` holds `install`): the
+administrator chose the password there, so the wizard accepts it instead of
+requiring a new one.
 
 ## Restored systems
 
@@ -29,6 +33,7 @@ An image leaves an empty `setup-pending` file in the edition's configuration
 directory (`/etc/freedomnas/setup-pending`, `/usr/local/etc/freedomnas/` on
 FreeBSD; `python3 -m freedomnas path setup-pending`). The installer's image
 mode, which builds every Linux image, and the FreeBSD image builder write it.
+A clean or in-place install writes `install` into it.
 
 When the first boot finds a `.freedomnas` dataset on an attached pool, it
 restores that configuration, which is already marked initialized. The
@@ -208,8 +213,8 @@ next attempt completed.
 which the **Users** page sets.
 
 !!! note
-    A system installed with the installer is initialized
-    (`initialized_by: "installer"`) and has its `.freedomnas` on the root
-    pool already; `setup.js` sends it to the dashboard. Images are built in
-    the installer's image mode, which creates the shipped administrator but
-    no `.freedomnas` and no configuration, so their first boot lands here.
+    Neither an image nor an installation creates a `.freedomnas` dataset, so
+    every first boot lands here: on the wizard, or on the restore when a pool
+    held a configuration. An installation leaves its answers in an
+    uninitialized `config.yaml` in the state directory; the wizard's
+    `shadow.activate` moves it onto the pool chosen for `.freedomnas`.

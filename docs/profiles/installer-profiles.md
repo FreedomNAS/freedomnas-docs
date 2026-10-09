@@ -37,6 +37,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `chroot_dirs` | Directories created before the chroot mounts |
 | `uki_name`, `uki_recovery_name` | UKI filenames on the ESP (UKI-booting editions) |
 | `community_maintained` | Marks the edition as community in the installer menu |
+| `install_notice` | Text shown in a dialog at the start of the interview (clean and in-place), before any question. Gentoo uses it to say the install compiles from source and can take an hour or more |
 | `init_systems` | Init systems the installer offers, default first — only when there is more than one (Artix: `["openrc", "dinit", "runit"]`) |
 | `init_packages` | `{init: packages}` passed to the bootstrap command as `{init_packages}` |
 
@@ -78,11 +79,11 @@ which the storage module owns for data pools.
 | `unmount_target` | `{root}` — optional; lazy recursive unmount of the target root before the export |
 | `imported_devices` | — optional; output of `zpool status -LP`, from which the installer maps every device of an imported pool to its name |
 | `create_boot_environment` | `{pool_name}`, `{edition}` — command sequence: `ROOT` and `ROOT/<edition>` only |
-| `create_datasets` | `{pool_name}`, `{edition}` — command sequence for everything else (`home`, `var`, `var/log`, `.freedomnas`), run **after** `mount_root` |
-| `create_state_dataset` | `{pool_name}` |
+| `create_datasets` | `{pool_name}`, `{edition}` — command sequence for everything else (`home`, `var`, `var/log`; never `.freedomnas`, which the setup wizard creates), run **after** `mount_root` |
 | `set_bootfs`, `mount_root` | `{pool_name}`, `{edition}` |
 | `mount_all`, `unmount_all`, `export_all`, `list_importable`, `list_pools` | — |
-| `mount_dataset`, `dataset_exists` | `{dataset}` |
+| `mount_dataset`, `dataset_exists`, `dataset_mountpoint` | `{dataset}` |
+| `probe_import` | `{altroot}`, `{pool_id}`, `{temp_name}` — imports a pool **read-only** (`-N -f -o readonly=on -o cachefile=none -R {altroot}`) under a temporary name, to look for a `.freedomnas` configuration to restore; exported again with `export` |
 | `export` | `{pool_name}` |
 | `cachefile_set` | `{pool_name}`, `{cachefile}` — optional; with `cachefile_install`, gives the target a `zpool.cache` |
 | `cachefile_install` | `{cachefile}`, `{root}` — copies it to the target's cache path (Linux: `/etc/zfs/zpool.cache`) |
@@ -290,6 +291,23 @@ is there — the same place `lvm2-runit` and `cryptsetup-runit` use.
 | Key | Notes |
 |-----|-------|
 | `site_dir` | Run in the target; prints the directory its `python3` loads `.pth` files from. The installer writes `freedomnas-core.pth` there, for `python3 -m freedomnas` by hand — the services set `PYTHONPATH` themselves. |
+
+## `diagnostics`
+
+Commands run on the **host** when an installation step fails or the root pool
+cannot be exported (see [Installer Flow](../developer/installer.md#diagnostics-on-failure)).
+Their names become the section titles of the diagnostics file; `{root}` is
+the target root. Every Linux edition carries the same set; FreeBSD uses its
+own tools.
+
+| Key | Linux | FreeBSD |
+|-----|-------|---------|
+| `processes` | `ps … --forest`, kernel threads left out | `ps -axwwd` |
+| `target_processes` | processes whose root is inside `{root}` (via `/proc/*/root`), nothing for `/` | `fstat -f {root}` |
+| `mounts` | `/proc/self/mounts` | `mount -p` |
+| `pools`, `pool_list` | `zpool status -v`, `zpool list -v` | same |
+| `kernel_log` | last 80 lines of `dmesg` | same |
+| `disk_space` | `df -h` | same |
 
 ## `files`
 
