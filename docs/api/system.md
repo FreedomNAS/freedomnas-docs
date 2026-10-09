@@ -176,6 +176,55 @@ disables it explicitly where the package turns it on by itself (Debian's
 
 ---
 
+## GET /api/system/boot
+
+The automatic rollback: its setting, the boot state, and the last rollback.
+
+```json
+{
+  "supported": true,
+  "autorollback": true,
+  "state": "ok",
+  "rollback": {
+    "date": "20261009-101500",
+    "failed_kernel": "6.12.111+deb13-amd64",
+    "restored_kernel": "6.18.54-3-freedomnas",
+    "reason": "the initramfs reached the emergency shell",
+    "snapshot": "rpool/ROOT/debian@pre-update-20261009-100000",
+    "system_restored": true,
+    "failed_dataset": "rpool/ROOT/debian-failed-20261009-101500"
+  }
+}
+```
+
+`supported` is false where the edition boots no UKI (FreeBSD). `state` is
+`ok`, `trial` (a new kernel not yet confirmed), `fallback-requested` or
+`rolled-back`. `rollback` is `null` when nothing was rolled back or the
+record was cleared. `failed_dataset` is empty unless it names a
+`…-failed-YYYYmmdd-HHMMSS` dataset.
+
+## POST /api/system/boot/autorollback
+
+```json
+{ "enabled": false }
+```
+
+Writes `boot.state` on the ESP (`bootloader.autorollback_set`) and
+`system.autorollback` in `config.yaml`. 422 if `enabled` is not a boolean,
+409 on an edition without a UKI. Returns the same body as `GET /boot`.
+
+## POST /api/system/boot/forget
+
+```json
+{ "destroy_failed": true }
+```
+
+Clears the record of the last rollback (`bootloader.rollback_forget`, which
+also deletes `-failed.efi`), so the dashboard notice goes and the failed
+kernel may be built again. With `destroy_failed`, the failed root dataset is
+destroyed first (`zfs.dataset_destroy_recursive`) — only a name matching
+`…-failed-YYYYmmdd-HHMMSS`. Returns `{"destroyed": <dataset or null>, …GET /boot}`.
+
 ## POST /api/system/reboot
 
 Reboot the system.

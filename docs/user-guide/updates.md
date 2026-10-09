@@ -66,7 +66,9 @@ zz-dracut-uki: previous UKI paired with snapshot rpool/ROOT/debian@pre-update-YY
 
 so kernel and system can be rolled back together (see
 [ZFS](../developer/zfs.md#uki-pairing)). A new kernel whose boot image would
-lack ZFS is never made the active one.
+lack ZFS is never made the active one, and one that does not boot is
+replaced by the previous one by itself (see
+[Automatic Rollback](system.md#automatic-rollback)).
 
 ## Configuring Updates
 

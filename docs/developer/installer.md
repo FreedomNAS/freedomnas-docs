@@ -494,8 +494,9 @@ runs under UEFI.
 | `EFI/Linux/<edition>-uki-previous.kernel` | Kernel version inside the rollback UKI |
 | `EFI/Linux/<edition>-uki-previous.snapshot` | The `pre-update-*` snapshot of the root dataset it pairs with |
 | `EFI/Linux/<edition>-recovery.efi` | Recovery UKI — `ro single` |
+| `EFI/Linux/<edition>-uki-failed.efi` | A UKI that did not boot and was replaced by the rollback UKI (with its `.kernel`) |
 | `EFI/BOOT/BOOTX64.efi` | Copy of the active UKI — what UEFI firmware starts without an NVRAM entry |
-| `EFI/FreedomNAS/boot.state` | `tries-left: 3`, reset on each new kernel |
+| `EFI/FreedomNAS/boot.state` | Automatic rollback state, `key: value` lines (see below) |
 
 The filenames come from `installer_meta.uki_name` /
 `installer_meta.uki_recovery_name`.
@@ -556,13 +557,77 @@ from the rollback slot, and that slot is the good one. Called by:
 4. Moves the new UKI into place, writes `<name>.kernel`, and copies it to
    `EFI/BOOT/BOOTX64.efi` — a fallback left behind would boot the old
    kernel against the new kernel's modules
-5. Rebuilds the recovery UKI (`ro single`) the same way, keeping the old one
-   if the new one fails or has no `zfs.ko`
-6. Resets `boot.state` to `tries-left: 3`
+5. Rebuilds the recovery UKI (`ro single freedomnas.autorollback=0`) the
+   same way, keeping the old one if the new one fails or has no `zfs.ko`
+6. When the kernel changed and a rollback UKI exists, puts `boot.state` in
+   `trial` for the new kernel with `tries-left: 3`
+
+A kernel recorded as `failed-kernel` in `boot.state` is not built again
+until the rollback record is cleared (the WebUI's notice).
 
 On 2026-10-05 a Void update ran the old hook twice: the first run built a
 UKI without `zfs.ko` and the second rotated it into the rollback slot over
 the good one. Steps 1–3 are what prevents that now.
+
+### Automatic rollback
+
+A kernel that does not boot is replaced by the rollback UKI without anyone at
+the console. Three pieces:
+
+| Piece | Role |
+|-------|------|
+| `zz-dracut-uki` | Puts `boot.state` in `trial` after activating a new kernel; `--boot-ok`, `--autorollback`, `--state`, `--forget-rollback` for userspace |
+| dracut module `92freedomnas-fallback` (`assets/dracut/`, in every UKI through `uki.conf`) | Counts trial boots, falls back, finishes the rollback |
+| `python3 -m freedomnas boot-ok` (core `bootstate.py`), run by `firstboot.sh` | Ends the trial once the system has booted, and writes the setting from `config.yaml` (`system.autorollback`) to the ESP |
+
+**Falling back** (in the failing UKI's initramfs, state `trial`, running
+kernel = `trial-kernel`): when the initramfs reaches the emergency shell
+(dracut's `emergency` hook, which systemd's `dracut-emergency` runs too), or
+when a trial boot starts with `tries-left: 0` — the counter is decremented at
+every trial boot and only `boot-ok` ends the trial, so three boots that never
+reached `firstboot.sh` are enough. It mounts the ESP (the vfat partition that
+holds `EFI/Linux/<uki_name>`), copies the active UKI to `-failed.efi`, the
+rollback UKI over the active one and over `BOOTX64.efi`, records
+`fallback-requested` and reboots (`sysrq b`). Swapping files rather than
+setting `BootNext` works the same through an NVRAM entry, the removable path
+of a USB stick and Clover on BIOS machines. It refuses when the rollback UKI
+holds the same kernel as the one that failed.
+
+**Finishing** (in the restored UKI, state `fallback-requested`): before the
+pool is imported — `freedomnas-fallback.service` with systemd in the
+initramfs (Debian), the `pre-mount` hook otherwise — it imports the root pool,
+renames `<pool>/ROOT/<edition>` to `<edition>-failed-<date>`, clones the paired
+`pre-update-*` snapshot back as `<pool>/ROOT/<edition>` (`canmount=noauto`,
+`mountpoint=/`), promotes it, sets `bootfs`, exports the pool and records
+`rolled-back`. Only the root dataset is touched, never `home`, `var/log` or a
+data pool. Without a paired snapshot, or if the clone fails, the kernel is
+restored and the system files are left as they are (`fs-rollback: no` or
+`failed`).
+
+The systemd service is ordered after `dracut-initqueue.service` and before
+`zfs-import-{cache,scan}.service`: binding the import to
+`dracut-pre-mount.service` instead made an ordering cycle with OpenZFS's
+`zfs-env-bootfs.service`, and systemd broke it by dropping the hook.
+
+One rollback per update: `fallback-requested` and `rolled-back` never fall
+back again, and the failed kernel is not rebuilt until the record is
+cleared. `freedomnas.autorollback=0` on the command line (the recovery UKI
+has it) or `autorollback: no` in `boot.state` turns it off.
+
+`boot.state` keys:
+
+| Key | Written by | Meaning |
+|-----|------------|---------|
+| `autorollback` | `boot-ok`, WebUI | `yes` / `no` |
+| `state` | all | `ok`, `trial`, `fallback-requested`, `rolled-back` |
+| `trial-kernel`, `tries-left` | `zz-dracut-uki`, initramfs | the kernel on trial and the boots it has left |
+| `failed-kernel`, `restored-kernel`, `reason`, `date`, `snapshot` | initramfs (falling back) | what failed, what came back, why, when, the paired snapshot |
+| `fs-rollback`, `failed-dataset` | initramfs (finishing) | `yes`/`no`/`failed`, and the failed root dataset kept |
+
+Kernel versions are what tells the UKIs apart: a rebuild for the same kernel
+(a ZFS-only update) never starts a trial. FreeBSD boots its own loader and
+has none of this.
+
 
 dpkg runs `/etc/kernel/postinst.d/` on Debian. pacman does not: on Arch and
 Artix the pacman hook `90-freedomnas-uki.hook` (`files.freedomnas_uki_hook`)

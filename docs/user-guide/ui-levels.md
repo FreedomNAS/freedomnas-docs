@@ -37,6 +37,7 @@ Everything in Advanced, plus diagnostic and low-level information.
 
 - Everything in Advanced
 - Services page: enable or disable at boot
+- System: automatic rollback of a kernel update that does not boot
 - Network: IPv6 (automatic, static, disabled), MTU, static routes, WireGuard VPN
 - Disks tab: long self-test and the full SMART attribute table
 - Terminal always visible hint on Updates page

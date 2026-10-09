@@ -39,6 +39,21 @@ system, and the choice is kept in the configuration, so it is restored with
 everything else after a reinstall. While it is on, anyone who can reach the
 system and knows an administrator's password can log in.
 
+## Automatic Rollback
+
+!!! info "Expert level"
+
+On editions that boot a UKI (all but FreeBSD), **Roll back a kernel update
+that does not boot** is on by default. After a kernel update the new kernel
+is on trial: if it ends in the emergency shell, or does not finish booting
+three times, FreedomNAS puts the previous kernel back by itself and returns
+the system files to the snapshot taken before the update. The failed system
+is kept beside the restored one until you delete it from the dashboard. Data
+pools, home directories and logs are never touched.
+
+The line below the checkbox says whether the running kernel is confirmed or
+still on trial.
+
 ## UI Level
 
 Select your preferred interface complexity level. See [UI Levels](ui-levels.md)

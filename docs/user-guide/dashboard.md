@@ -3,6 +3,15 @@
 The dashboard is the first page you see after logging in. It gives an
 at-a-glance view of the system and quick access to the other pages.
 
+## Rollback Notice
+
+After an automatic rollback (see [System](system.md#automatic-rollback)) the
+dashboard says which kernel did not boot, when, why, and whether the system
+files were restored from the pre-update snapshot. **Dismiss** clears the
+notice; **Delete the failed system** (Advanced) also destroys the failed
+root dataset that was kept. Until the notice is cleared the failed kernel is
+not made the active one again.
+
 ## Stat Cards
 
 The top row shows four cards, loaded once when the page opens:
