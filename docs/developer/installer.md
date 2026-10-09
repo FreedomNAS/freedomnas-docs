@@ -714,6 +714,17 @@ matters most on Gentoo, whose `01-gentoo.conf` sets `hostonly="yes"`: inside
 a chroot, dracut's "this host" is the installer's machine, not the one being
 installed.
 
+The same file:
+
+- names the USB storage, USB host, HID, keyboard, serio and MMC drivers in
+  `add_drivers` (dracut 111 installs nothing for its `=drivers/<dir>` lists).
+  `$kernel` stays unquoted there: dracut warns about any `"` that follows a
+  non-blank character on a `+=` line, and a kernel version has no spaces;
+- leaves out `multipath` (`omit_dracutmodules`): libvirt pulls in
+  multipath-tools, whose dracut module wants a systemd unit directory the
+  other inits do not have, and a NAS never boots over several paths;
+- leaves out `drm` on Void, whose base system carries every GPU firmware.
+
 ### Vendored Clover assets
 
 | File | Role |
