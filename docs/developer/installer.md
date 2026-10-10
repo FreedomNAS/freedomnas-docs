@@ -105,13 +105,30 @@ configuration in its place.
 ## Editions that package FreedomNAS
 
 `installer_meta.core_packages` names the packages that carry FreedomNAS
-itself. Where it is declared — Debian, from the Codeberg registry — the
-installer does **not** copy `core`, `profiles` and `webui` out of the live
-image: `packages/core.json` lists `freedomnas-core`, `freedomnas-profiles`
-and `freedomnas-webui` like any other package, apt installs them with the
-rest, and `CoreInstaller` only checks they arrived. Copying over them would
-leave apt owning files that no longer match what it installed, and the
-system could never be updated with `apt upgrade`.
+itself. Where it is declared — every edition now — the installer does
+**not** copy `core`, `profiles`, `webui` and `docs` out of the live image:
+`packages/core.json` lists them like any other package, the edition's
+package manager installs them with the rest, and `CoreInstaller` only checks
+they arrived. Copying over them would leave the package manager owning
+files that no longer match what it installed, and the system could never
+be updated by its own package manager.
+
+The repositories come from `repositories.core` (commands) or `files`
+(configuration written before the packages), and follow the installer's
+channel (`CHANNEL` beside `setup.py`: `main` for a release, `dev`
+otherwise):
+
+| Edition | Repository | Channel |
+|---------|------------|---------|
+| Debian | Codeberg's Debian registry, `trixie` | component `main` / `dev` |
+| Arch, Artix | `[freedomnas]`, freedomnas-arch in Codeberg's generic registry, key pinned by fingerprint | `.../freedomnas-arch/main` / `dev` |
+| Void | freedomnas-void in Codeberg's generic registry (`xbps.d`) | `.../freedomnas-void/main` / `dev` |
+| Gentoo | the freedomnas overlay (`app-nas/freedomnas-*`) | `main`: the release ebuilds, `~amd64`; `dev`: the `9999` ebuilds, `**` — written to `package.accept_keywords/freedomnas-channel` |
+| FreeBSD | freedomnas-freebsd in Codeberg's generic registry, a signed pkg catalogue; the public key is in the profile (`files.pkg_repo_key`) | `.../freedomnas-freebsd/${VERSION_MAJOR}-main` / `-dev`, expanded by pkg |
+
+On Gentoo the second keyword line, `*/*::freedomnas ~amd64`, accepts the
+MkDocs packages `freedomnas-docs` is built with: the documentation is
+compiled on the target like the rest.
 
 The check imports the core rather than looking for a directory: a packaged
 core lives where that distribution keeps Python modules
@@ -120,9 +137,11 @@ core lives where that distribution keeps Python modules
 written either — there is nothing to point at. `python.import_check` is what
 asks; an edition without it falls back to the copied layout.
 
-Every other edition still gets the copy, which is what makes an installation
-work with no network and produces exactly what
-`freedomnas-image-builder/common/install-core.sh` produces.
+An edition without `core_packages` gets the copy, which is what makes an
+installation work with no network and produces exactly what
+`freedomnas-image-builder/common/install-core.sh` produces. The FreeBSD disk
+image and the live ISOs are still built that way, from the checkouts: their
+`pkg install` leaves the `freedomnas-*` names out of the package list.
 
 ## PATH, and why chroot cared
 

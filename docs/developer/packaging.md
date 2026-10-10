@@ -23,14 +23,22 @@ WebUI has the documentation of its own version at `/docs/`.
 | `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | Codeberg's Debian registry |
 | Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | Codeberg's Arch registry |
 | Void (ZFS modules, Samba configuration) | freedomnas-void | `bin/build-kmod.sh` in a Void container, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in Codeberg's generic registry |
-| FreeBSD `pkg` | freedomnas-freebsd | `bin/build-freedomnas-pkgs.sh` on FreeBSD, staging directories handed to `pkg create` | a signed pkg repository |
-| Gentoo | freedomnas-overlay | live (`-9999`) ebuilds tracking `dev` | the overlay itself |
+| FreeBSD `pkg` | freedomnas-freebsd | `ci/build-in-vm.sh`: `bin/build-freedomnas-pkgs.sh` inside FreeBSD's own VM image under QEMU, staging directories handed to `pkg create`, then a flat catalogue signed by `pkg repo` | a signed pkg repository in Codeberg's generic registry, `freedomnas-freebsd/<major>-<main\|dev>` |
+| Gentoo | freedomnas-overlay | release ebuilds (`X.Y.Z`, the tag's archive tarball, `~amd64`) and live `9999` ebuilds tracking `dev`; one file serves both | the overlay itself |
 | Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
 | Installer copy | freedomnas-installer | `lib/core_installer.py`, from the installed layout or the checkouts | — |
 
-The Debian and Arch registries are filled by Forgejo workflows on the
-self-hosted runner (`publish-packages.yml` in each repository), with the
-organisation's `PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`.
+The Debian, Arch and FreeBSD registries are filled by Forgejo workflows on
+the self-hosted runner (`publish-packages.yml` in each repository), with the
+organisation's `PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`. The
+FreeBSD one runs on the host like build-images (QEMU needs KVM), needs
+freedomnas-image-builder's FreeBSD driver checked out beside it, and signs
+with the `FREEBSD_SIGNING_KEY` secret; its public key is
+`freedomnas-freebsd/keys/freedomnas.pub`, also written by
+`installer-freebsd.json`. Releases: `ref: main` builds the newest `vX.Y.Z`
+tag into `15-main`; dev runs (also nightly) build snapshots,
+`X.Y.Z.<commit stamp>`, into `15-dev`. On Gentoo a release adds the
+`X.Y.Z` ebuilds and their Manifest to the overlay (see its README).
 
 ### Registry quota
 
