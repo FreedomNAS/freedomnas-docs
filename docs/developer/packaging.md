@@ -84,10 +84,15 @@ the installer would ask for its URL: `gentoo/build.sh` reads Gentoo's
 `latest-stage3-amd64-openrc.txt` pointer and passes the newest one as
 `FNAS_ROOTFS_URL` (set it to pin another). OpenZFS is compiled for
 gentoo-kernel-bin inside the VM, so this image takes the longest. The
-Gentoo chroot gets its own tmpfs `/run` (`installer-gentoo.json`
+chroot gets its own tmpfs `/run` (`installer-gentoo.json`
 `chroot.mount`): with the live system's `/run`, `net-misc/openssh`'s
 post-install restart of sshd started the live system's sshd from the
-target, which kept the root pool busy and failed the export.
+target, which kept the root pool busy and failed the export. The `chroot`
+section is the *host's* profile, so this applies to every edition the
+Gentoo live ISO installs, not only Gentoo; that `/run` starts empty, and
+`/run/lock` is created right after it, because Samba's `smbpasswd` keeps its
+locks there (without it the Void image's installation stopped at
+`smbpasswd -a`).
 
 ## Versions
 
