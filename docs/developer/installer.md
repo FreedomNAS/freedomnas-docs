@@ -663,7 +663,7 @@ renames `<pool>/ROOT/<edition>` to `<edition>-failed-<date>`, clones the paired
 `pre-update-*` snapshot back as `<pool>/ROOT/<edition>` (`canmount=noauto`,
 `mountpoint=/`), promotes it, sets `bootfs`, exports the pool and records
 `rolled-back`. Only the root dataset is touched, never `home`, the `var/*`
-datasets (`log`, `cache`, `tmp`, `spool`) or a data pool. Without a paired snapshot, or if the clone fails, the kernel is
+datasets (`log`, `tmp`, `spool`) or a data pool. Without a paired snapshot, or if the clone fails, the kernel is
 restored and the system files are left as they are (`fs-rollback: no` or
 `failed`).
 
