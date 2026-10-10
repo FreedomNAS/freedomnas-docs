@@ -602,6 +602,13 @@ from the rollback slot, and that slot is the good one. Called by:
 A kernel recorded as `failed-kernel` in `boot.state` is not built again
 until the rollback record is cleared (the WebUI's notice).
 
+The script compares the active and rollback UKIs with `cmp` and inspects
+them with `objcopy`, so `diffutils` and `binutils` are core packages on
+every Linux edition, and the Arch/Artix `freedomnas-profiles` package
+depends on both. Artix's base system has no `diffutils`: without `cmp` a
+backup could never tell that the rollback slot already held the running
+UKI.
+
 On 2026-10-05 a Void update ran the old hook twice: the first run built a
 UKI without `zfs.ko` and the second rotated it into the rollback slot over
 the good one. Steps 1–3 are what prevents that now.
