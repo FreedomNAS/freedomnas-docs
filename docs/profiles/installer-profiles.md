@@ -79,7 +79,7 @@ which the storage module owns for data pools.
 | `unmount_target` | `{root}` — optional; lazy recursive unmount of the target root before the export |
 | `imported_devices` | — optional; output of `zpool status -LP`, from which the installer maps every device of an imported pool to its name |
 | `create_boot_environment` | `{pool_name}`, `{edition}` — command sequence: `ROOT` and `ROOT/<edition>` only |
-| `create_datasets` | `{pool_name}`, `{edition}` — command sequence for everything else (`home`, `var`, `var/log`; never `.freedomnas`, which the setup wizard creates), run **after** `mount_root` |
+| `create_datasets` | `{pool_name}`, `{edition}` — command sequence for everything else (`home`, `var`, `var/log`, `var/cache`, `var/tmp`, `var/spool`, FreeBSD's `var/crash`; never `.freedomnas`, which the setup wizard creates), run **after** `mount_root` |
 | `set_bootfs`, `mount_root` | `{pool_name}`, `{edition}` |
 | `mount_all`, `unmount_all`, `export_all`, `list_importable`, `list_pools` | — |
 | `mount_dataset`, `dataset_exists`, `dataset_mountpoint` | `{dataset}` |

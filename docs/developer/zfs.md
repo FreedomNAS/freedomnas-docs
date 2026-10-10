@@ -180,8 +180,25 @@ rpool/ROOT/debian       canmount=noauto mountpoint=/          ← OS root
 rpool/home              setuid=off
 rpool/var               canmount=off    mountpoint=/var
 rpool/var/log           atime=on
+rpool/var/cache
+rpool/var/tmp           setuid=off      (mode 1777)
+rpool/var/spool
+rpool/var/crash         exec=off setuid=off   ← FreeBSD only
 rpool/.freedomnas       canmount=noauto mountpoint=/etc/freedomnas/state
 ```
+
+`/var` itself stays in the OS root: only the parts listed above are
+datasets of their own. The package databases live in `/var`
+(`/var/lib/dpkg`, `/var/lib/pacman`, `/var/db/pkg`, `/var/db/xbps`), and
+they must go back together with the files they describe when an update is
+rolled back (the root dataset is cloned from its pre-update snapshot, see
+[Automatic rollback](installer.md)). What lives in the separate datasets
+survives that rollback and stays out of the root's snapshots: the logs of a
+boot that failed, the package caches, Portage's builds in `/var/tmp`, mail
+and cron spools, and FreeBSD's kernel crash dumps. The layout is
+`rootpool.create_datasets` in each installer profile, from the profile of the
+machine the installer runs on; installations made before 2026-10-10 have
+only `var/log`, and keep it that way.
 
 Key flags:
 
