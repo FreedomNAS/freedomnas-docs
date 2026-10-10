@@ -90,9 +90,9 @@ console; the network comes up over DHCP. The system runs from the read-only
 ISO, with `/tmp` and `/var` in memory.
 
 For machines that cannot take a flashed image, it is the way to install the
-FreeBSD edition. For now only the development builds publish it: the
-`images-<n>` releases of a dev run of build-images carry
-`freedomnas-live-freebsd.iso` next to the Linux live ISO and the images.
+FreeBSD edition. Every run of build-images publishes it in the `images-<n>`
+release, next to the Linux live ISO and the images, and the FreeBSD image is
+installed from it.
 
 ## Prerequisites
 

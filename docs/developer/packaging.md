@@ -59,7 +59,7 @@ our own: `linux-firmware` alone is 660 MB.
 
 ### Images installed in a VM
 
-The Artix, Debian, Void and Gentoo images (`artix/build.sh <openrc|dinit|runit> [image] [size]`,
+The Artix, Debian, Void, Gentoo and FreeBSD images (`artix/build.sh <openrc|dinit|runit> [image] [size]`,
 `<edition>/build.sh [image] [size]`) are
 not assembled on the build host: `common/vm-install.sh` boots the live ISO
 in QEMU with an empty raw image as its only disk and a second disc labelled
@@ -78,6 +78,16 @@ on real hardware, and the host imports no pool and needs no pacman: only
 QEMU (with KVM) and xorriso. A build takes about six minutes; the 10 GB
 image compresses to about 2.4 GB. The OpenRC, dinit and runit images all
 boot, and their first-boot reconcile finishes with no failure.
+
+The FreeBSD image is installed the same way from the FreeBSD live ISO
+(`freebsd/live.sh`, `FNAS_FREEBSD_LIVE_ISO`): its `.profile` runs the
+`FNASSEED` disc's `run.sh`, which on FreeBSD keeps the ISO's own FreedomNAS
+(the root is read-only, and CI builds that ISO from the same checkouts in the
+same run), installs onto `/dev/vtbd0` from `/tmp`, and copies its output to
+the serial line. FreedomNAS itself comes from the freedomnas-freebsd pkg
+repository, so the build also proves that repository. FreeBSD's own VM
+image, which the live ISO and the FreeBSD packages are built in, is kept in
+`FNAS_CACHE_DIR` on the runner instead of being downloaded every run.
 
 The Gentoo image installs from a stage3, whose filename is date-stamped, so
 the installer would ask for its URL: `gentoo/build.sh` reads Gentoo's
