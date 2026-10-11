@@ -52,7 +52,7 @@ workflow runs `bin/prune-registry.py`, which deletes superseded versions:
 | Debian | the 2 newest versions of every package, and the 2 newest kernels (`linux-image-<kver>` with its headers) |
 | Arch | the newest version of every package: pacman installs nothing else, and the rolling editions have no use for an older kernel |
 
-Snapshots (`0.9.11+<date>...`) and releases are counted apart, so snapshots
+Snapshots (`0.9.12+<date>...`) and releases are counted apart, so snapshots
 never push a release out. `DRY_RUN=1 bin/prune-registry.py` lists what would
 go. Debian's firmware comes from `trixie-backports` rather than a package of
 our own: `linux-firmware` alone is 660 MB.
@@ -109,7 +109,7 @@ locks there (without it the Void image's installation stopped at
 ## Versions
 
 The base version is the upstream half of each component's
-`debian/changelog` (`0.9.11`), and raising it is a decision someone makes. A
+`debian/changelog` (`0.9.12`), and raising it is a decision someone makes. A
 build from `main` is that base; a build from `dev` is a snapshot, so every
 change gets a version of its own.
 
@@ -125,14 +125,14 @@ the snapshot suffix.
 
 | Format | Snapshot version |
 |--------|------------------|
-| `.deb` | `0.9.11+<yyyymmddHHMMSS>.<commit>-1` (UTC) |
-| Arch | `0.9.11+<yyyymmddHHMMSS>.<commit>-1` |
-| Gentoo (live ebuilds) | `0.9.11+git.<commit>` in `VERSION` and the documentation |
-| FreeBSD | `0.9.11.<yyyymmddhhmm>` (pkg's own form) |
-| Void | `0.9.11.<yyyymmddHHMMSS>_1` (xbps refuses `+`; release `0.9.11_1`) |
-| Images | `0.9.11+<yyyymmddHHMMSS>.<commit>` |
+| `.deb` | `0.9.12+<yyyymmddHHMMSS>.<commit>-1` (UTC) |
+| Arch | `0.9.12+<yyyymmddHHMMSS>.<commit>-1` |
+| Gentoo (live ebuilds) | `0.9.12+git.<commit>` in `VERSION` and the documentation |
+| FreeBSD | `0.9.12.<yyyymmddhhmm>` (pkg's own form) |
+| Void | `0.9.12.<yyyymmddHHMMSS>_1` (xbps refuses `+`; release `0.9.12_1`) |
+| Images | `0.9.12+<yyyymmddHHMMSS>.<commit>` |
 
-`0.9.11+...` sorts after `0.9.11` and before `1.0` everywhere.
+`0.9.12+...` sorts after `0.9.12` and before `1.0` everywhere.
 
 The first release published from `main` is `0.9.9`, the baseline tested on
 real hardware; `1.0` is kept for the first complete release. The packages
@@ -140,7 +140,7 @@ once built as `1.0` were deleted from the registries, so a machine that
 already has one installed needs a downgrade by hand (`apt install
 <package>=<version>`, `pacman -Suu`).
 
-A release raises the last number, `0.9.10` to `0.9.11`, and never appends a
+A release raises the last number, `0.9.11` to `0.9.12`, and never appends a
 fourth one: pacman and pkg read the `+` of a snapshot as a separator, so
 `0.9.9+<stamp>` would sort above a `0.9.9.1` there.
 
@@ -177,7 +177,7 @@ documentation of one snapshot carry different commits. What matters is the
 release: the WebUI writes its version to `<root>/webui/VERSION`, the
 documentation is built with its own in `FREEDOMNAS_DOCS_VERSION`, and the
 documentation compares only the part before the `+`. FreeBSD writes both in
-the FreedomNAS form, `0.9.11+<stamp>`, so the comparison works there too.
+the FreedomNAS form, `0.9.12+<stamp>`, so the comparison works there too.
 
 ## freedomnas-docs
 

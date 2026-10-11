@@ -1,3 +1,12 @@
+freedomnas-docs (0.9.12-1) unstable; urgency=medium
+
+  * UKI backup, automatic rollback, verbose installer and the editions'
+    FreedomNAS repositories documented
+  * FreeBSD pkg repository, FreeBSD live ISO and image, Gentoo image and
+    the root pool's var datasets documented
+
+ -- FreedomNAS Team <dev@freedomnas.io>  Sun, 11 Oct 2026 00:18:58 +0000
+
 freedomnas-docs (0.9.11-1) unstable; urgency=medium
 
   * Advanced networking, interface names, bridges, bonds, VLANs, routes
