@@ -81,6 +81,7 @@ nav:
     - Users: user-guide/users.md
     - Updates: user-guide/updates.md
     - Services: user-guide/services.md
+    - Containers: user-guide/containers.md
     - System Settings: user-guide/system.md
     - UI Levels: user-guide/ui-levels.md
   - Architecture:

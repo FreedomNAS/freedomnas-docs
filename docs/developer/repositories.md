@@ -16,7 +16,9 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to Codeberg's Arch registry
 ├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
 ├── freedomnas-void          FreedomNAS packages for Void, OpenZFS modules for Void's own kernel and the Samba configuration, a signed xbps repository built on Codeberg's hosted runners
-└── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
+├── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
+├── freedomnas-module-template Starting point for a community module
+└── freedomnas-containers    Containers community module (package freedomnas-module-containers)
 
 codeberg.org/sarahmeow86/
 └── zfs-dinit                dinit services for ZFS on Artix (checked out as artix-zfs)
