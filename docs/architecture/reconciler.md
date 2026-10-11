@@ -47,7 +47,7 @@ on the strength of a list that could not be taken.
 1. Hostname → 2. Timezone → 3. Network interfaces → 4. Pools
 → 5. Accounts (add, group changes) → 6. Feature services → 7. SSH
 → 8. Boot choices of services → 9. SMB shares → 10. NFS exports
-→ 11. Removal of accounts
+→ 11. Removal of accounts → 12. Modules
 ```
 
 Pools come before the shares on them, accounts before the shares that name
@@ -69,6 +69,7 @@ them, and accounts are removed last, when no share refers to them any more.
 | SMB shares | before the first one, usershares are made possible (`usershares.prepare()`: smb.conf's `[global]` settings and the directory), since a restored configuration reaches a system no wizard has prepared, and the edition's SMB service (`samba.smb_service`) is started if `services.is_running` says it is not: `net usershare add` needs a running smbd to turn user names into SIDs, and at boot the reconciler can be ahead of it (a share is retried for up to 30 s while Samba answers "smbd is not running"); usershares the configuration does not name are removed; **every** recorded share is written again (`net usershare add` replaces one of the same name), so path, comment and ACL end up exactly as recorded | written again, none removed |
 | NFS exports | a line that differs from the recorded share is removed and the recorded one added; a line the configuration does not name is removed | missing lines added; a differing line is left alone, with a warning |
 | Accounts not in the configuration | removed, **home directory kept** (`users.delete_keep_home`), after leaving Samba's database | never |
+| Modules | after every step above, each module this edition loads ([Orchestrator](orchestrator.md)) gets its own section of the configuration, `modules.<id>`, through its `reconcile(desired, mode)`, and returns its own results; a module that raises becomes one failed result (`modules.<id>`) and the others still run. Not part of a dry run | the module is told `additive` and removes nothing |
 
 ### What is never removed
 

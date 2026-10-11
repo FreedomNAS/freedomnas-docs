@@ -110,6 +110,8 @@ snapshots:
 
 installed_features: []
 
+modules: {}                     # community modules' own sections, by module id
+
 updates:
   topgrade:
     configured: false
@@ -236,6 +238,10 @@ class ConfigurationManager:
     def add_installed_feature(feature_id: str, enabled: bool, metadata: dict = None)
     def remove_installed_feature(feature_id: str)
     def get_installed_features() -> list
+
+    # Community modules
+    def get_module_config(module_id: str) -> dict          # a copy of modules.<id>, {} if none
+    def set_module_config(module_id: str, section: dict)   # replace modules.<id> and save
 
     # Updates
     def is_topgrade_configured() -> bool

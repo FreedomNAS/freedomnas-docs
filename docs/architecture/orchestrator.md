@@ -19,6 +19,14 @@ install time) is discovered the exact same way, with zero changes to this
 file, `engine.py`, or `freedomnas-webui`'s routing — see the `manifest.json`
 schema below.
 
+`ModuleLoader` scans two directories, in this order: the core's own modules
+(`<root>/core/freedomnas/modules`) and the community modules beside it
+(`<root>/modules`), both from `paths.modules_candidates()`. A community
+module that takes the id of a core module is ignored with a warning, so no
+package can replace `storage` or `users`. Up to 0.9.12 only the first
+directory that existed was read: a single community module installed in
+`<root>/modules` would have hidden every core module.
+
 ## `manifest.json`
 
 ```json
@@ -45,7 +53,18 @@ the system through the profiles. `webui` is `null` for
 every core module today; a community module with a WebUI component sets it
 to an object naming its `api_routes.py`, route prefix, and template/static
 directories — see `freedomnas-webui/api/module_discovery.py`, which mounts
-those the same way, independently of this file.
+those the same way, independently of this file. A module with a page of its
+own can also ask for a sidebar entry, `webui.nav`:
+
+```json
+"nav": {"label": "Containers", "icon": "icons.svg#containers", "level": "advanced"}
+```
+
+`icon` is `<file>#<symbol id>` inside the module's `static_dir` (without it
+the WebUI's generic module icon is drawn); `level` is the lowest UI level
+that shows the entry — `assisted` (default), `advanced` or `expert`, the
+same `advanced-only` / `expert-only` classes the core pages use. Entries
+are placed before System, in the order the modules are found.
 
 ## Classes
 
@@ -59,6 +78,7 @@ class FreedomNASModule(ABC):
     def stop() -> None      # idempotent
     def health_check() -> bool  # must never raise
     def health() -> tuple[bool, str]  # healthy, and why; default wraps health_check()
+    def reconcile(desired: dict, mode: str) -> list[ActionResult]  # default: nothing to do
 
 class Orchestrator:
     def register(module) -> None

@@ -28,6 +28,11 @@ A community module (its own repo/`.deb`, dropped into `modules/<id>/`) can
 add its own routes, page, and static assets without any file above being
 edited — see [Orchestrator](../architecture/orchestrator.md) for the
 `manifest.json` schema shared with `freedomnas-core`'s `module_loader.py`.
+`main.py` mounts each module's `static_dir` at `/static/modules/<id>/`
+before the WebUI's own `/static` (mounted the other way round, `/static`
+answered first and every module file was a 404), and hands the modules'
+`webui.nav` entries to every template as `community_nav`, which
+`base.html` draws in the sidebar before System.
 
 `websocket/terminal.py` serves `/ws/updates/terminal`, included by `main.py`
 with `app.include_router(terminal.router)` and consumed by `updates.js`. See
