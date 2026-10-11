@@ -41,6 +41,35 @@ for the copy, and running containers with it.
 The pool is chosen once: moving containers to another pool is not possible
 yet.
 
+## Containers
+
+Every container, running ones first, with its image, state and published
+ports. A container started by Docker Compose shows its project's name.
+
+*Advanced and Expert:* **Logs** shows its last 200 lines, with timestamps;
+**Start**, **Stop**, **Restart** and **Remove**. Removing a running
+container stops it first; its named volumes are kept.
+
+*Expert:* **Run a container** starts one from an image, downloading it if
+needed: a name, ports (`host:container`, e.g. `8081:80`, optionally with an
+address or `/udp`), volumes (`name:/path` for a named volume, which lives
+on the containers dataset, or `/tank/media:/media` for a directory of your
+pool, `:ro` for read only), environment variables (`NAME=value`, no
+spaces) and a restart policy (`unless-stopped` by default, so the container
+comes back at every boot). Anything malformed is refused before it reaches
+Docker.
+
+## Images
+
+*Advanced and Expert.* The downloaded images with their size. **Download**
+fetches one by reference (`nginx:alpine`,
+`ghcr.io/home-assistant/home-assistant:stable`); **Remove** deletes one no
+container uses; **Remove unused** deletes the images that no tag names and
+no container uses.
+
+Downloads and new containers run in the background, one at a time: the
+Runtime card says what is running and how the last one went.
+
 ## At boot
 
 Docker no longer starts by itself at boot. FreedomNAS imports the pools,
