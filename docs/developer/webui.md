@@ -34,6 +34,13 @@ answered first and every module file was a 404), and hands the modules'
 `webui.nav` entries to every template as `community_nav`, which
 `base.html` draws in the sidebar before System.
 
+Every `/static/` answer carries `Cache-Control: no-cache`: the browser keeps
+its copy but asks again each time (a 304 when the ETag still matches). Without
+it, after an update a browser could pair a cached old `main.js` with a new page
+script calling functions only the new `main.js` has — on 2026-10-11 the System
+page's Reboot, Shut Down and Restart WebUI buttons stopped answering that way
+on an updated Artix box.
+
 `websocket/terminal.py` serves `/ws/updates/terminal`, included by `main.py`
 with `app.include_router(terminal.router)` and consumed by `updates.js`. See
 [WebSocket Terminal](../api/websocket.md) for its first-frame authentication
