@@ -119,7 +119,11 @@ A community module lives in a repository of its own (freedomnas-containers
 is the first, built from freedomnas-module-template) and is packaged by the
 same repositories as the core: freedomnas-deb, freedomnas-arch and
 freedomnas-void each clone it beside the components, and freedomnas-overlay
-has an ebuild for it. Its package is named `freedomnas-module-<id>`.
+has an ebuild for it. Its package is named `freedomnas-module-<id>`
+(`app-nas/freedomnas-module-<id>` on Gentoo), where `<id>` is the module's
+`id` in `manifest.json`: the [Plugins page](../user-guide/plugins.md) finds
+modules by that name in the edition's repository and shows the package's
+short description, so keep it one clear sentence.
 
 | | Built from | Version |
 |-|-----------|---------|

@@ -15,6 +15,7 @@ Safe for everyday use. Destructive and advanced operations are hidden.
 - Advanced controls hidden: snapshot creation, IP editing, timezone, reboot,
   removing a user
 - Danger zone hidden: shutdown, factory reset
+- Plugins page: install a module with its defaults
 - Terminal not shown
 
 ### Advanced
@@ -29,6 +30,7 @@ Full control of the system. Recommended for experienced users.
 - Reboot and shutdown buttons
 - Update configuration
 - Services page: start, stop and restart
+- Plugins page: remove a module
 - Disks tab: why a disk needs attention, last self-test, short self-test
 
 ### Expert

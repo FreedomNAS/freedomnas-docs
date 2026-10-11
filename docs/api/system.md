@@ -246,7 +246,7 @@ would stop.
 {
   "started": "2925-1791700055422177667",
   "restart_needed": true,
-  "busy": { "updates": 0, "replication": 1 }
+  "busy": { "updates": 0, "plugins": 0, "replication": 1 }
 }
 ```
 
@@ -255,8 +255,9 @@ file) of `<root>/core`, `profiles`, `webui` and `modules`, leaving out
 `__pycache__` and `.pyc`. `restart_needed` is true while the files now
 installed differ from it, whoever installed them. `started` changes at every
 start: the page compares it to know the restart is done. `busy.updates` is
-the number of updates running in the terminal, `busy.replication` the
-replication jobs running.
+the number of updates running in the terminal, `busy.plugins` 1 while a
+module is installed or removed ([Plugins API](plugins.md)), `busy.replication`
+the replication jobs running.
 
 ## POST /api/system/webui/restart
 
@@ -266,8 +267,8 @@ replication jobs running.
 
 Restarts the WebUI: writes the marker `<config_dir>/webui-restart`, answers,
 then sends itself SIGTERM; `supervisor.sh` sees the marker and starts it
-again without counting a failure. 409 while an update runs (stopping the
-WebUI would cut it off), and while replication jobs run unless `force` is
+again without counting a failure. 409 while an update or a module install or
+removal runs (stopping the WebUI would cut it off), and while replication jobs run unless `force` is
 true. The body may be omitted.
 
 ```json

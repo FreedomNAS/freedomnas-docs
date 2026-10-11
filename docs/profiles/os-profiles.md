@@ -139,6 +139,15 @@ this).
 | `list_installed` | List installed packages |
 | `list_updatable` | List packages with available updates |
 | `check_installed` | Check if a specific package is installed |
+| `module_search` | Community modules the local package index offers: `name<TAB>version<TAB>description` per line |
+| `module_installed` | Community modules installed, same format |
+| `module_remove` | Remove a community module's package (`{package_name}`) |
+
+A community module is the package `freedomnas-module-<id>` (Gentoo
+`app-nas/freedomnas-module-<id>`). Each profile turns its package manager's
+output into the tab-separated lines with awk, so the
+[Plugins API](../api/plugins.md) reads the same format everywhere.
+`module_search` reads the local index only; `update_cache` refreshes it.
 
 ### `zfs`
 

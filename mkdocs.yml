@@ -82,6 +82,7 @@ nav:
     - Updates: user-guide/updates.md
     - Services: user-guide/services.md
     - Containers: user-guide/containers.md
+    - Plugins: user-guide/plugins.md
     - System Settings: user-guide/system.md
     - UI Levels: user-guide/ui-levels.md
   - Architecture:
@@ -110,6 +111,7 @@ nav:
     - Shares: api/shares.md
     - Updates: api/updates.md
     - Services: api/services.md
+    - Plugins: api/plugins.md
     - Setup: api/setup.md
     - WebSocket Terminal: api/websocket.md
   - Developer Guide:
