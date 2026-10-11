@@ -41,6 +41,40 @@ for the copy, and running containers with it.
 The pool is chosen once: moving containers to another pool is not possible
 yet.
 
+## Catalogue
+
+Ready-made apps, installed as apps of their own (see below), at every UI
+level:
+
+| App | What it is | Web port | Notes |
+|-----|------------|----------|-------|
+| Home Assistant | home automation | 8123 | host network, so it can find the devices of your home; the port cannot change |
+| Immich | photo and video backup from your phones | 2283 | needs 4 GB of memory or more; the library is `./library` unless you choose a folder of your pool |
+| Jellyfin | films, series and music streaming | 8096 | reads a media folder of your pool, read only, as the account you choose |
+| Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once |
+| Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address |
+| Vaultwarden | password manager for the Bitwarden apps | 8222 | browsers open its web vault only over HTTPS: put it behind a reverse proxy before using it from other devices |
+
+**Install** in *Assisted* uses the usual settings: the first free port
+from the one in the table, the app's own folders inside its dataset, the
+system's time zone, your account, and passwords made up for you. In
+*Advanced* and *Expert* the same window lets you change them first: the
+app's name, its port, a folder of your pool (for example `/tank/media` for
+Jellyfin), the account it runs as, passwords.
+
+Settings are checked before anything is created: a port something on the
+NAS already listens on, or that a container or a stopped catalogue app
+uses, is refused, and so is a folder outside the pools. The settings are
+kept in the app's `.env` (readable by root only), next to its
+`compose.yaml`. At the end FreedomNAS shows the app's address and the
+passwords it made up, **once**: write them down. Installing an app again on
+a dataset that was kept keeps its old passwords, since its databases were
+made with them.
+
+The first start downloads the app's images and can take several minutes;
+the Runtime card says when it is done. **Open** in the app list then opens
+its web page.
+
 ## Apps
 
 An app is a Docker Compose project with a dataset of its own,
