@@ -28,9 +28,16 @@ WebUI has the documentation of its own version at `/docs/`.
 | Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
 | Installer copy | freedomnas-installer | `lib/core_installer.py`, from the installed layout or the checkouts | — |
 
-The Debian, Arch and FreeBSD registries are filled by Forgejo workflows on
-the self-hosted runner (`publish-packages.yml` in each repository), with the
-organisation's `PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`. The
+The Debian, Arch and FreeBSD registries are filled by Forgejo workflows
+(`publish-packages.yml` in each repository), with the organisation's
+`PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`. On Debian and Arch the
+FreedomNAS packages and the community modules are built on Codeberg's own
+runners (`codeberg-medium`), so they are published even when the
+self-hosted runner is off; a small `kernel-check` job on `codeberg-tiny-lazy`
+looks for the kernel's version in the registry, and only a missing kernel is
+built on the self-hosted runner (`runs-on: docker`), where its ccache lives
+(on Arch after the packages job, since both rewrite the pacman database).
+Void is built entirely on Codeberg's runners. The
 FreeBSD one runs on the host like build-images (QEMU needs KVM), needs
 freedomnas-image-builder's FreeBSD driver checked out beside it, and signs
 with the `FREEBSD_SIGNING_KEY` secret; its public key is
@@ -105,6 +112,26 @@ Gentoo live ISO installs, not only Gentoo; that `/run` starts empty, and
 `/run/lock` is created right after it, because Samba's `smbpasswd` keeps its
 locks there (without it the Void image's installation stopped at
 `smbpasswd -a`).
+
+## Community modules
+
+A community module lives in a repository of its own (freedomnas-containers
+is the first, built from freedomnas-module-template) and is packaged by the
+same repositories as the core: freedomnas-deb, freedomnas-arch and
+freedomnas-void each clone it beside the components, and freedomnas-overlay
+has an ebuild for it. Its package is named `freedomnas-module-<id>`.
+
+| | Built from | Version |
+|-|-----------|---------|
+| `dev` | the module's `dev` branch | its own `debian/changelog` base plus the commit stamp, as for the components |
+| `main` | the module's own newest `vX.Y.Z` tag | that base |
+
+A module has versions of its own, not FreedomNAS's: freedomnas-containers
+starts at 0.1.0. A module with no release tag yet is left out of `main`
+without failing the run. Its packages depend on freedomnas-core and
+freedomnas-webui newer than 0.9.12, whose module loader read a single modules
+directory: a community module installed beside it hid the core's own. On
+Gentoo the module has only a live `9999` ebuild until its first tag.
 
 ## Versions
 

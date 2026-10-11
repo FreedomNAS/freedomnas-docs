@@ -5,6 +5,12 @@ The **Containers** page comes with the community module
 not part of a plain FreedomNAS install: the page appears in the sidebar once
 the package is installed.
 
+Install the package `freedomnas-module-containers` with your edition's
+package manager (`apt`, `pacman`, `xbps-install`, or `emerge
+app-nas/freedomnas-module-containers` from the FreedomNAS overlay); it needs
+FreedomNAS newer than 0.9.12. The WebUI shows the page after its next
+restart (or a reboot).
+
 Containers run with **Docker**, from your edition's own packages, on every
 Linux edition (Debian, Arch, Artix, Void, Gentoo). FreeBSD is not supported
 yet.
