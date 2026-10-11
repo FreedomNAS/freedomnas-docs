@@ -41,6 +41,39 @@ for the copy, and running containers with it.
 The pool is chosen once: moving containers to another pool is not possible
 yet.
 
+## Apps
+
+An app is a Docker Compose project with a dataset of its own,
+`<pool>/apps/<name>`, on the pool the containers use. The dataset holds
+the app's `compose.yaml` and every folder the file mounts with a relative
+path (`./data:/data`), so the app is snapshotted, replicated and restored
+with its data. The app's name is also the Compose project's name, shown
+next to its containers in the list below.
+
+The list shows each app with how many of its containers run and the ports
+they publish (Assisted shows it read only).
+
+*Advanced and Expert:*
+
+- **New app**: a name (lowercase letters, digits, `-` and `_`) and the
+  `compose.yaml`. The file is checked with `docker compose config` before
+  anything is created, and an invalid one is refused with Docker's own
+  message. **Start it now** brings it up straight away.
+- **Start** / **Stop**: `docker compose up -d` / `down`. Stopping removes
+  the containers; the data on the dataset stays.
+- **Update**: downloads newer images and, if the app is up, recreates its
+  containers with them.
+- **Edit**: replaces the compose file, after the same check; an app that is
+  up is brought up again with it.
+- **Logs**: the last 200 lines of all its containers.
+- **Remove**: stops the app and forgets it. Its dataset is kept unless you
+  tick **Also destroy its dataset**; a new app with the same name then uses
+  the kept dataset again, data included, with the new compose file.
+
+An app that is up is brought up again at every boot, after Docker, if any
+of its containers is not running. On a restored or reinstalled system the
+apps come back from the pool the same way.
+
 ## Containers
 
 Every container, running ones first, with its image, state and published
