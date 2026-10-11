@@ -193,7 +193,9 @@ The automatic rollback: its setting, the boot state, and the last rollback.
     "snapshot": "rpool/ROOT/debian@pre-update-20261009-100000",
     "system_restored": true,
     "failed_dataset": "rpool/ROOT/debian-failed-20261009-101500"
-  }
+  },
+  "kernel": { "running": "6.18.54-3-freedomnas", "installed": "6.18.60-1-freedomnas" },
+  "reboot_needed": true
 }
 ```
 
@@ -202,6 +204,14 @@ The automatic rollback: its setting, the boot state, and the last rollback.
 `rolled-back`. `rollback` is `null` when nothing was rolled back or the
 record was cleared. `failed_dataset` is empty unless it names a
 `…-failed-YYYYmmdd-HHMMSS` dataset.
+
+`kernel.running` is the running kernel's release (`uname -r`).
+`kernel.installed` is the kernel the next boot starts: the active UKI's,
+which `zz-dracut-uki --state` prints as `active-kernel` from
+`<uki>.kernel` on the ESP, or on FreeBSD `bootloader.kernel_installed`
+(`freebsd-version -k`); empty when unknown (an install older than the
+`.kernel` files). `reboot_needed` is true when the two differ: the pages
+then show the reboot notice.
 
 ## POST /api/system/boot/autorollback
 
@@ -224,6 +234,45 @@ also deletes `-failed.efi`), so the dashboard notice goes and the failed
 kernel may be built again. With `destroy_failed`, the failed root dataset is
 destroyed first (`zfs.dataset_destroy_recursive`) — only a name matching
 `…-failed-YYYYmmdd-HHMMSS`. Returns `{"destroyed": <dataset or null>, …GET /boot}`.
+
+## GET /api/system/webui
+
+Whether the WebUI must restart to run updated files, and what a restart
+would stop.
+
+**Auth required:** yes
+
+```json
+{
+  "started": "2925-1791700055422177667",
+  "restart_needed": true,
+  "busy": { "updates": 0, "replication": 1 }
+}
+```
+
+At start-up the WebUI takes a fingerprint (path, mtime and size of every
+file) of `<root>/core`, `profiles`, `webui` and `modules`, leaving out
+`__pycache__` and `.pyc`. `restart_needed` is true while the files now
+installed differ from it, whoever installed them. `started` changes at every
+start: the page compares it to know the restart is done. `busy.updates` is
+the number of updates running in the terminal, `busy.replication` the
+replication jobs running.
+
+## POST /api/system/webui/restart
+
+```json
+{ "force": true }
+```
+
+Restarts the WebUI: writes the marker `<config_dir>/webui-restart`, answers,
+then sends itself SIGTERM; `supervisor.sh` sees the marker and starts it
+again without counting a failure. 409 while an update runs (stopping the
+WebUI would cut it off), and while replication jobs run unless `force` is
+true. The body may be omitted.
+
+```json
+{ "detail": "Restarting", "started": "2925-1791700055422177667" }
+```
 
 ## POST /api/system/reboot
 

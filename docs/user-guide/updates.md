@@ -42,6 +42,11 @@ If you close the tab, the update keeps running to completion on the server.
 When the update finishes, the terminal shows the exit code: `✓ Update
 completed successfully (exit 0)` or `✗ Update exited with code N`.
 
+If the update changed FreedomNAS itself or installed a new kernel, the
+terminal says so and the notices at the top of the page appear (see
+[Dashboard](dashboard.md#restart-and-reboot-notices)): restart the WebUI or
+reboot when your other jobs are done.
+
 ### Pre-Update Snapshots
 
 With **Create ZFS snapshot before updating** on (the default), FreedomNAS

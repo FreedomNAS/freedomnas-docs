@@ -30,6 +30,14 @@ while true; do
 done
 ```
 
+A restart the WebUI asks for itself (**System → Restart WebUI**, or the
+notice shown after FreedomNAS was updated) is not a failure: the WebUI
+writes `<config_dir>/webui-restart` (`/etc/freedomnas/webui-restart`,
+`/usr/local/etc/freedomnas/webui-restart` on FreeBSD) and then stops with
+SIGTERM. When the supervisor finds the marker after the exit, it deletes
+it, resets the counter and starts the WebUI again at once; it also deletes
+a stale marker when it starts.
+
 ## Service Management via Profiles
 
 Init-system-specific service commands live in `init/init-{name}.json`

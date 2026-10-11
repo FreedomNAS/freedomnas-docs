@@ -59,6 +59,17 @@ All messages are JSON objects.
 {"stream": "stderr", "line": "Warning: unmet dependency"}
 ```
 
+**Notices**, just before the completion:
+
+```json
+{"restart_needed": true, "reboot_needed": false}
+```
+
+`restart_needed`: FreedomNAS's own files changed while the WebUI ran
+([`GET /api/system/webui`](system.md#get-apisystemwebui)); `reboot_needed`:
+the kernel the next boot starts is not the running one
+([`GET /api/system/boot`](system.md#get-apisystemboot)).
+
 **Completion:**
 
 ```json
@@ -90,7 +101,7 @@ All messages are JSON objects.
    `/dev/null`
 6. Stream stdout and stderr line by line; both pipes keep being drained after
    the client disconnects, so the update is never blocked halfway
-7. Send `{"exit_code": N}` and close
+7. Send the notices, then `{"exit_code": N}`, and close
 
 ## JavaScript Consumer
 

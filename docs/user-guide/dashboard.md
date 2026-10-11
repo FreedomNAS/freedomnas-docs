@@ -3,6 +3,23 @@
 The dashboard is the first page you see after logging in. It gives an
 at-a-glance view of the system and quick access to the other pages.
 
+## Restart and Reboot Notices
+
+These two notices appear at the top of every page, not only the dashboard,
+until you act on them:
+
+- **FreedomNAS was updated.** The packages of FreedomNAS itself (core,
+  profiles, WebUI, modules) changed since the WebUI started, through the
+  Updates page or a package manager on the command line. The WebUI keeps
+  running the old code until it restarts. **Restart WebUI** restarts it
+  and the page reloads by itself; nothing restarts on its own, so jobs
+  that are running can finish first.
+- **A new kernel is installed.** The kernel the system would boot is not
+  the one running: on Linux the kernel of the active boot image (UKI), on
+  FreeBSD `/boot/kernel`. **Reboot now** asks for confirmation and reboots.
+
+The pages check again every two minutes, and right after an update ends.
+
 ## Rollback Notice
 
 After an automatic rollback (see [System](system.md#automatic-rollback)) the

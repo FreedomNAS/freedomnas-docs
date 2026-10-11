@@ -57,16 +57,24 @@ level:
 | Home Assistant | home automation | 8123 | host network, so it can find the devices of your home; the port cannot change |
 | Immich | photo and video backup from your phones | 2283 | needs 4 GB of memory or more; the library is `./library` unless you choose a folder of your pool |
 | Jellyfin | films, series and music streaming | 8096 | reads a media folder of your pool, read only, as the account you choose |
-| Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once |
+| Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once; its data folder is `./data` unless you choose an empty or new folder of your pool |
 | Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address |
 | Vaultwarden | password manager for the Bitwarden apps | 8222 | browsers open its web vault only over HTTPS: put it behind a reverse proxy before using it from other devices |
 
-**Install** in *Assisted* uses the usual settings: the first free port
-from the one in the table, the app's own folders inside its dataset, the
-system's time zone, your account, and passwords made up for you. In
-*Advanced* and *Expert* the same window lets you change them first: the
-app's name, its port, a folder of your pool (for example `/tank/media` for
-Jellyfin), the account it runs as, passwords.
+**Install** asks, at every UI level, where the app keeps its files:
+Jellyfin's media folder, Immich's photo library, Nextcloud's data folder.
+The list offers *Inside the app* (a folder of the app's own dataset), the
+folders of your pools (the apps' and Docker's own datasets left out), and
+*Another folder…* to type one, such as `/tank/media/films`. Everything else
+uses the usual settings in *Assisted*: the first free port from the one in
+the table, the system's time zone, your account, and passwords made up for
+you. In *Advanced* and *Expert* the same window lets you change them first:
+the app's name, its port, the account it runs as, passwords.
+
+Nextcloud's data folder must be empty or not exist yet (its parent on a
+pool): FreedomNAS creates it and gives it to the account the Nextcloud
+container runs as (`www-data`, uid 33). Files already in a folder would not
+show up in Nextcloud, which lists only what it stored itself.
 
 Settings are checked before anything is created: a port something on the
 NAS already listens on, or that a container or a stopped catalogue app

@@ -66,6 +66,17 @@ for a full explanation of each level.
 
 The danger zone contains irreversible operations:
 
+### Restart WebUI
+
+*Advanced.* Starts the WebUI again, for example after FreedomNAS was
+updated (the notice at the top of every page offers the same button). The
+page waits and reloads by itself once the WebUI answers again, usually
+within a few seconds. Running updates block it; running replication jobs
+are named in the confirmation, since a restart stops them. Jobs started on
+other pages (a container app being installed, for example) are interrupted
+too, so let them finish first. A restart asked from here is not counted as
+a failure by the supervisor.
+
 ### Reboot
 
 Reboots the system immediately. A confirmation dialog appears first.

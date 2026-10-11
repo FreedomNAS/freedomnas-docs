@@ -49,6 +49,17 @@ redirects to `/auth/?next=<current>` on 401, redirects to `/setup/` on
 `apiJSON(method, path, body)` — wraps `api()`, parses JSON, throws if
 `res.ok` is false (using `data.detail` as the error message).
 
+### Notices, restartWebUI(), rebootSystem()
+
+`Notices.refresh()` runs from `initShared()` and every two minutes: it reads
+`GET /api/system/webui` and `GET /api/system/boot` and puts the restart and
+reboot notices at the top of `.page-content` (`#global-notices`), each with
+its button. `restartWebUI()` confirms (naming running replication jobs,
+refusing during an update), posts `/api/system/webui/restart` and polls
+`GET /api/system/webui` until `started` changes, then reloads the page.
+`rebootSystem()` is the confirm + `POST /api/system/reboot` the System page
+uses too.
+
 ### toast(msg, type, duration)
 
 Appends a self-removing toast to `#toast-stack`. Types: `'ok'`,
@@ -244,6 +255,8 @@ Tab-based view: **SMB** and **NFS**.
 - **Run Updates** button opens a WebSocket to `ws[s]://<host>/ws/updates/terminal`
 - WebSocket message protocol:
     - `{"line": "...", "stream": "stdout"|"stderr"}` — append line to terminal
+    - `{"restart_needed": …, "reboot_needed": …}` — says so in the terminal and
+      refreshes the notices (`Notices.refresh()` in main.js)
     - `{"exit_code": 0}` — update finished; re-poll status if success
 - Lines are classified by content (`error`/`fail` → red, `warn` → orange,
   `✓`/`success`/`done` → green, `==>` → info)
