@@ -14,8 +14,12 @@ restart (or a reboot).
 Containers run with **Docker**, from your edition's own packages, on every
 Linux edition (Debian, Arch, Artix, Void, Gentoo), and with **AppJail** on
 FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD the
-runtime and the Containers and Images cards are ready; apps and the
-catalogue follow, and their cards are not shown there yet.
+runtime, containers, images and apps are ready; the catalogue follows, and
+its card is not shown there yet.
+
+Everything the module runs comes from its profile for your edition
+(`containers-<os>.json`), as for the rest of FreedomNAS: the page and the
+module's code are the same on every edition.
 
 ## Install Docker
 
@@ -112,6 +116,43 @@ enabled at boot: the pool is imported and mounted before them, and the
 jails' NAT comes from `appjail-natnet`. At every boot FreedomNAS checks the
 files, pf and the network, and only writes what differs.
 
+**Apps** on FreeBSD are AppJail Director projects (Director plays Docker
+Compose's part): the app's dataset holds `appjail-director.yml`, its
+`Makejail` and the folders the file mounts with a relative path. The
+*New app* and *Edit* windows have a field for each file. The Director file
+is checked with Director's own parser before anything is written, and an
+invalid one is refused with its message (an unknown key, a jail name that
+is not allowed). Jails of an app are named in its file (`name:`), and the
+app list counts the jails Director reports for the project. **Start** and
+**Stop** are Director's `up` and `down`; **Update** rebuilds the app's
+jails (`up --overwrite`), keeping the folders of its dataset; **Remove**
+also destroys its jails; **Logs** shows each jail's log in turn. A minimal
+app, with nginx from the AppJail Makejails images:
+
+```yaml
+options:
+  - virtualnet: "fnasjails:<random> default"
+  - nat:
+services:
+  web:
+    name: site-web
+    makejail: ./Makejail
+    options:
+      - template: /usr/local/share/examples/appjail/templates/freebsd-oci.conf
+      - expose: "8080:80"
+    volumes:
+      - html: /usr/local/www/nginx
+volumes:
+  html:
+    device: ./html
+```
+
+```
+OPTION container=boot
+OPTION overwrite=force
+OPTION from=ghcr.io/appjail-makejails/nginx:latest
+```
+
 ## Catalogue
 
 Ready-made apps, installed as apps of their own (see below), at every UI
@@ -156,7 +197,7 @@ its web page.
 
 ## Apps
 
-An app is a Docker Compose project with a dataset of its own,
+On Linux an app is a Docker Compose project with a dataset of its own,
 `<pool>/apps/<name>`, on the pool the containers use. The dataset holds
 the app's `compose.yaml` and every folder the file mounts with a relative
 path (`./data:/data`), so the app is snapshotted, replicated and restored

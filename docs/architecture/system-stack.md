@@ -58,9 +58,15 @@ This rule is non-negotiable. It applies to:
 - The WebUI routes (`api/routes/*.py`)
 - The installer (`setup.py`, `lib/*.py`) — commands *and* OS-specific
   file contents both come from profiles
+- Community modules (`modules/<id>/*.py`) — their commands, the arguments
+  those take, the output they print and the files they write come from the
+  module's own profiles (`profiles/<id>/<id>-<os>.json`); one Python code
+  path serves every runtime behind the module (the containers module drives
+  Docker on Linux and AppJail on FreeBSD without a line about either)
 - Any future component
 
-If a command belongs to a specific OS, it belongs in a JSON profile — not in Python.
+If a command belongs to a specific OS, or to one tool among others that do
+the same job, it belongs in a JSON profile — not in Python.
 
 ## Layers
 
