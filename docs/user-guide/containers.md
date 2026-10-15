@@ -42,7 +42,15 @@ What Docker already held is copied onto the datasets, and the old
 directories are moved aside to `/var/lib/docker.pre-freedomnas` and
 `/var/lib/containerd.pre-freedomnas`: FreedomNAS never deletes them, so
 remove them yourself once the containers work from the pool. Docker stops
-for the copy, and running containers with it.
+for the copy, and running containers with it. If such a directory is
+already there, the new copy gets the date in its name
+(`/var/lib/docker.pre-freedomnas-20261011-054200`).
+
+The datasets are mounted at boot together with the rest of the pool,
+before any service starts, so Docker finds them in place even when another
+service that needs it (a CI runner, for example) starts it early. When
+the pool is imported later, by FreedomNAS itself, Docker waits: FreedomNAS
+mounts the datasets first and then starts it.
 
 The pool is chosen once: moving containers to another pool is not possible
 yet.
@@ -95,7 +103,8 @@ An app is a Docker Compose project with a dataset of its own,
 `<pool>/apps/<name>`, on the pool the containers use. The dataset holds
 the app's `compose.yaml` and every folder the file mounts with a relative
 path (`./data:/data`), so the app is snapshotted, replicated and restored
-with its data. The app's name is also the Compose project's name, shown
+with its data. On a pool mounted nowhere (`mountpoint=none`), `<pool>/apps`
+is mounted on `/<pool>/apps`. The app's name is also the Compose project's name, shown
 next to its containers in the list below.
 
 The list shows each app with how many of its containers run and the ports
