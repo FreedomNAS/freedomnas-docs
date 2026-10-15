@@ -35,27 +35,44 @@ root filesystem, not initialized, and creates no dataset. At every boot
 
 | Internal | External | Action |
 |----------|----------|--------|
-| initialized | none newer | `local` — used as it is |
-| initialized | a newer one | `merged` — the shared sections are taken from the newest |
+| initialized | none, or nothing new | `local` — used as it is |
+| initialized | one that brings something | `merged` — the shared sections are taken from the newest |
 | not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition and, for users who already exist here, this system's uid and gid |
 | not initialized | none | `none` — the setup wizard runs |
 
-"Newer" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
+"Newest" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
 stamps on every save; a mirrored copy carries the stamp of the save it
-copies. An external copy newer than the internal one was written by another
-install sharing the pool — another edition on another disk of the same
-machine. From it only what belongs to the pool is taken:
+copies. The shared sections are taken from the newest external copy however
+old it is next to the internal one: an install set up somewhere else (in a
+VM, on another machine) and then booted next to the data pool gets its
+shares, pools and users even though its own configuration is more recent.
+Only what belongs to the pool is taken:
 
-| Taken from the newer copy | Never taken: belongs to this install |
+| Taken from the newest copy | Never taken: belongs to this install |
 |---------------------------|--------------------------------------|
-| `shares` (as they are there) | `system` (hostname, edition, SSH, timezone…) |
-| `snapshots.policies` | `network` (interfaces are bound to MACs) |
+| `shares` (as they are there) | `system` (edition, SSH, timezone…) |
+| `snapshots.policies` | |
 | `modules` (per module) | each existing user's entry, admin role included |
 | `storage.pools` (added) | `services`, `updates`, `installed_features` |
 | users this install does not have, never as administrators | |
 
-A copy written before `saved_at` existed is always older, so it is never
-merged. The configuration is mirrored to the external copies by the
+
+**The network belongs to the machine.** `network` and `system.hostname`
+describe the box, not the install: the cards are known by their MAC
+addresses. After the table above, an initialized install takes them from
+the newest external copy that knows a card present here — in
+`network.interfaces_mapping` or an interface's `mac_address` — whether that
+copy is newer or older, so every edition booted on the same machine comes
+up with the same names and addresses. `state-boot` then prints
+`network <pool>` and leaves `network-reapply` in the state directory (the
+pool, and the interfaces this install had that the taken network has not).
+At that boot the reconciler forgets those interfaces
+(`network.connection_forget`) and applies every interface again, also the
+ones already configured, then removes the file. A copy that knows none of
+the cards here was written on another machine, which may still be running
+with those addresses: an install with a network of its own keeps it. A
+reinstall (`restored`) takes the whole copy as before, so new hardware gets
+the old network on its cards. The configuration is mirrored to the external copies by the
 nightly `freedomnas shadow-sync`, when the setup wizard finishes, and when a
 configuration is imported (`shadow.sync`).
 
