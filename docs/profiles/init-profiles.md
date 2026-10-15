@@ -41,22 +41,38 @@ includes a `services` key.
 
 | Action | systemd | openrc | runit | s6 | dinit | bsd_rc |
 |--------|---------|--------|-------|-----|-------|--------|
-| start | `systemctl start {svc}` | `rc-service {svc} start` | wait for `sv status {svc}`, then `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `service {svc} status \|\| service {svc} start` |
+| start | `systemctl start {svc}` | `rc-service {svc} start` | wait for `sv status {svc}`, then `sv start {svc}` | `s6 live start {svc}` | `dinitctl start {svc}` | `freedomnas-rc-service start {svc}` (see below) |
 | stop | `systemctl stop {svc}` | `rc-service {svc} stop` | `sv stop {svc}` | `s6 live stop {svc}` | `dinitctl stop {svc}` | `service {svc} stop` |
-| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | wait for `sv status {svc}`, then `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `service {svc} restart` |
+| restart | `systemctl restart {svc}` | `rc-service {svc} restart` | wait for `sv status {svc}`, then `sv restart {svc}` | `s6 live restart {svc}` | `dinitctl restart {svc}` | `freedomnas-rc-service restart {svc}` |
 | enable | `systemctl enable {svc}` | `rc-update add {svc} default` | `ln -sfn /etc/sv/{svc} /var/service/{svc}` | `s6 set enable -p {svc}`, `s6 set commit`, `s6 live install -b` | `dinitctl enable {svc}`, accepting "already enabled" | `service {svc} enable` |
 | enable_early | — | `rc-update add {svc} sysinit` | — | — | — | — |
 | enable_offline | — | — | — | `s6 set enable -p {svc}`, `s6 set commit` | `dinitctl --offline enable {svc}`, accepting "already enabled" | — |
 | status | `systemctl is-active {svc}` | `rc-service {svc} status` | `sv status {svc}` | `s6 live status {svc}` | `dinitctl status {svc}` | `service {svc} status` |
 | list_all | `systemctl list-unit-files --type=service`, names without `.service` or templates | `rc-service --list` | directories in `/etc/sv` (aliases like `crond → cronie` left out) | directories in `/etc/s6/sv` | files in `/etc/dinit.d` | `service -l` |
-| is_running | `systemctl is-active --quiet {svc}` | `rc-service {svc} status` | `sv status {svc}` starts with `run:` | `s6 live status {svc}` says `up` | `dinitctl is-started {svc}` | `service {svc} onestatus` |
+| is_running | `systemctl is-active --quiet {svc}` | `rc-service {svc} status` | `sv status {svc}` starts with `run:` | `s6 live status {svc}` says `up` | `dinitctl is-started {svc}` | `freedomnas-rc-service running {svc}` |
 
 **bsd_rc.** `service {svc} enable|disable|enabled` let rc.subr use the
 script's own rcvar. It is not always `{svc}_enable`: `/etc/rc.d/nfsd` reads
 `nfs_server_enable`, so `sysrc nfsd_enable=YES` did nothing and
-`service nfsd start` refused to run. `start` checks `status` first because
-`service samba_server start` exits 1 when Samba is already running.
-Verified on FreeBSD 15.1 with samba416.
+`service nfsd start` refused to run.
+
+`start`, `restart` and `is_running` go through
+`profiles/assets/freedomnas-rc-service`. A service started through
+daemon(8) (appjail-dns, appjail-health…) keeps the output it was given
+open, so the engine, which reads the command's output to its end, waited
+until its 30 s timeout although the service was up. The script sends the
+rc script's output to a file instead, then checks that the service really
+runs: `service {svc} onestatus` for up to 15 s; when it does not, the
+command fails with the rc script's own output plus "not running 15s after
+start". `start` does nothing for a service that already runs
+(`service samba_server start` exits 1 then). Two exceptions, written in the
+script: `samba_server` is checked by its `smbd`, because its `status`
+counts winbindd too, which a standalone server does not run (it reported
+Samba stopped before); `appjail-natnet` and `appjail-health` finish once
+their work is done, so only their exit code counts. Verified on FreeBSD
+15.1 through the engine: daemon(8) services start at once, a broken
+configuration (dnsmasq) and a disabled service (zfsd) fail with their
+message, a reboot reconciles without failures.
 
 **runit.** runsvdir notices a newly linked service only on its next scan,
 every 5 s, and until that service's runsv is up `sv` fails — "unable to
@@ -71,8 +87,8 @@ linked. Verified on the real test box with Void: 2–5 s, every time.
 answer is yes rather than failing otherwise, so listing services does not
 log a failed command for every stopped one. `sv status` exits 0 for a
 stopped service too, hence the `run:` test on runit. Verified on Void
-(runit) and, for `rc-service --list`, on OpenRC; the dinit, s6, bsd_rc and
-systemd lines are not tested on a running system yet.
+(runit), on FreeBSD 15.1 (bsd_rc) and, for `rc-service --list`, on OpenRC;
+the dinit, s6 and systemd lines are not tested on a running system yet.
 
 `enable` is `ln -sfn`: enabling a service that is already enabled must
 not fail (plain `ln -s` answered "File exists"), and without `-n` a second
