@@ -456,7 +456,7 @@ Then, in order:
 4. the datasets with `canmount=on` that are not mounted yet (`zfs.mount_pool_auto` — never `.freedomnas`, whose `canmount=noauto` would put it over this system's configuration)
 5. the pool's `config.yaml` is copied to `config.yaml.imported` beside it, before this system's copy is mirrored over it
 6. `<pool>/.freedomnas` is created if missing, and the pool recorded in `config.yaml` with `imported: true`
-7. the users: same uid as on the other system when it is free here, only the groups that exist here, this edition's administrator group only with `admin`; created like `POST /api/users/`, rollback included
+7. the users: same uid as on the other system when it is free here — when the pool's configuration records none (older configurations), the owner of the directory of a share that belongs to that user alone, if that number is free; otherwise a new uid and a warning — only the groups that exist here, this edition's administrator group only with `admin`; created like `POST /api/users/`, rollback included
 8. the shares, through the same code as `POST /api/shares/smb` and `/nfs`; one whose name is already used here is left alone
 
 A failure in steps 1–5 gives the pool its mountpoint back and exports it

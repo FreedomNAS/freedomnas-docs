@@ -57,6 +57,15 @@ Only what belongs to the pool is taken:
 | users this install does not have, never as administrators | |
 
 
+**User IDs.** At every boot of an initialized install, a user who exists
+on the system gets its real uid and gid written into the configuration,
+also when the configuration recorded none, so the copies on the data pools
+always carry the numbers the files there are owned by. The reconciler gives
+a share's directory its owner's group recursively only when the directory's
+owner is that user's uid on this system; when the numbers differ it skips
+(`directories.group_set_recursive` skipped, with both uids) instead of
+handing the data to whoever holds that number here.
+
 **The network belongs to the machine.** `network` and `system.hostname`
 describe the box, not the install: the cards are known by their MAC
 addresses. After the table above, an initialized install takes them from
