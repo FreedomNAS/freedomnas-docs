@@ -114,6 +114,27 @@ password that breaks the rules, `500` when a command fails.
 
 ---
 
+## POST /api/users/{target}/admin
+
+Give an existing account the administrator role, or take it back.
+
+```json
+{ "admin": true }
+```
+
+The edition's administrator group (`users.sudo_group`) and the groups
+administrators get with it (`admin_groups_present`: `docker`…) are added
+with `users.add_to_group` or taken with `users.remove_from_group`, only
+those the account does (not) have yet (`users.list_groups`); the
+configuration entry gets `admin`, its `groups` without those. Answers
+`{"username", "admin"}`.
+
+| Status | When |
+|--------|------|
+| 422 | `admin` is not a boolean; the caller takes their own role; the account is the last administrator |
+| 404 | no such user in the configuration |
+| 500 | a command or saving the configuration failed |
+
 ## DELETE /api/users/{target}
 
 Delete an OS user and remove from `config.yaml`.

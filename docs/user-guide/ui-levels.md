@@ -13,7 +13,7 @@ Safe for everyday use. Destructive and advanced operations are hidden.
 - Core features fully visible: storage health, shares list, user list,
   changing a user's password
 - Advanced controls hidden: snapshot creation, IP editing, timezone, reboot,
-  removing a user
+  removing a user, changing the administrator role
 - Danger zone hidden: shutdown, factory reset
 - Plugins page: install a module with its defaults
 - Terminal not shown
@@ -26,6 +26,7 @@ Full control of the system. Recommended for experienced users.
 - Snapshot creation and management
 - Network interface configuration: DHCP or static IPv4, DNS servers and search domains
 - Removing users
+- Making a user an administrator, or taking the role back
 - Timezone configuration
 - Reboot and shutdown buttons
 - Update configuration

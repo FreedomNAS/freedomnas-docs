@@ -52,6 +52,23 @@ Click **Password** on the user's row, enter the new password twice (at least
 8 characters) and click **Set Password**. The button is visible at every UI
 level. The password reaches the OS through stdin, never the command line.
 
+## Administrator Role
+
+!!! note "Advanced UI level"
+    The role buttons are only visible at **Advanced** UI level and above.
+
+Administrators carry an **admin** badge in the list. **Make administrator**
+puts an existing user in the edition's administrator group (`sudo` on
+Debian, `wheel` elsewhere) and the groups administrators get with it
+(`docker` where it exists); **Remove administrator** takes them out again.
+The account, its files and its shares stay as they are. You cannot take
+your own role — another administrator has to — and the last administrator
+always keeps it, so the system is never left without one.
+
+Users that arrive from a data pool (a pool import, or a configuration
+shared with another edition) never become administrators by themselves:
+this is how one is made, deliberately.
+
 ## Deleting a User
 
 !!! info "Advanced level required"
