@@ -13,9 +13,9 @@ restart (or a reboot).
 
 Containers run with **Docker**, from your edition's own packages, on every
 Linux edition (Debian, Arch, Artix, Void, Gentoo), and with **AppJail** on
-FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD only the
-runtime is ready so far: installing it and putting it on a pool; containers,
-apps and the catalogue follow.
+FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD the
+runtime and the Containers and Images cards are ready; apps and the
+catalogue follow, and their cards are not shown there yet.
 
 ## Install Docker
 
@@ -85,6 +85,26 @@ and prepares the system for jails:
   since pf would otherwise block everything.
 - Packet forwarding (`gateway_enable`) and a NAT network for the jails,
   `fnasjails`, 10.231.0.0/24.
+
+Containers are **jails**. The Containers card lists every jail AppJail
+knows, with its image (or `FreeBSD <release>` for a plain jail), state,
+ports and address on the jails' network; Logs shows the newest log of the
+jail's process, else of its console. **Run a container** (*Expert*)
+creates a jail from an OCI image, for instance
+`ghcr.io/appjail-makejails/nginx:latest`, on the `fnasjails` network
+behind NAT:
+
+- a jail always needs a **name** (letters, digits, `-` and `_`);
+- **ports** are `host:jail`, with `/udp` for UDP; they are reached on the
+  NAS's address from the network, not from the NAS itself;
+- **folders** are folders of the system, `/tank/media:/media`, with `:ro`
+  for read only; the path inside the jail must exist in the image, or
+  start the jail will fail. There are no named volumes;
+- *Restart* `no` keeps the jail from starting at boot; any other choice
+  starts it at boot.
+
+**Remove** on a running jail stops it first, then destroys it. Images are downloaded and removed with buildah;
+**Remove unused** removes the images no jail uses.
 
 What `/usr/local/appjail` held before is moved aside to
 `/usr/local/appjail.pre-freedomnas`, as on Linux. AppJail's services stay
