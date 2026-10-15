@@ -12,8 +12,10 @@ FreedomNAS newer than 0.9.12. The WebUI shows the page after its next
 restart (or a reboot).
 
 Containers run with **Docker**, from your edition's own packages, on every
-Linux edition (Debian, Arch, Artix, Void, Gentoo). FreeBSD is not supported
-yet.
+Linux edition (Debian, Arch, Artix, Void, Gentoo), and with **AppJail** on
+FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD only the
+runtime is ready so far: installing it and putting it on a pool; containers,
+apps and the catalogue follow.
 
 ## Install Docker
 
@@ -54,6 +56,41 @@ mounts the datasets first and then starts it.
 
 The pool is chosen once: moving containers to another pool is not possible
 yet.
+
+## FreeBSD: AppJail
+
+On FreeBSD, **Install** installs `appjail` and `py312-director` (AppJail's
+Director, which plays Docker Compose's part) from FreeBSD's packages.
+**Use this pool** then creates two datasets:
+
+| Dataset | Mounted on |
+|---------|------------|
+| `<pool>/containers/appjail` | `/usr/local/appjail` — jails, releases, networks, logs |
+| `<pool>/containers/oci` | `/var/db/containers` — OCI images (buildah) |
+
+and prepares the system for jails:
+
+- `/usr/local/etc/appjail/appjail.conf`: AppJail keeps everything in its
+  ZFS root on the first dataset, reaches the network through the interface
+  of the default route, and builds jails from the system's own release,
+  fetched once onto the pool.
+- `/usr/local/etc/containers/storage.conf`: image layers become datasets
+  under `<pool>/containers/oci`. Left to its defaults, buildah would make
+  every layer a dataset under the system dataset, which a rollback of the
+  system would then take back.
+- `pf` is enabled with AppJail's NAT and port anchors, in a block of
+  `/etc/pf.conf` between `# freedomnas appjail begin` and
+  `# freedomnas appjail end`. Your own rules stay below it as they are; a
+  `pf.conf` with no `pass` rule of its own gets `pass all` in the block,
+  since pf would otherwise block everything.
+- Packet forwarding (`gateway_enable`) and a NAT network for the jails,
+  `fnasjails`, 10.231.0.0/24.
+
+What `/usr/local/appjail` held before is moved aside to
+`/usr/local/appjail.pre-freedomnas`, as on Linux. AppJail's services stay
+enabled at boot: the pool is imported and mounted before them, and the
+jails' NAT comes from `appjail-natnet`. At every boot FreedomNAS checks the
+files, pf and the network, and only writes what differs.
 
 ## Catalogue
 
