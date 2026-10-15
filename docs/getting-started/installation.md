@@ -175,7 +175,9 @@ Partition 1 is then formatted FAT32 with the label `EFI`.
 
 #### 2. Root pool
 
-A single, full-featured pool on partition 2:
+A single, full-featured pool on partition 2, named `rpool` unless another
+name is chosen (the flashable images use `<edition>pool`, see
+[Packaging](../developer/packaging.md)):
 
 ```
 rpool/

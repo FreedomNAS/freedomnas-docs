@@ -79,7 +79,14 @@ does not know. It runs the installer in image mode: the image gets the
 shipped administrator (`admin` / `freedomnas`) and SSH off, but no
 `.freedomnas` and no configuration, so its first boot lands in the setup
 wizard, which makes its owner choose a password and the pool that keeps the
-configuration ([First-Run Setup](../getting-started/first-run.md)). The host shows the serial console as it is written, so a CI
+configuration ([First-Run Setup](../getting-started/first-run.md)).
+Each image names its root pool after its edition — `debianpool`,
+`voidpool`, `gentoopool`, `freebsdpool` — and the Artix images, built once
+per init, add the init's initial: `artixopool`, `artixdpool`, `artixrpool`
+(`FNAS_POOL_NAME` overrides it). Two images on two disks of one machine
+then never carry two pools of the same name: the initramfs imports the
+root pool by name and stops when it finds two. The installer keeps asking
+for the name, with `rpool` proposed. The host shows the serial console as it is written, so a CI
 job's log carries the whole installation (`FNAS_VM_SERIAL_STDOUT=0` keeps
 it in the file only), reads `vm-install: RESULT ok` from it and compresses
 the image. The image is exactly what the installer produces
