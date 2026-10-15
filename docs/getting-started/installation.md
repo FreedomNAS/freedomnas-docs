@@ -186,8 +186,8 @@ rpool/
     └── log          atime=on
 ```
 
-There is no `.freedomnas` dataset yet: the setup wizard creates it on the pool
-you choose there, or the first boot restores one found on another pool.
+There is no `.freedomnas` dataset yet: the first boot creates it on the root
+pool and, if another pool carries a FreedomNAS configuration, restores it.
 
 `/boot` is a plain directory inside `rpool/ROOT/<edition>` — the kernel and
 initramfs live in the UKI on the ESP, not in ZFS.
@@ -295,10 +295,11 @@ ESP/
 The installer's answers — hostname, timezone, users, the root pool and the
 installed features — go to `config.yaml` in the state directory
 (`/etc/freedomnas/state/`, `/usr/local/etc/freedomnas/state/` on FreeBSD), and
-the system is left waiting for the setup wizard. On the first boot, either a
-`.freedomnas` configuration found on another pool is restored, or the wizard
-runs and moves this `config.yaml` onto a `.freedomnas` dataset on the pool you
-pick. That dataset is what survives a reinstallation. The wizard accepts the
+the system is left waiting for the setup wizard. On the first boot this
+`config.yaml` moves into the root pool's `.freedomnas` dataset; then either a
+configuration found on another pool is restored into it, or the wizard runs
+and copies it to the pool you pick. That copy is what survives a
+reinstallation. The wizard accepts the
 administrator password you chose in the installer.
 
 #### 11. Cleanup and reboot
@@ -318,8 +319,9 @@ nothing is bootstrapped, and the boot chain is left alone.
    the accounts the system already has.
 3. Confirm.
 
-The pool that holds the `.freedomnas` configuration dataset is chosen
-afterwards, in the WebUI's setup wizard. A system with no ZFS pool keeps the
+The pool that keeps a copy of the configuration is chosen afterwards, in
+the WebUI's setup wizard; the configuration itself moves to the root pool's
+`.freedomnas` at the first boot. A system with no ZFS pool keeps the
 configuration under `/etc/freedomnas/`.
 
 The installer then installs the missing packages with the system's own

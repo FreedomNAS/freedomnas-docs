@@ -38,8 +38,9 @@ The dashboard does not yet reflect pool health: check it here.
 
 The API call is `POST /api/storage/pools` — see
 [Storage API](../api/storage.md). After the pool exists, the cache/log
-devices are attached, the `<pool>/.freedomnas` shadow dataset is created and
-the pool is recorded in `config.yaml`.
+devices are attached, the `<pool>/.freedomnas` dataset for the copy of the
+configuration is created (mountpoint `<config_dir>/shared`, never mounted
+there) and the pool is recorded in `config.yaml`.
 
 !!! warning "Data loss"
     Everything on the selected data devices is destroyed. `-f` is never

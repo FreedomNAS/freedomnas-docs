@@ -48,12 +48,15 @@ more pools can be created later from **Storage**.
 
 ## Step 4 — Configuration
 
-Choose the pool that keeps FreedomNAS's configuration (the `.freedomnas`
-dataset: users, shares, settings). A data pool is preselected when there is
-one, and recommended: the configuration then survives reinstalling or
-reflashing the system disk — at the next boot, `firstboot.sh` finds it on
-the data pool and restores the system from it (see
-[Installation](installation.md)).
+The configuration (users, shares, settings) lives on the system disk, in
+the root pool's `.freedomnas` dataset. Choose the pool that keeps a copy of
+it. A data pool is preselected when there is one, and recommended: the copy
+then survives reinstalling or reflashing the system disk — at the next boot,
+`firstboot.sh` finds it on the data pool and restores the system from it
+(see [Installation](installation.md)). Another FreedomNAS install that
+shares the data pool (another edition on another disk of the same machine)
+takes only the shares, users, pools and snapshot policies from it, never
+its administrators, network or system settings.
 
 ## After a restore
 

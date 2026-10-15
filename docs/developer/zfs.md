@@ -131,8 +131,9 @@ numeric id, so it is the pool that was looked at.
 (except the pool's own dataset with `canmount=off`), or a dataset whose own
 (`local`/`received`) mountpoint is under `/usr`, `/etc`, `/boot`, `/var`,
 `/home` and the other system directories with `canmount` `on` or `noauto`.
-`.freedomnas` is exempt: its mountpoint is this system's state directory by
-design. Such a pool is never imported read-write.
+`.freedomnas` is exempt: its mountpoint is a FreedomNAS directory by
+design (`<config_dir>/state` on a root pool, `<config_dir>/shared` on a data
+pool, the state directory on pools set up before 2026-10-15). Such a pool is never imported read-write.
 
 **What is a conflict.** A dataset that would be mounted (`canmount=on`) on a
 system directory only by inheritance, on something already mounted, or on a
@@ -204,8 +205,9 @@ Key flags:
 
 - `rpool/ROOT/debian` — `canmount=noauto` prevents auto-mount at import;
   the dracut initramfs mounts it explicitly with the kernel's ZFS driver
-- `rpool/.freedomnas` — `canmount=noauto`; mounted only when
-  FreedomNAS reads or writes `config.yaml`
+- `rpool/.freedomnas` — `canmount=noauto`; created by the first boot
+  (`freedomnas state-boot`) and mounted by it at `<config_dir>/state`: this
+  install's own configuration
 - `/boot` is a **plain directory** inside `rpool/ROOT/debian` — the kernel
   and initramfs live in the UKI on the ESP, not in ZFS
 

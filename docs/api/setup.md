@@ -35,8 +35,9 @@ FreeBSD; `python3 -m freedomnas path setup-pending`). The installer's image
 mode, which builds every Linux image, and the FreeBSD image builder write it.
 A clean or in-place install writes `install` into it.
 
-When the first boot finds a `.freedomnas` dataset on an attached pool, it
-restores that configuration, which is already marked initialized. The
+When the first boot finds no initialized configuration on the root pool's
+`.freedomnas` and an initialized one on an attached pool, it restores that
+configuration, which is already marked initialized. The
 pending file keeps the wizard in front anyway: the WebUI answers `503` and
 `/status` says `"initialized": false, "restored": true`, because the image's
 shipped account and password still work and the restored users have no
@@ -54,14 +55,15 @@ configuration is waiting.
 {
   "hostname": "oldnas",
   "timezone": "Europe/Rome",
-  "state_dataset": "tank/.freedomnas",
+  "state_dataset": "rpool/.freedomnas",
   "admins": ["sarah"],
   "users": ["mario"],
   "ssh_enabled": true
 }
 ```
 
-`admins` are the users marked `admin` or in the edition's sudo group.
+`admins` are the users marked `admin` (or, in a file written before
+2026-10-15, in any edition's sudo group).
 
 ---
 
@@ -113,7 +115,7 @@ from a data pool.
 | `admin.password` | yes | At least 8 characters, and different from the password the request is authenticated with |
 | `admin.remove_default` | no | With a new `username`: remove the account the request is authenticated as. If false, it is kept and gets the new password too, so the shipped one works nowhere. Never applies to `root` |
 | `pool` | no | A data pool to create, exactly as [`POST /api/storage/pools`](storage.md) takes it (`name`, `vdev_type`, `devices`, `encrypted`, `master_passphrase`, cache and log devices) |
-| `state_pool` | yes | The pool that keeps `.freedomnas`: an imported pool, or the one `pool` creates |
+| `state_pool` | yes | The pool that keeps the external copy of the configuration: an imported pool, or the one `pool` creates. The root pool itself means no external copy |
 
 **Behaviour**, in this order — everything that can be checked is checked
 before anything changes:
@@ -125,15 +127,13 @@ before anything changes:
 3. If `pool` was given, it is created through the Storage route, which
    validates it (`422` before anything else changes) and gives it a
    `.freedomnas` dataset
-4. `shadow.activate(engine, state_pool)`: creates `<state_pool>/.freedomnas`
-   if needed, copies the state directory into it and mounts it there. When
-   the state is already served from another pool's `.freedomnas` — every
-   image and install ships one on the root pool — that dataset is unmounted
-   and, once the new one is mounted, destroyed: two datasets mounting at the
-   same place never both exist. If the new one cannot be mounted the old one
-   is mounted back and the call fails. It runs before anything is written,
-   so a failure leaves the system uninitialized and the wizard can be run
-   again
+4. `shadow.activate(engine, state_pool)`: the root pool's `.freedomnas`
+   (created by the first boot) stays the live state; `<state_pool>` gets its
+   `.freedomnas` with the external mountpoint `<config_dir>/shared` if it has
+   none. Nothing is destroyed (see
+   [Configuration](../architecture/config.md#storage-locations)). It runs
+   before anything is written, so a failure leaves the system uninitialized
+   and the wizard can be run again
 5. `system.hostname_set`, `system.timezone_set`, the Samba usershare
    directory and `smb.conf` stanza
 6. The administrator: `users.create` with the edition's sudo group for a
@@ -145,6 +145,7 @@ before anything changes:
 7. `system.ssh_enabled: false` in `config.yaml` (SSH is off on fresh
    systems; see [`/api/system/ssh`](system.md))
 8. `config.mark_initialized(edition, initialized_by="webui")`
+9. `shadow.sync`: the configuration is copied to every external copy
 
 **Response:**
 
@@ -154,7 +155,7 @@ before anything changes:
   "hostname": "mynas",
   "edition": "debian",
   "admin": "sarah",
-  "state_dataset": "tank/.freedomnas"
+  "state_dataset": "rpool/.freedomnas"
 }
 ```
 
@@ -171,8 +172,7 @@ filesystem.
 ### On a restored system
 
 The same route finishes a restore. Only the administrator and SSH are
-asked for; the hostname, timezone, users, shares and the pool holding
-`.freedomnas` stay as restored.
+asked for; the hostname, timezone, users and shares stay as restored.
 
 ```json
 {
@@ -185,12 +185,16 @@ asked for; the hostname, timezone, users, shares and the pool holding
 2. `ssh: true` enables and starts the SSH service; either way
    `system.ssh_enabled` records the choice
 3. `system.edition` becomes the edition running here: the configuration may
-   come from another one's install (a FreeBSD pool restored on Artix)
+   come from another one's install (a FreeBSD pool restored on Artix); the
+   Samba usershare directory is prepared, as for a new system — before
+   2026-10-15 a restored system with no share could not create one
+   (`net usershare: cannot open usershare directory`)
 4. The administrator as in step 5 above. A name that already has an account
    (one the restore created) is taken over, not created: it gets the
-   password, and its restored entry keeps its fields and gains `admin` and
-   the sudo group. A removed shipped account also leaves `config.yaml`
-5. The `setup-pending` file is removed
+   password, and its restored entry keeps its fields and gains `admin`. A
+   removed shipped account also leaves `config.yaml`
+5. The `setup-pending` file is removed, and `shadow.sync` copies the
+   configuration to the external copies
 
 The password changes last. When an earlier step fails the route answers
 `500` and the password the wizard was opened with still works, so the

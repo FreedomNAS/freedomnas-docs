@@ -1,6 +1,6 @@
 # Configuration Manager
 
-`config.py` manages persistent configuration as YAML on a ZFS dataset.
+`config.py` manages persistent configuration as YAML on ZFS datasets.
 This configuration survives OS reinstallation and enables cross-OS migration.
 
 ## Storage Locations
@@ -8,32 +8,57 @@ This configuration survives OS reinstallation and enables cross-OS migration.
 `<config_dir>` is the OS profile's `paths.config_dir`: `/etc/freedomnas` on
 the Linux editions, `/usr/local/etc/freedomnas` on FreeBSD.
 
-| Priority | Path | Notes |
-|----------|------|-------|
-| Primary | `<config_dir>/state/config.yaml` | Where the `.freedomnas` dataset mounts |
-| Active | `<config_dir>/state/config.yaml` | Mounted ZFS dataset `<pool>/.freedomnas`, on the pool chosen in the setup wizard |
-| Fallback | `<config_dir>/config.yaml` | Backup copy |
+| Copy | Dataset | Mountpoint | Role |
+|------|---------|------------|------|
+| Internal | `<root pool>/.freedomnas` | `<config_dir>/state` | This install's own configuration: the one in use |
+| External | `<data pool>/.freedomnas` | `<config_dir>/shared` | Portable copy on every other pool that has the dataset |
+| Fallback | — | `<config_dir>/config.yaml` | A system whose root is not on ZFS |
+
+Both are `canmount=noauto`. Only the internal one is ever mounted at
+`<config_dir>/state`; an external one is mounted for a moment at a temporary
+directory to be read or written, and its own mountpoint is never used — the
+two never compete for the state directory.
 
 The installer writes `<target root><config_dir>/state/config.yaml` on the
-root filesystem, not initialized, and creates no dataset. The setup wizard
-creates `<pool>/.freedomnas` (`canmount=noauto`, mounted at
-`<config_dir>/state`) through the storage profile's `create_state_dataset` and
-moves that file into it (`shadow.activate`).
+root filesystem, not initialized, and creates no dataset. At every boot
+`firstboot.sh` runs `freedomnas state-boot` (`shadow.boot`), which:
 
-A pool created by one edition carries that edition's mountpoint on its
-`.freedomnas` dataset. When `firstboot.sh` finds it on another edition — a
-Debian pool on FreeBSD, say — it sets the dataset's mountpoint to this
-edition's `<config_dir>/state` before mounting it.
+1. creates the internal dataset if it is missing (the first boot, or a
+   system set up before it existed), moves what the state directory holds
+   into it and mounts it there. A system that served its state from a data
+   pool's dataset has that one unmounted and turned into an external copy:
+   nothing is destroyed;
+2. gives every other pool's `.freedomnas` the external mountpoint;
+3. decides where the configuration comes from:
 
-Which `.freedomnas` `firstboot.sh` serves from: the first, root pool first,
-that holds a `config.yaml`. Images and installs no longer create one on the
-root pool; systems made before that ship an empty one there, so after a
-reinstall the configuration is found on the data pool instead, and an empty
-root-pool dataset is destroyed — two datasets mounting at the same place
-never both exist. With no configuration anywhere, the first empty one is
-mounted for the wizard. The wizard moves
-the state to the pool the administrator chooses the same way
-(see [`/api/setup/initialize`](../api/setup.md)).
+| Internal | External | Action |
+|----------|----------|--------|
+| initialized | none newer | `local` — used as it is |
+| initialized | a newer one | `merged` — the shared sections are taken from the newest |
+| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall) |
+| not initialized | none | `none` — the setup wizard runs |
+
+"Newer" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
+stamps on every save; a mirrored copy carries the stamp of the save it
+copies. An external copy newer than the internal one was written by another
+install sharing the pool — another edition on another disk of the same
+machine. From it only what belongs to the pool is taken:
+
+| Taken from the newer copy | Never taken: belongs to this install |
+|---------------------------|--------------------------------------|
+| `shares` (as they are there) | `system` (hostname, edition, SSH, timezone…) |
+| `snapshots.policies` | `network` (interfaces are bound to MACs) |
+| `modules` (per module) | each existing user's entry, admin role included |
+| `storage.pools` (added) | `services`, `updates`, `installed_features` |
+| users this install does not have, never as administrators | |
+
+A copy written before `saved_at` existed is always older, so it is never
+merged. The configuration is mirrored to the external copies by the
+nightly `freedomnas shadow-sync`, when the setup wizard finishes, and when a
+configuration is imported (`shadow.sync`).
+
+The setup wizard's "pool that keeps the configuration" is now the pool that
+gets the external copy (see [`/api/setup/initialize`](../api/setup.md)).
 
 To find it, `firstboot.sh` imports every pool with `zpool import -a -N -f
 -o cachefile=none`. The `-f` is what lets a reinstall restore: the data
@@ -149,8 +174,8 @@ network:
 
 users:
   - username: "admin"
-    groups: ["sudo"]
-    admin: true                  # in the edition's sudo group; set by the installer and the wizard
+    groups: []
+    admin: true                  # never a group name: joins the running edition's users.sudo_group
   - username: "mario"
     groups: []
     shell: "/bin/bash"
@@ -264,5 +289,11 @@ class ConfigurationManager:
 - `to_dict()` adds top-level `smb_shares` and `nfs_shares` aliases so the
   `ReconciliationEngine` can address them without nesting into `shares.smb`
 - On load, missing keys are merged from `DEFAULT_CONFIG` via deep merge
+- An administrator is `admin: true`, never a group name: on load and in
+  `add_user()` (`normalize_user`) any edition's `users.sudo_group` — every
+  `users/users-*.json`, `known_admin_groups()` — is removed from `groups`
+  and turns into `admin: true`, so a file written on Debian (`sudo`) reads
+  the same on Gentoo (`wheel`)
+- Every save stamps `system.saved_at` (UTC)
 - Validation runs on both load and save; raises `ConfigurationException` on
   type or structure errors

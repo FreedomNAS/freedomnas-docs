@@ -296,21 +296,22 @@ and the WebUI.
 
 ## State and restore
 
-Neither install mode creates a `.freedomnas` dataset. A fresh root pool that
-carried one would compete with the dataset on a data pool that outlived the
-old system, and `firstboot.sh` would have to guess which is the real
-configuration.
+Neither install mode creates a `.freedomnas` dataset: the first boot creates
+the root pool's, this install's own configuration. A data pool's copy has
+the mountpoint `<config_dir>/shared`, so the two never compete for the state
+directory (see [Configuration](../architecture/config.md#storage-locations)).
 
 - **Clean install** — `StateWriter.save(initialized=False)` writes the
   installer's answers (hostname, timezone, users, root pool, features) to
   `config.yaml` in the state directory on the root filesystem, and
   `mark_setup_pending("install")` writes `install` into `setup-pending`.
-- **First boot** — `firstboot.sh` imports every pool and mounts the first
-  `.freedomnas` holding a `config.yaml` over the state directory. Found: the
-  reconciler restores it, and the setup wizard asks only for the
-  administrator and SSH (`_finish_restore`). Not found: the setup wizard runs,
-  and `shadow.activate` moves the installer's `config.yaml` into the
-  `.freedomnas` it creates on the pool the administrator picks.
+- **First boot** — `firstboot.sh` imports every pool and runs
+  `freedomnas state-boot`: the root pool's `.freedomnas` is created, the
+  installer's `config.yaml` moves into it and it is mounted over the state
+  directory. An initialized configuration on another pool's `.freedomnas` is
+  restored into it: the reconciler applies it, and the setup wizard asks only
+  for the administrator and SSH (`_finish_restore`). None: the setup wizard
+  runs, and copies the configuration to the pool the administrator picks.
 - **Password** — `setup-pending` holding `install` tells the WebUI
   (`ConfigurationManager.setup_pending_kind()`, `/api/setup/status`
   `password_chosen`) that the administrator chose the password in the
@@ -784,20 +785,26 @@ OS has an `/etc/cron.d` drop-in directory — FreeBSD's entry is appended to
 `/etc/crontab` instead.
 
 On every boot `firstboot.sh` imports pools, unlocks encrypted ones
-(`python -m freedomnas unlock-pools`), then either reconciles from an
-existing `.freedomnas` config or leaves the WebUI's first-run wizard to take
-over, before exec'ing the supervisor.
+(`python -m freedomnas unlock-pools`), runs `python -m freedomnas state-boot`,
+then either reconciles or leaves the WebUI's first-run wizard to take over,
+before exec'ing the supervisor. `state-boot` prints `action
+local|merged|restored|none`, `internal <dataset>`, `source <pool>` when a
+data pool's copy was used, and `keep <pool>` for every pool to leave
+imported: the source and the pools `config.yaml` names. Every other pool the
+script imported is exported again.
 
 It sets `PATH` itself, and has to: cron's `@reboot` environment carries
 neither `sbin` directory, while `useradd`, `zpool` and `rc-service` all live
 in one of them. The supervisor inherits it through the `exec`.
 
-The search for a `.freedomnas` dataset starts at **the pool this system booted
-from** (`zfs list -H -o name /`), and only then walks the rest. A NAS can hold
-several pools carrying that dataset — an older install, a disk from another
-machine — and restoring a foreign configuration would create that machine's
-users and start its services here. When the configuration does come from
-another pool, the script says so in the log.
+The configuration of **the pool this system booted from** wins whenever it
+is initialized. A NAS can hold several pools carrying a `.freedomnas` — an
+older install, another edition on another disk, a disk from another machine
+— and none of them may change who administers this install, its edition or
+its network. A data pool's copy restores a system only when its own is not
+initialized, and otherwise lends only its shared sections, when it is newer.
+When the configuration comes from another pool, the script says so in the
+log.
 
 ## installer_modules.py — base infrastructure
 
