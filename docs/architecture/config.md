@@ -35,7 +35,7 @@ root filesystem, not initialized, and creates no dataset. At every boot
 |----------|----------|--------|
 | initialized | none newer | `local` — used as it is |
 | initialized | a newer one | `merged` — the shared sections are taken from the newest |
-| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall) |
+| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition |
 | not initialized | none | `none` — the setup wizard runs |
 
 "Newer" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
