@@ -14,8 +14,8 @@ restart (or a reboot).
 Containers run with **Docker**, from your edition's own packages, on every
 Linux edition (Debian, Arch, Artix, Void, Gentoo), and with **AppJail** on
 FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD the
-runtime, containers, images and apps are ready; the catalogue follows, and
-its card is not shown there yet.
+catalogue has Jellyfin, Nextcloud and Vaultwarden; the other entries are
+shown as *Not on this edition yet*.
 
 Everything the module runs comes from its profile for your edition
 (`containers-<os>.json`), as for the rest of FreedomNAS: the page and the
@@ -89,6 +89,11 @@ and prepares the system for jails:
   since pf would otherwise block everything.
 - Packet forwarding (`gateway_enable`) and a NAT network for the jails,
   `fnasjails`, 10.231.0.0/24.
+- Names for the jails: `appjail-dns` writes every jail's name to
+  `/var/tmp/appjail-hosts` and dnsmasq (installed with AppJail) answers
+  them on the network's address, 10.231.0.1, only there. Every new jail
+  asks it, so the jails of an app reach each other as
+  `<jail>.fnasjails.appjail` (Nextcloud reaches its database that way).
 
 Containers are **jails**. The Containers card lists every jail AppJail
 knows, with its image (or `FreeBSD <release>` for a plain jail), state,
@@ -167,6 +172,13 @@ level:
 | Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address |
 | Vaultwarden | password manager for the Bitwarden apps | 8222 | browsers open its web vault only over HTTPS: put it behind a reverse proxy before using it from other devices |
 
+On FreeBSD the same entries install as AppJail Director projects, with
+the Makejails of the [AppJail-makejails](https://github.com/AppJail-makejails)
+project (Jellyfin, Nextcloud with MariaDB) and the FreeBSD package
+(Vaultwarden), and the same settings: the window, the passwords shown once
+and the folders are the same; the app's jails are named
+`<app>-<service>`.
+
 **Install** asks, at every UI level, where the app keeps its files:
 Jellyfin's media folder, Immich's photo library, Nextcloud's data folder.
 The list offers *Inside the app* (a folder of the app's own dataset), the
@@ -226,8 +238,22 @@ they publish (Assisted shows it read only).
   the kept dataset again, data included, with the new compose file.
 
 An app that is up is brought up again at every boot, after Docker, if any
-of its containers is not running. On a restored or reinstalled system the
-apps come back from the pool the same way.
+of its containers is not running, and an app that is stopped is stopped
+again if its containers were started by the system (AppJail starts jails
+at boot by itself). On a restored or reinstalled system the apps come back
+from the pool the same way.
+
+### Moving to another edition
+
+The pool keeps each app's data and settings. When it is imported on an
+edition with the other runtime (Linux and FreeBSD), an app from the
+catalogue is set up for it at boot, if its data can be used by both:
+today **Vaultwarden** (its vault and users come along). Jellyfin and
+Nextcloud keep paths and a database tied to the runtime they were installed
+with: they stay stopped with a message on the dashboard, their dataset
+kept; remove them keeping the dataset and install them again, or copy
+your files out of it. Apps you wrote yourself (Compose or Director files)
+are not changed: write the other file for them.
 
 ## Containers
 
