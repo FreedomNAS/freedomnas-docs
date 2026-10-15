@@ -27,15 +27,17 @@ root filesystem, not initialized, and creates no dataset. At every boot
    system set up before it existed), moves what the state directory holds
    into it and mounts it there. A system that served its state from a data
    pool's dataset has that one unmounted and turned into an external copy:
-   nothing is destroyed;
-2. gives every other pool's `.freedomnas` the external mountpoint;
+   nothing is destroyed. The internal dataset gets the ZFS user property
+   `org.freedomnas:role=internal`;
+2. gives every other pool's `.freedomnas` the external mountpoint, except
+   the root pool of another install (see below);
 3. decides where the configuration comes from:
 
 | Internal | External | Action |
 |----------|----------|--------|
 | initialized | none newer | `local` — used as it is |
 | initialized | a newer one | `merged` — the shared sections are taken from the newest |
-| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition |
+| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition and, for users who already exist here, this system's uid and gid |
 | not initialized | none | `none` — the setup wizard runs |
 
 "Newer" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
@@ -64,8 +66,17 @@ To find it, `firstboot.sh` imports every pool with `zpool import -a -N -f
 -o cachefile=none`. The `-f` is what lets a reinstall restore: the data
 pool was last used by the old system, under another hostid, and nobody
 exported it. Nothing is mounted by the import, nothing is written to the
-cachefile, and every pool imported that way that does not carry the
-configuration is exported again.
+cachefile, and every pool imported that way is exported again unless the
+configuration needs it: a pool with an external copy, a pool named in
+`storage.pools`, or the pool of a module (`modules.<id>.pool`).
+
+**Another install's root pool.** Two editions on two disks of the same
+machine each see the other's root pool. A pool whose `.freedomnas` carries
+`org.freedomnas:role=internal`, or that has a `bootfs`, is another install's
+root: its `.freedomnas` is that install's truth, so it is never read as a
+copy, never written by `shadow.sync`, its mountpoint is never changed, and
+it is always exported again. Configuration passes between the two installs
+only through the external copies on the data pools.
 
 ## Shadow-Copy Pattern
 
