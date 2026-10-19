@@ -99,11 +99,10 @@ with `["system"]`; a hand-edited file was left as it was.
 
 ## topgrade itself
 
-!!! warning "Not every edition packages topgrade"
-    Debian and Gentoo do not carry topgrade at all, and building it from
-    source pulls the Rust toolchain and several hundred crates. Upstream
-    publishes a statically linked musl binary, and both editions get that
-    binary rather than a compile:
+!!! note "How each edition packages topgrade"
+    Building Topgrade from source pulls the Rust toolchain and several
+    hundred crates. FreedomNAS uses release binaries where available rather
+    than compiling it as part of the system package:
 
     | Edition | Where topgrade comes from |
     |---------|---------------------------|
