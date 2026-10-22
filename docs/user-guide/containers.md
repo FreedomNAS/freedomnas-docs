@@ -6,8 +6,9 @@ not part of a plain FreedomNAS install: the page appears in the sidebar once
 the package is installed.
 
 Install the package `freedomnas-module-containers` with your edition's
-package manager (`apt`, `pacman`, `xbps-install`, or `emerge
-app-nas/freedomnas-module-containers` from the FreedomNAS overlay); it needs
+package manager (`apt`, `pacman`, `xbps-install`, `pkg install` on FreeBSD,
+or `emerge app-nas/freedomnas-module-containers` from the FreedomNAS
+overlay), or from the [Plugins page](plugins.md); it needs
 FreedomNAS newer than 0.9.12. The WebUI shows the page after its next
 restart (or a reboot).
 
@@ -129,7 +130,9 @@ is checked with Director's own parser before anything is written, and an
 invalid one is refused with its message (an unknown key, a jail name that
 is not allowed). Jails of an app are named in its file (`name:`), and the
 app list counts the jails Director reports for the project. **Start** and
-**Stop** are Director's `up` and `down`; **Update** rebuilds the app's
+**Stop** are Director's `up` and `down`, and also turn on or off AppJail's
+start-at-boot for the app's jails, so a stopped app stays stopped after a
+reboot; **Update** rebuilds the app's
 jails (`up --overwrite`), keeping the folders of its dataset; **Remove**
 also destroys its jails; **Logs** shows each jail's log in turn. A minimal
 app, with nginx from the AppJail Makejails images:

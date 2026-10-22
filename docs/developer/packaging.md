@@ -124,9 +124,10 @@ locks there (without it the Void image's installation stopped at
 
 A community module lives in a repository of its own (freedomnas-containers
 is the first, built from freedomnas-module-template) and is packaged by the
-same repositories as the core: freedomnas-deb, freedomnas-arch and
-freedomnas-void each clone it beside the components, and freedomnas-overlay
-has an ebuild for it. Its package is named `freedomnas-module-<id>`
+same repositories as the core: freedomnas-deb, freedomnas-arch,
+freedomnas-void and freedomnas-freebsd each clone it beside the components
+(freedomnas-freebsd passes it to the FreeBSD VM build as `MODULES`), and
+freedomnas-overlay has an ebuild for it. Its package is named `freedomnas-module-<id>`
 (`app-nas/freedomnas-module-<id>` on Gentoo), where `<id>` is the module's
 `id` in `manifest.json`: the [Plugins page](../user-guide/plugins.md) finds
 modules by that name in the edition's repository and shows the package's
@@ -141,8 +142,10 @@ A module has versions of its own, not FreedomNAS's: freedomnas-containers
 starts at 0.1.0. A module with no release tag yet is left out of `main`
 without failing the run. Its packages depend on freedomnas-core and
 freedomnas-webui newer than 0.9.12, whose module loader read a single modules
-directory: a community module installed beside it hid the core's own. On
-Gentoo the module has only a live `9999` ebuild until its first tag.
+directory: a community module installed beside it hid the core's own. pkg
+records a FreeBSD dependency without a version range, so there the guard is
+the module's first tag coming after a FreedomNAS release newer than 0.9.12.
+On Gentoo the module has only a live `9999` ebuild until its first tag.
 
 ## Versions
 
