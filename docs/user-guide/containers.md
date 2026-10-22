@@ -15,8 +15,8 @@ restart (or a reboot).
 Containers run with **Docker**, from your edition's own packages, on every
 Linux edition (Debian, Arch, Artix, Void, Gentoo), and with **AppJail** on
 FreeBSD (see [FreeBSD: AppJail](#freebsd-appjail)). On FreeBSD the
-catalogue has Jellyfin, Nextcloud and Vaultwarden; the other entries are
-shown as *Not on this edition yet*.
+catalogue has Jellyfin, Nextcloud, Pi-hole and Vaultwarden; the other
+entries are shown as *Not on this edition yet*.
 
 Everything the module runs comes from its profile for your edition
 (`containers-<os>.json`), as for the rest of FreedomNAS: the page and the
@@ -177,8 +177,10 @@ level:
 
 On FreeBSD the same entries install as AppJail Director projects, with
 the Makejails of the [AppJail-makejails](https://github.com/AppJail-makejails)
-project (Jellyfin, Nextcloud with MariaDB) and the FreeBSD package
-(Vaultwarden), and the same settings: the window, the passwords shown once
+project (Jellyfin, Nextcloud with MariaDB), the FreeBSD package
+(Vaultwarden) and FreedomNAS's own packages of Pi-hole, built for FreeBSD
+(the jail gets them from the same FreedomNAS repository as the NAS), and the
+same settings: the window, the passwords shown once
 and the folders are the same; the app's jails are named
 `<app>-<service>`.
 
