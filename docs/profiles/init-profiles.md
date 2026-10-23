@@ -67,7 +67,8 @@ start". `start` does nothing for a service that already runs
 (`service samba_server start` exits 1 then). Two exceptions, written in the
 script: `samba_server` is checked by its `smbd`, because its `status`
 counts winbindd too, which a standalone server does not run (it reported
-Samba stopped before); `appjail-natnet` and `appjail-health` finish once
+Samba stopped before); `appjail` (it starts the jails marked for boot),
+`appjail-natnet` and `appjail-health` finish once
 their work is done, so only their exit code counts. Verified on FreeBSD
 15.1 through the engine: daemon(8) services start at once, a broken
 configuration (dnsmasq) and a disabled service (zfsd) fail with their
