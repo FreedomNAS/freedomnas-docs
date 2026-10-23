@@ -53,6 +53,14 @@ as Vaultwarden, so the Bitwarden apps and browser extensions trust them too.
 When the NAS gets a new address or hostname it makes a new certificate at the
 next boot, signed by the same authority: nothing to install again.
 
+!!! note "HTTPS only, by name"
+    Vaultwarden tells the browser to use only HTTPS with the NAS's name for a
+    year (HSTS). Once the browser trusts the authority it obeys, on every port:
+    an app opened by that name that only speaks plain HTTP no longer opens,
+    while the same app opened by the NAS's address still does. Catalogue apps
+    with an **HTTPS** setting serve their web interface with FreedomNAS's
+    certificate for this reason.
+
 *Advanced level:* the card also shows the certificate's own fingerprint, the
 names and addresses it is valid for, and when it expires (it is renewed by
 itself well before).

@@ -172,7 +172,7 @@ level:
 | Immich | photo and video backup from your phones | 2283 | needs 4 GB of memory or more; the library is `./library` unless you choose a folder of your pool |
 | Jellyfin | films, series and music streaming | 8096 | reads a media folder of your pool, read only, as the account you choose |
 | Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once; its data folder is `./data` unless you choose an empty or new folder of your pool |
-| Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address |
+| Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address; its web interface uses HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), like Vaultwarden |
 | Vaultwarden | password manager for the Bitwarden apps | 8222 | serves HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), which browsers need for the web vault: install FreedomNAS's certificate authority once on each device ([System → Certificate](system.md#certificate)) and the web vault, the Bitwarden apps and the browser extensions trust it by the NAS's hostname or address; a new certificate (new address or hostname) reaches the app at the next boot, which restarts it; from outside your network, a certificate of your own domain (reverse proxy) is the lasting way |
 
 On FreeBSD the same entries install as AppJail Director projects, with
