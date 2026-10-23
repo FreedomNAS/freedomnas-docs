@@ -82,6 +82,7 @@ nav:
     - Updates: user-guide/updates.md
     - Services: user-guide/services.md
     - Containers: user-guide/containers.md
+    - Reverse proxy: user-guide/proxy.md
     - Plugins: user-guide/plugins.md
     - System Settings: user-guide/system.md
     - UI Levels: user-guide/ui-levels.md

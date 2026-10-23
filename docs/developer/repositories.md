@@ -18,7 +18,8 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-void          FreedomNAS packages for Void, OpenZFS modules for Void's own kernel and the Samba configuration, a signed xbps repository built on Codeberg's hosted runners
 ├── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
 ├── freedomnas-module-template Starting point for a community module
-└── freedomnas-containers    Containers community module (package freedomnas-module-containers)
+├── freedomnas-containers    Containers community module (package freedomnas-module-containers)
+└── freedomnas-proxy         Reverse proxy community module, Caddy (package freedomnas-module-proxy)
 
 codeberg.org/sarahmeow86/
 └── zfs-dinit                dinit services for ZFS on Artix (checked out as artix-zfs)
