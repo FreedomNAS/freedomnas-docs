@@ -176,6 +176,35 @@ disables it explicitly where the package turns it on by itself (Debian's
 
 ---
 
+## GET /api/system/certificate
+
+**Auth required:** yes
+
+```json
+{
+  "ca_fingerprint": "3F:1A:…",
+  "fingerprint": "9A:8C:…",
+  "names": ["nas", "nas.local", "localhost"],
+  "addresses": ["127.0.0.1", "::1", "192.168.1.200"],
+  "expires": "2028-12-31T10:00:00+00:00"
+}
+```
+
+The SHA-256 fingerprints of FreedomNAS's certificate authority and of the
+WebUI's certificate, the names and addresses the certificate covers and when
+it expires. `ca_fingerprint` is `null` on a certificate from before the CA
+(until the next boot); `404` when there is no certificate at all.
+
+## GET /freedomnas-ca.crt
+
+**Auth required:** no
+
+The CA's certificate (PEM, `application/x-x509-ca-cert`), to install on
+computers and phones as a trusted authority. Outside `/api/`, so it answers
+before setup too; `404` until the CA exists.
+
+---
+
 ## GET /api/system/boot
 
 The automatic rollback: its setting, the boot state, and the last rollback.

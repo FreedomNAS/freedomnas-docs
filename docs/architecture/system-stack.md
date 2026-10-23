@@ -92,7 +92,7 @@ All three communicate with the core library — never directly with the OS.
 | `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
 | `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
 | `package_manager.py` | Abstract package install/remove via profiles |
-| `tls.py` | The WebUI's self-signed certificate, created once at first boot |
+| `tls.py` | FreedomNAS's own CA and the WebUI certificate it signs for the host's names and addresses, checked at every boot |
 | `keymgmt.py` | Encrypted-pool keyslot wrapping/unwrapping and boot-time unlock |
 | `modules/<name>/module.py` | Health check implementations (storage, network, shares, users, updates), each in its own `modules/<name>/` subpackage with a `manifest.json` |
 

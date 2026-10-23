@@ -31,6 +31,32 @@ The change is applied to the system first (`timedatectl set-timezone` on
 systemd editions, the `/etc/localtime` link or `tzsetup` elsewhere) and only
 then recorded in `config.yaml`, so a zone the system refuses is not saved.
 
+## Certificate
+
+The WebUI uses HTTPS with a certificate FreedomNAS signs itself, with its own
+certificate authority. Until a device trusts that authority, its browser
+warns about the certificate. To get rid of the warning for good, install the
+authority once on each computer and phone:
+
+1. Click **Download the certificate authority** (or open
+   `https://<your NAS>:8080/freedomnas-ca.crt` on the phone).
+2. Compare the **Authority** fingerprint shown here with the one your device
+   displays, then install it as a trusted certificate authority: in the
+   browser's certificate settings (Authorities tab), on Android under
+   *Security → Encryption & credentials → Install a certificate → CA
+   certificate*, on iPhone in *Settings → Profile Downloaded*, then turn it on
+   in *General → About → Certificate Trust Settings*.
+3. Open the NAS by its hostname or its address.
+
+The same authority covers the apps that use FreedomNAS's certificate, such
+as Vaultwarden, so the Bitwarden apps and browser extensions trust them too.
+When the NAS gets a new address or hostname it makes a new certificate at the
+next boot, signed by the same authority: nothing to install again.
+
+*Advanced level:* the card also shows the certificate's own fingerprint, the
+names and addresses it is valid for, and when it expires (it is renewed by
+itself well before).
+
 ## SSH
 
 *Advanced level.* SSH is off on a freshly installed or flashed system.

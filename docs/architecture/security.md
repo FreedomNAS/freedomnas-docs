@@ -166,21 +166,43 @@ the cheaper of the two risks, but it is a choice, not an oversight.
 
 Basic auth carries the administrator's password — base64, not encrypted — on
 **every request**, so the WebUI speaks TLS. `python -m freedomnas ensure-tls`
-runs from `firstboot.sh` and, the first time only, writes an EC P-256
-self-signed certificate to `/etc/freedomnas/tls` (key `0600`, ten years,
-SANs for the hostname, `localhost`, `127.0.0.1` and `::1`). The supervisor
-passes it to uvicorn, so the WebUI answers `https://<host>:8080`.
+runs from `firstboot.sh` at every boot, before the reconcile (so apps that
+serve HTTPS with the certificate get the current one) and once more after it
+with `--names-only` (a restore may have changed the hostname; addresses the
+reconcile brought up, such as the jails' bridge, wait for the next boot so
+the WebUI and the apps keep presenting the same certificate). It keeps two things in
+`<config_dir>/tls`:
 
-The certificate is generated **once** and then left alone: one that changed
-at every boot would teach the admin to click through the warning, which is
-the opposite of the point. Its SHA-256 fingerprint is printed at first boot,
-to be compared with what the browser shows.
+| File | What |
+|------|------|
+| `ca.pem`, `ca-key.pem` | FreedomNAS's own certificate authority (EC P-256, twenty years, `CA:TRUE`, path length 0), made once and never replaced |
+| `cert.pem`, `key.pem` | the server certificate, signed by that CA, followed by the CA in the same file (EC P-256, 800 days, `serverAuth`) |
 
-What this does and does not buy: it stops anyone on the network from reading
-the password, and it does **not** prove the appliance's identity — no
-self-signed certificate can. An installation from before this existed keeps
-serving plain HTTP rather than refusing to start; it gains TLS as soon as the
-certificate is there.
+Keys are `0600`, the directory `0700`. The server certificate's SANs are the
+hostname, `<hostname>.local`, `localhost`, `127.0.0.1`, `::1` and every
+address of the NAS read through the network profile's interface listing
+(`list_interfaces_json`, else `list_interfaces`), loopback and link-local left
+out. It is issued again when a name or address is missing from it, when it
+was not signed by this CA (installs from before the CA had a self-signed
+certificate: they get one at the next boot) and when fewer than 90 days are
+left. A changed address therefore costs nothing to whoever trusts the CA; the
+WebUI serves the new certificate from the next boot. 800 days stays under the
+825 that Apple devices accept for a certificate from an installed authority.
+
+The supervisor passes `cert.pem` to uvicorn, so the WebUI answers
+`https://<host>:8080`. The CA's certificate (never its key) is served without
+credentials at `/freedomnas-ca.crt`, so a phone can download it, and the
+System page shows its fingerprint to compare with what the device displays
+before trusting it.
+
+What this does and does not buy: until the CA is installed on a device, the
+certificate stops anyone on the network from reading the password but does
+not prove the appliance's identity. Once installed, it does, for every name
+and address the NAS has. Whoever reads `ca-key.pem` (root on the NAS) can
+sign certificates the devices trust: the CA is limited by nothing but its
+trust on those devices, which is why it is per NAS and never shared. An
+installation from before TLS existed keeps serving plain HTTP rather than
+refusing to start; it gains TLS as soon as the certificate is there.
 
 ## WebSocket Terminal
 
