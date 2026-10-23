@@ -12,8 +12,10 @@ certificate. Once FreedomNAS's certificate authority is installed on a device
 ([System → Certificate](system.md#certificate)), every app opens without a
 warning, by the NAS's hostname or by its address.
 
-Editions: Debian, Arch, Void, Gentoo and FreeBSD. Artix has no Caddy package
-yet.
+Editions: Debian, Arch, Artix, Void, Gentoo and FreeBSD. Caddy comes from
+your edition's own packages; Artix has none, so there it comes from
+FreedomNAS's own repository (`caddy-bin`, with the service of your init:
+`caddy-openrc`, `caddy-dinit` or `caddy-runit`).
 
 ## Set up
 
