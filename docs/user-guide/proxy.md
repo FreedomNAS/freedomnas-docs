@@ -58,7 +58,8 @@ site.
 answers on, and the service as `host:port` — something on the NAS
 (`127.0.0.1:9000`) or on your network (`192.168.1.50:80`, a printer's or a
 camera's page). The proxy reaches it over plain HTTP, so keep it on the NAS
-or on your own network. A port something already listens on is refused, and
+or on your own network. A port something already listens on is refused (on
+FreeBSD also one a jail exposes through the firewall), and
 Caddy checks the configuration before it is kept: if Caddy refuses it,
 nothing changes. **Remove** takes a site added here away again.
 
