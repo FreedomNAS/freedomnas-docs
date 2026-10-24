@@ -38,6 +38,16 @@ over HTTPS. The app itself moves to a port only the proxy reaches (on Linux
 plain HTTP any more. An app installed while the proxy is set up starts behind
 it directly.
 
+## Turn off
+
+**Turn off** (on the Caddy card, once the proxy is set up) stops Caddy and
+keeps it off at boot, then puts the apps behind it back on their own ports,
+over plain HTTP as before: Jellyfin answers again on `http://<your NAS>:8096`.
+Caddy stays installed and the sites added here stay in the configuration, so
+**Set up** brings everything back. If an app cannot go back to its own port
+(something else took it meanwhile), Caddy stays off and the page says which
+app.
+
 ## Sites
 
 The **Sites** table lists every site: the port of the NAS, the service behind
