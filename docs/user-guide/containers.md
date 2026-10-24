@@ -304,6 +304,14 @@ happens from the saved configuration: once Docker is installed again,
 the containers on the pool start where they were. If Docker is missing,
 the reconciler reports it and the page offers to install it.
 
+On Linux, setup and every boot also make sure a user may hold 1024 inotify
+instances (`fs.inotify.max_user_instances`, in
+`/etc/sysctl.d/10-freedomnas-containers.conf`; a higher value set by you is
+left alone). An app that runs as one of the NAS's users, such as Jellyfin,
+shares that user's instances with everything else the user runs, and the
+kernel's default of 128 can run out: Jellyfin then crashes at start and keeps
+restarting.
+
 ## Dashboard
 
 The module's tile says whether Docker runs on the pool, with the number of

@@ -16,7 +16,7 @@ warning, by the NAS's hostname or by its address.
 Editions: Debian, Arch, Artix, Void, Gentoo and FreeBSD. Caddy comes from
 your edition's own packages; Artix has none, so there it comes from
 FreedomNAS's own repository (`caddy-bin`, with the service of your init:
-`caddy-openrc`, `caddy-dinit` or `caddy-runit`).
+`caddy-openrc`, `caddy-dinit` or `caddy-runit`; and `lego-bin` for Let's Encrypt).
 On Gentoo it installs Caddy 2.11 or later, accepting its `~amd64` keyword
 alone (`/etc/portage/package.accept_keywords/freedomnas-caddy`): the stable
 2.10.2, built with Go 1.27, crashes on its first HTTPS site.
@@ -80,6 +80,45 @@ it added once, with Nextcloud's `occ config:system:set trusted_domains <n>
 
 Pi-hole and Vaultwarden serve HTTPS themselves and are not behind the proxy,
 so they keep their ports only.
+
+## Your own domain (Let's Encrypt)
+
+With names on, the *Your own domain* card (*Advanced*) adds a domain of yours:
+every site then also answers as `https://jellyfin.<your domain>/` with a
+**Let's Encrypt** certificate, which phones, TVs and guests' devices trust
+without installing anything. The local names keep working.
+
+The certificate covers your domain and every name under it (one wildcard
+certificate) and comes through the **DNS-01** challenge: FreedomNAS asks your
+DNS provider, through its API, to publish the record Let's Encrypt checks. No
+port of the NAS is opened to the internet, and the domain needs no address of
+its own on the internet; on your network, Pi-hole from the catalogue answers
+it with the NAS's address (or add a wildcard record in your router, as for the
+local names).
+
+Fill in the domain (such as `nas.example.org`), an email for Let's Encrypt,
+your **DNS provider** with the name lego gives it (`desec`, `cloudflare`,
+`ovh`, `hetzner`, `duckdns`… see [lego's list of DNS
+providers](https://go-acme.github.io/lego/dns/)) and its **credentials**, one
+`KEY=value` per line with the names lego's page for your provider gives (for
+deSEC: `DESEC_TOKEN=…`). *Let's Encrypt staging* gets a test certificate no
+browser trusts, to try the settings without Let's Encrypt's limits; at the
+*Expert* level any other ACME directory can be given.
+
+**Get the certificate** asks for it in the background (a minute or two);
+the card then shows its expiry. A daily job renews it 30 days before it
+expires, with no action from you. The credentials are kept on the NAS in a
+file only root can read (and in the configuration, so a reinstall gets the
+certificate again by itself); saving the form with the credentials empty keeps
+the saved ones. **Stop using this domain** removes the names under it and the
+renewal; the local names stay.
+
+The certificate comes from [lego](https://go-acme.github.io/lego/), installed
+from your edition's packages (`lego-bin` from FreedomNAS's repository on
+Artix; on Gentoo its `~amd64` keyword is accepted like Caddy's). A Nextcloud
+installed before the domain was set needs it added once to its trusted
+domains, as for the local names (`*.<your domain>`); one installed afterwards
+trusts it by itself.
 
 ## Turn off
 
