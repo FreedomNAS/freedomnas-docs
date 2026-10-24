@@ -51,10 +51,15 @@ trusts its certificate authority opens them without a warning. Typing
 `http://` sends the browser to `https://`; a name no site has answers *There
 is no site with this name on this NAS*.
 
-Your devices find the names through your network's DNS: point every name under
-`<hostname>.home.arpa` (one wildcard record, `*.<hostname>.home.arpa`) at the
-NAS's address on your network, which the card shows, in your router or in
-Pi-hole.
+Your devices find the names through your network's DNS: every name under
+`<hostname>.home.arpa` (one wildcard record, `*.<hostname>.home.arpa`) has to
+point at the NAS's address on your network, which the card shows. **Pi-hole**
+from the [Containers](containers.md) catalogue does it by itself: while names
+are on it answers every one of them with that address (and with nothing once
+they are off), for every device that uses it as DNS server. Without Pi-hole,
+add the wildcard record in your router. A Pi-hole installed before this came
+gets it once reinstalled on its kept data (Containers → remove, keeping the
+data, then install it again).
 
 Names need ports 443 and 80 of the NAS; FreedomNAS refuses to turn them on
 while something else uses them, and refuses a site of yours on those ports
