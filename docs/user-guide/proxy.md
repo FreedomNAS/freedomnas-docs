@@ -17,6 +17,9 @@ Editions: Debian, Arch, Artix, Void, Gentoo and FreeBSD. Caddy comes from
 your edition's own packages; Artix has none, so there it comes from
 FreedomNAS's own repository (`caddy-bin`, with the service of your init:
 `caddy-openrc`, `caddy-dinit` or `caddy-runit`).
+On Gentoo it installs Caddy 2.11 or later, accepting its `~amd64` keyword
+alone (`/etc/portage/package.accept_keywords/freedomnas-caddy`): the stable
+2.10.2, built with Go 1.27, crashes on its first HTTPS site.
 
 ## Set up
 
