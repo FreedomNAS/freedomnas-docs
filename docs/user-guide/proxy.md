@@ -4,7 +4,8 @@ The **Reverse proxy** page comes with the community module
 `freedomnas-module-proxy` (repository `freedomnas-proxy`). Install the
 package from the [Plugins page](plugins.md) or with your edition's package
 manager; the page appears in the sidebar at the *Advanced* level after the
-WebUI restarts.
+WebUI restarts. Opened at the *Assisted* level, it shows Caddy's state and the
+sites only; setting up, turning off and the sites' changes are *Advanced*.
 
 It puts [Caddy](https://caddyserver.com) in front of the NAS's web apps and
 serves each of them over **HTTPS on its own port**, with FreedomNAS's own
