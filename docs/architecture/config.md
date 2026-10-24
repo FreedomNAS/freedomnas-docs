@@ -81,9 +81,16 @@ ones already configured, then removes the file. A copy that knows none of
 the cards here was written on another machine, which may still be running
 with those addresses: an install with a network of its own keeps it. A
 reinstall (`restored`) takes the whole copy as before, so new hardware gets
-the old network on its cards. The configuration is mirrored to the external copies by the
-nightly `freedomnas shadow-sync`, when the setup wizard finishes, and when a
-configuration is imported (`shadow.sync`).
+the old network on its cards. The configuration is mirrored to the external
+copies a few seconds after every save (`shadow.mirror_after_save`, hooked on
+`ConfigurationManager.on_save` by the WebUI and by the `reconcile`, `boot-ok`,
+`snapshot-run` and `serve` commands; saves close together give one copy), when
+the setup wizard finishes, when a configuration is imported, and by the
+nightly `freedomnas shadow-sync` as a second chance. A configuration that is
+not initialized is never mirrored, so a fresh install cannot overwrite the copy
+it would be restored from. Because the shared sections at boot come from the
+newest external copy however old it is, a change that never reached the data
+pool would be undone at the next boot: that is why every save is mirrored.
 
 The setup wizard's "pool that keeps the configuration" is now the pool that
 gets the external copy (see [`/api/setup/initialize`](../api/setup.md)).

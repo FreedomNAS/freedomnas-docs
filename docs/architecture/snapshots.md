@@ -65,7 +65,9 @@ snapshots that stop.
 
 ## The shadow copy (`shadow-sync`)
 
-The same cron file carries one more job, nightly:
+The configuration is mirrored a few seconds after every save (see
+[the configuration](config.md)); the same cron file carries one more job,
+nightly, as a second chance:
 
 ```
 30 3 * * *  root  python3 -m freedomnas shadow-sync
