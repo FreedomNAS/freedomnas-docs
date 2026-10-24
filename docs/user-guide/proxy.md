@@ -29,7 +29,7 @@ of the [Containers](containers.md) catalogue that can go behind it do:
 |-----|------------------|
 | Jellyfin | yes, on Linux and FreeBSD |
 | Immich | yes (Linux) |
-| Nextcloud | yes on Linux (it is told it is served over HTTPS); on FreeBSD not yet |
+| Nextcloud | yes, on Linux and FreeBSD: it trusts the proxy, so it builds its links with the protocol the proxy reports (HTTPS) and goes back to plain HTTP by itself when the proxy is off |
 | Pi-hole, Vaultwarden | no need: they serve HTTPS with the same certificate themselves |
 | Home Assistant | not yet: it uses the host's network on a fixed port |
 

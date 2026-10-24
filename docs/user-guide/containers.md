@@ -208,7 +208,7 @@ passwords it made up, **once**: write them down. Installing an app again on
 a dataset that was kept keeps its old passwords, since its databases were
 made with them.
 
-With the [reverse proxy](proxy.md) set up, Jellyfin, Immich and Nextcloud (on FreeBSD: Jellyfin) are installed behind it: their web port answers over HTTPS with FreedomNAS's certificate.
+With the [reverse proxy](proxy.md) set up, Jellyfin, Immich and Nextcloud (on FreeBSD: Jellyfin and Nextcloud) are installed behind it: their web port answers over HTTPS with FreedomNAS's certificate.
 
 The first start downloads the app's images and can take several minutes;
 the Runtime card says when it is done. **Open** in the app list then opens
