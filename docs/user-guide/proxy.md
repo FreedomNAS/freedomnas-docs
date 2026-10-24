@@ -39,6 +39,40 @@ over HTTPS. The app itself moves to a port only the proxy reaches (on Linux
 plain HTTP any more. An app installed while the proxy is set up starts behind
 it directly.
 
+## Names
+
+Once the proxy is set up, **Serve the sites by name** (on the *Names* card,
+*Advanced*) makes every site answer by name too, on the usual HTTPS port:
+`https://jellyfin.<hostname>.home.arpa/`, with no port to remember. Each site
+keeps its port as well. `home.arpa` is the domain set aside for home networks
+(RFC 8375), so these names never clash with a real one, and FreedomNAS's
+certificate covers every name under `<hostname>.home.arpa`: a device that
+trusts its certificate authority opens them without a warning. Typing
+`http://` sends the browser to `https://`; a name no site has answers *There
+is no site with this name on this NAS*.
+
+Your devices find the names through your network's DNS: point every name under
+`<hostname>.home.arpa` (one wildcard record, `*.<hostname>.home.arpa`) at the
+NAS's address on your network, which the card shows, in your router or in
+Pi-hole.
+
+Names need ports 443 and 80 of the NAS; FreedomNAS refuses to turn them on
+while something else uses them, and refuses a site of yours on those ports
+while names are on. Caddy does not run as root, so it is allowed to open them:
+on FreeBSD with `mac_portacl` (only the `www` user, only tcp 80, tcp 443 and
+udp 443; root keeps its own rights, nobody else gets any), on Artix, Void and
+Gentoo with the file capability `cap_net_bind_service` on `/usr/bin/caddy`;
+Debian's and Arch's Caddy service already have it. **Stop serving by name**
+takes all of it back.
+
+Nextcloud refuses names it was not told about: an app installed now trusts
+every name under `<hostname>.home.arpa` by itself. One installed before needs
+it added once, with Nextcloud's `occ config:system:set trusted_domains <n>
+--value="*.<hostname>.home.arpa"`.
+
+Pi-hole and Vaultwarden serve HTTPS themselves and are not behind the proxy,
+so they keep their ports only.
+
 ## Turn off
 
 **Turn off** (on the Caddy card, once the proxy is set up) stops Caddy and
