@@ -170,7 +170,7 @@ level:
 |-----|------------|----------|-------|
 | Home Assistant | home automation | 8123 | host network, so it can find the devices of your home; the port cannot change |
 | Immich | photo and video backup from your phones | 2283 | needs 4 GB of memory or more; the library is `./library` unless you choose a folder of your pool |
-| Jellyfin | films, series and music streaming | 8096 | reads a media folder of your pool, read only, as the account you choose |
+| Jellyfin | films, series and music streaming | 8096 | reads the NAS's **media** share, read only, as the account you choose (see below) |
 | Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once; its data folder is `./data` unless you choose an empty or new folder of your pool |
 | Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address; its web interface uses HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), like Vaultwarden; while the [reverse proxy](proxy.md#names) serves the sites by name it answers every name under `<hostname>.home.arpa` with the NAS's address |
 | Vaultwarden | password manager for the Bitwarden apps | 8222 | serves HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), which browsers need for the web vault: install FreedomNAS's certificate authority once on each device ([System → Certificate](system.md#certificate)) and the web vault, the Bitwarden apps and the browser extensions trust it by the NAS's hostname or address; a new certificate (new address or hostname) reaches the app at the next boot, which restarts it; from outside your network, a certificate of your own domain (reverse proxy) is the lasting way |
@@ -193,6 +193,18 @@ uses the usual settings in *Assisted*: the first free port from the one in
 the table, the system's time zone, your account, and passwords made up for
 you. In *Advanced* and *Expert* the same window lets you change them first:
 the app's name, its port, the account it runs as, passwords.
+
+Jellyfin's media folder is, unless you choose another, the NAS's **media**
+share: the dataset `<apps' pool>/media`, shared over SMB as `media` for a
+group of accounts ([Shares](shares.md#shares-for-a-group-of-accounts)), so
+films and music go in from any computer (`\\<NAS>\media`) and Jellyfin sees
+them at once. When the share is missing, the install makes it (a dataset
+already there is reused, its files included) and asks who uses it over SMB,
+reading and writing: *Every account, also those added later* (the default)
+or the accounts you tick; the Shares page changes that later. Jellyfin gets
+its own read-only entry in the share's ACL, for the account it runs as, and
+mounts it read only; removing Jellyfin takes that entry away and keeps the
+share and its files. A second Jellyfin uses the same share.
 
 Nextcloud's data folder must be empty or not exist yet (its parent on a
 pool): FreedomNAS creates it and gives it to the account the Nextcloud
