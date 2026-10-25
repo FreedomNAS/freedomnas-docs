@@ -220,6 +220,12 @@ chosen at the install, so one made later reaches Nextcloud when it is
 installed again on its kept data. Removing Nextcloud takes its ACL entries
 away; the shares stay.
 
+An app installed again on the data it kept (removed without deleting its
+data) is offered the folders it used before: its database still points
+there. Choosing another one shows a warning in the window, and again once the
+app is installed: a Jellyfin that used `./media` and now reads the media
+share finds its old library empty until its files are there.
+
 Nextcloud's data folder must be empty or not exist yet (its parent on a
 pool): FreedomNAS creates it and gives it to the account the Nextcloud
 container runs as (`www-data`, uid 33). Files already in a folder would not
