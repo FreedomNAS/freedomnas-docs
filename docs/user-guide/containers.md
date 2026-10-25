@@ -237,6 +237,11 @@ there. Choosing another one shows a warning in the window, and again once the
 app is installed: a Jellyfin that used `./media` and now reads the media
 share finds its old library empty until its files are there.
 
+Nextcloud runs its newest release on both Linux (Docker image
+`nextcloud:apache`) and FreeBSD (the AppJail Makejail): Nextcloud upgrades
+its data but never goes back to an older release, so data that moves between
+editions keeps working only when neither side is behind.
+
 Nextcloud's data folder must be empty or not exist yet (its parent on a
 pool): FreedomNAS creates it and gives it to the account the Nextcloud
 container runs as (`www-data`, uid 33). Files already in a folder would not
