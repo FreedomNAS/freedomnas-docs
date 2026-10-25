@@ -68,7 +68,8 @@ data, then install it again).
 **A Pi-hole of your network** (one running elsewhere, which your devices
 already use as DNS server) can be kept up to date by FreedomNAS: on the
 *Names* card give its address (such as `http://192.168.1.5`) and an **app
-password** (in Pi-hole 6: Settings → Web interface / API → App password).
+password** (in Pi-hole 6: Settings → Web interface / API → App password); a
+Pi-hole with no password needs none, leave the field empty.
 FreedomNAS writes its Local DNS Records there: one for the NAS
 (`<address> <hostname> <hostname>.home.arpa <site>.<hostname>.home.arpa …`,
 so the WebUI answers by the NAS's name too) and, with an own domain, one for
