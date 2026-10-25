@@ -37,10 +37,42 @@ back exactly so. Accounts log in to SMB with their FreedomNAS password (see
     creating a share. If the check fails (HTTP 409), re-run the first-run
     wizard to repair the Samba configuration.
 
+### Shares for a group of accounts
+
+Under **Who uses it**, *A group of accounts* makes a share several people use
+together, such as a family's photos: every member reads and writes every
+file in it, whoever put it there.
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Group** | The Unix group made for the share (lowercase letters, digits, `-` and `_`); it is filled in from the share name | `famiglia` |
+| **Members** | *Every account, also those added later* (the default), or the accounts ticked below it | `luca`, `anna` |
+
+The path has to be the directory a dataset of a data pool mounts on. The
+dataset becomes the group's: root owns its directory, the group may read and
+write everything in it (the files already there included), and what anyone
+creates there stays the group's, through an ACL every new file and folder
+inherits. Only the group's members can open the share; other accounts are
+refused. A name an account or a group of the system already has is refused.
+
+**Members** on the share's row changes who belongs to the group, and whether
+accounts created later join it by themselves. Membership is recorded on the
+accounts (see [Users](users.md)), so a restore brings the group back first,
+then the accounts in it, and gives the dataset to the group again (the group
+may get another number on the new system; the old number's permissions are
+taken away).
+
+On Linux, FreedomNAS adds `create mask = 0770` and `directory mask = 0770`
+to Samba's global settings the first time: with Samba's own default the group
+could only read the files another member creates. FreeBSD's ZFS ACLs need
+nothing more.
+
 ### Deleting an SMB Share
 
 Click **Remove** next to a share and confirm. The share is removed but the
-underlying directory is not deleted.
+underlying directory is not deleted. A group share's directory goes back to
+root alone, and its group is deleted when no other share uses it; the files
+stay, owned by whoever created them.
 
 ### Connecting from a Client
 

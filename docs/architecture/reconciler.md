@@ -45,19 +45,21 @@ on the strength of a list that could not be taken.
 
 ```
 1. Hostname → 2. Timezone → 3. Network interfaces → 4. Pools
-→ 5. Accounts (add, group changes) → 6. Feature services → 7. SSH
-→ 8. Boot choices of services → 9. SMB shares → 10. NFS exports
-→ 11. Removal of accounts → 12. Modules
+→ 5. Group shares' groups → 6. Accounts (add, group changes)
+→ 7. Feature services → 8. SSH → 9. Boot choices of services
+→ 10. SMB shares → 11. NFS exports → 12. Removal of accounts → 13. Modules
 ```
 
-Pools come before the shares on them, accounts before the shares that name
-them, and accounts are removed last, when no share refers to them any more.
+Pools come before the shares on them, a group share's group before the
+accounts created in it, accounts before the shares that name them, and
+accounts are removed last, when no share refers to them any more.
 
 | Step | Declarative | Additive |
 |------|-------------|----------|
 | Hostname, timezone | set when different | same |
 | Network interfaces | first every physical card gets its FreedomNAS name by MAC address (`freedomnas.netnames`: `network.list_physical`, `names_clear` + `name_persist` rewrite the names the system applies at boot, a card with another name is renamed live with `rename_interface` and its connection follows with `connection_rename`; the entry in `network.interfaces` moves to the new name). Then every entry under `network.interfaces` with a `config` is found on this system by its `mac_address`, or by its name, and gets its configuration back when the system holds none for it (`network.connection_exists`: no `fnas-<interface>` connection, no `ifconfig_<interface>` line on FreeBSD), through the same steps as the Network page, without a checkpoint. A configured interface is left alone, so a boot never takes the network down — except one renamed during this boot, whose connection is activated again (`connection_activate`). An interface this system does not have is skipped. Bridges, bonds and VLANs (entries with a `type`) the system does not have are created with all their steps — bonds first, then VLANs, then bridges — when their ports or parent are there; ports (entries with `master`) get no configuration of their own. The WireGuard VPN (type `wireguard`) is written and brought up again, with its key and devices, when `network.wg_exists` does not answer `yes` | same |
 | Pools | imported when not imported; an imported one is put in the default cachefile and its datasets mounted (`zfs.pool_cachefile_default`, `zfs.mount_pool_auto`): `firstboot.sh` leaves a restored data pool imported with `-N` and no cachefile. **Never exported or destroyed** | same |
+| Group shares' groups | for every SMB share with a `group` (`freedomnas.groupshares.restore`): the group is created when missing (`users.group_create`); when the share's directory does not carry that group — a restore, where the group got another number here and the files show the old one — the old group's ACL entries are removed (`directories.acl_group_remove`) and the directory and everything in it are given to the group again, with the apps recorded for it (`apps`). Only the directory is checked at every boot | same |
 | Accounts | created when missing, with the `uid` the configuration records, or else the numeric owner (`directories.owner_uid_get`) of a share directory given to them — the ID a restored pool's files carry; a uid already taken here is not reused. Group membership changed | same |
 | Group membership | only the groups FreedomNAS assigns: the edition's `sudo_group` and `share_group`, any group the configuration lists, and the administrators' groups. A user's own group, `users`, anything set up by hand is left alone. An administrator (`admin: true`) is given the **running** edition's `sudo_group`, whatever group the file named; any group name of another edition's administrators (`sudo`, `wheel`) in the file is read as `admin: true`. The running edition's `sudo_group` is never taken away from anyone: administrators lose their rights from the WebUI only | same |
 | Administrators' groups | an administrator (`admin: true`, or in the `sudo_group`) also joins every `admin_groups` group of `packages/*.json` that exists on this system (`package_manager.admin_groups_present`, checked with `users.group_exists`) — `docker`, whose socket topgrade's containers step needs. A configuration restored from another edition, or written before Containers was installed, does not list it | same |

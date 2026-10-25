@@ -91,6 +91,7 @@ this).
 | `list` | The regular accounts as `passwd` lines (UIDs 1000–65533; 1001– on FreeBSD) — what the reconciler observes |
 | `add_to_group` | Add user to supplementary group. Takes `{group}`, one group — the same name the reconciler and the installer pass |
 | `remove_from_group` | Remove user from group |
+| `group_create` / `group_delete` | Make or delete a group of a group share (`groupadd`/`groupdel`; FreeBSD `pw groupadd`/`pw groupdel`) |
 
 ### `network`
 
@@ -249,12 +250,22 @@ Only a data pool's dataset's own mountpoint is ever handed over.
 | `owner_get` | The owner's name (Linux: `stat -c %U {path}`; FreeBSD: `stat -f %Su {path}`) |
 | `owner_set` | `chown {owner} {path}` |
 | `mode_set` | `chmod {mode} {path}` |
+| `group_set` / `group_set_recursive` | `chgrp [-R] {group} {path}` |
+| `group_share_mode` | value: `2770`, the mode of a group share's directory |
+| `group_share_properties` | value: the dataset properties a group share needs (Linux `{"acltype": "posixacl"}`; FreeBSD `{"aclmode": "passthrough", "aclinherit": "passthrough"}`) |
+| `acl_group_set` / `acl_group_remove` | The group's inherited read-write ACL entry, on the whole tree (Linux `setfacl -R -m g:{group}:rwX,d:g:{group}:rwX,m::rwX,d:m::rwX {path}`; FreeBSD `setfacl -R -m g:{group}:full_set:fd:allow {path}`) |
+| `acl_user_read` / `acl_user_write` (and `_remove`) | The same for one app's account (`{user}`, a name or a number), read-only or read-write |
+
+A group share (`freedomnas.groupshares`) gives a dataset's directory to a
+Unix group instead: root owns it, mode `2770`, and the ACL entries above make
+everything created in it the group's.
 
 ### `samba`
 
 | Key | Value type | Description |
 |-----|------------|-------------|
 | `config_file` | string | Path to `smb.conf` |
+| `group_share_settings` | list | `[global]` lines a group share needs, appended to `smb.conf` when missing (Linux: `create mask = 0770`, `directory mask = 0770`; FreeBSD: none) |
 | `testparm` | command | `{config_file}` — check `smb.conf` |
 | `check_installed` | command | Succeeds only where Samba is installed (`testparm -V`); decides whether accounts get a Samba password |
 | `set_user_password` | command | `smbpasswd -a -s {username}`: adds the account to Samba's database or changes its password, read from stdin |

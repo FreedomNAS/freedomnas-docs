@@ -60,7 +60,7 @@ matching when the hostname changes.
 directory a dataset of a data pool mounts on, it is given to the owner —
 `directories.owner_set`, `directories.group_set` to the edition's group for
 it (the owner's own on Linux, `wheel` on FreeBSD), then
-`directories.mode_set` `0700` — exactly as
+`directories.mode_set` `00700` (which also clears a setgid bit left by a group share) — exactly as
 `POST /api/storage/datasets` does. With no `owner` in the request, a
 directory that already belongs to an account keeps it (a share the
 administrator makes of a dataset given to someone else does not take it
@@ -88,6 +88,41 @@ Samba enforces.
 { "name": "Documents", "path": "/mnt/datapool/documents", "owner": "anna" }
 ```
 
+**Group share.** With `group` in the request the share belongs to a Unix
+group instead of an owner (`freedomnas.groupshares`):
+
+```json
+{ "name": "Famiglia", "path": "/tank/famiglia", "group": "famiglia",
+  "members": ["luca", "anna"], "everyone": false, "read_only": false }
+```
+
+`group` must match `^[a-z_][a-z0-9_-]{0,30}$` and be either free or the
+group of another FreedomNAS share; `members` must name existing accounts
+(`everyone: true` takes every account, and every one created later). The
+route then runs `users.group_create`, sets the dataset's
+`directories.group_share_properties` (`acltype=posixacl` on Linux,
+`aclmode`/`aclinherit` `passthrough` on FreeBSD), `owner_set` root,
+`group_set_recursive`, `mode_set` `directories.group_share_mode` (`2770`) and
+`directories.acl_group_set` (recursive, inherited by new files), adds the
+members (`users.add_to_group`, recorded in each account's `groups`), appends
+`samba.group_share_settings` to `smb.conf` when missing, and creates the
+usershare with the ACL `Unix Group\<group>:F` (`:R` when `read_only`). The
+share is recorded with `group` and `everyone`, without `owner`. Response:
+`{name, path, group, members}`; `422` for a bad or taken group name, an
+unknown account or a path that is not a dataset's directory.
+
+`GET /api/shares/smb` adds `members` to each group share.
+
+---
+
+### PUT /api/shares/smb/{name}/members
+
+Set who belongs to a group share's group: `{"members": ["luca"], "everyone": true}`.
+Accounts are added with `users.add_to_group` and taken out with
+`users.remove_from_group`, and their `groups` recorded; `everyone`, when
+given, is recorded on the share. `404` for a share that is not a group share,
+`422` for an unknown account.
+
 **Errors:**
 
 | Code | Detail |
@@ -109,6 +144,9 @@ Delete an SMB usershare.
 1. `engine.execute("samba", "delete_share", share_name=name)`
 2. `engine.execute("samba", "reload_config")`
 3. `config.set("shares.smb", [shares without this one])`
+4. For a group share: `directories.acl_group_remove`, `group_set_recursive`
+   to root's group, `mode_set` `00700`, and `users.group_delete` when no
+   other share uses the group (its name leaves every account's `groups`)
 
 **Response:**
 
