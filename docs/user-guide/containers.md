@@ -242,6 +242,13 @@ Nextcloud runs its newest release on both Linux (Docker image
 its data but never goes back to an older release, so data that moves between
 editions keeps working only when neither side is behind.
 
+Pi-hole's settings come along too: both recipes give FTL the paths of their
+own edition (`FTLCONF_webserver_paths_webroot`, `FTLCONF_files_database`,
+`FTLCONF_files_tmp_db`, `FTLCONF_files_gravity`, `FTLCONF_files_macvendor`:
+`/etc/pihole` and `/var/www/html` on Linux, `/usr/local/etc/pihole` and
+`/usr/local/www/pihole` on FreeBSD), so a `pihole.toml` written on the other
+edition is corrected at the first start instead of serving no web interface.
+
 Nextcloud's data comes along when its pool moves to another edition
 (FreeBSD to Linux or back): install it again from the catalogue on its kept
 data. Its folders (`./html`, the data folder) are given to the account
