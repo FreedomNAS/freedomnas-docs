@@ -48,7 +48,9 @@ file in it, whoever put it there.
 | **Group** | The Unix group made for the share (lowercase letters, digits, `-` and `_`); it is filled in from the share name | `famiglia` |
 | **Members** | *Every account, also those added later* (the default), or the accounts ticked below it | `luca`, `anna` |
 
-The path has to be the directory a dataset of a data pool mounts on. The
+The path has to be the directory a dataset of a data pool mounts on; one
+mounted inside a home (`/home/<user>/<folder>`, on a desktop that became a
+NAS) counts too, never `/home` or a home itself. The
 dataset becomes the group's: root owns its directory, the group may read and
 write everything in it (the files already there included), and what anyone
 creates there stays the group's, through an ACL every new file and folder

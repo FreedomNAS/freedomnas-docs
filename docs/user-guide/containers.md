@@ -206,6 +206,14 @@ its own read-only entry in the share's ACL, for the account it runs as, and
 mounts it read only; removing Jellyfin takes that entry away and keeps the
 share and its files. A second Jellyfin uses the same share.
 
+With another folder chosen, **Share this folder over SMB as the media share**
+makes that folder the media share instead, with the accounts chosen below it:
+your films already on a dataset of their own (such as `/home/sarah/Video` on
+a desktop that became a NAS) are then reached from every computer, and no
+empty `media` dataset is made elsewhere. The folder must be a dataset's own
+directory, and no other share may be named `media` (remove it on the Shares
+page first).
+
 Nextcloud shows the NAS's group shares as **External storage**, to read and
 write: the install lists them (all ticked; untick the ones it should not
 see) and each is mounted into Nextcloud at `/shares/<name>` and appears in
