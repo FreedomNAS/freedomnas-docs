@@ -120,6 +120,13 @@ Any active file transfer sessions will be interrupted.
 
 Powers off the system immediately. A confirmation dialog appears first.
 
+A short press of the NAS's own power button does the same: the system shuts
+down cleanly, as most headless machines do. Debian and Arch (systemd-logind)
+and FreeBSD (ACPI) do it by themselves; on Artix, Void and Gentoo FreedomNAS
+installs `acpid` and gives it a rule that powers the system off. Holding the
+button down for several seconds is the hardware's own forced power-off, with
+no clean shutdown.
+
 !!! warning
     After shutdown, the system can only be powered on by physically pressing
     the power button. Ensure you have physical access or IPMI/iDRAC remote

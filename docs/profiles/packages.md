@@ -10,6 +10,7 @@ and service names. They decouple `config.yaml` from any specific OS.
   "version": "4.0.0",
   "categories": [
     {"id": "core",           "required": true},
+    {"id": "power-button",   "required": true},
     {"id": "samba-cifs",     "required": false},
     {"id": "nfs",            "required": false},
     {"id": "containers",     "required": false},
@@ -51,6 +52,15 @@ is **not** what it reads, even though it looks equally plausible at a glance.
 
 Base system tools needed by FreedomNAS on every edition:
 ZFS utilities, Python 3, network tools.
+
+### `power-button` (required)
+
+What makes a short press of the power button shut the NAS down cleanly.
+Nothing on Debian and Arch (systemd-logind already does it) and FreeBSD (its
+ACPI default, `hw.acpi.power_button_state=S5`); `acpid` with its service on
+Artix (`acpid-openrc`, `acpid-dinit`, `acpid-runit` under `init.<name>`),
+Void and Gentoo (`sys-power/acpid`). The os profile's `power_button` section
+gives acpid FreedomNAS's rule (see [OS profiles](os-profiles.md#power_button)).
 
 ### `samba-cifs`
 

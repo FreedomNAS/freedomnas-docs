@@ -342,6 +342,24 @@ port's `samba_server` script, which runs nmbd and smbd.
 | `get_uptime` | Read uptime |
 | `get_os_info` | Read OS identification |
 
+### `power_button`
+
+Only on editions whose system does nothing with the power button by itself
+(Artix, Void, Gentoo). Values, not commands:
+
+| Key | Value |
+|-----|-------|
+| `category` | `power-button`: the package category with acpid and its service |
+| `rule_dir` | `/etc/acpi/events`: acpid's rules; when it is missing, acpid is installed |
+| `rule_file` | `/etc/acpi/events/freedomnas-power` |
+| `rule` | The rule's text: `event=button/power.*`, `action=/bin/sh -c poweroff` |
+| `service` | `acpid` |
+
+At every boot the reconciler installs the category's packages when
+`rule_dir` is missing (an install from before the category existed), writes
+the rule when it is missing or different, enables the service and starts it
+(restarts it when the rule changed), unless `services.boot` turns it off.
+
 ### `updates`
 
 | Key | Command |
