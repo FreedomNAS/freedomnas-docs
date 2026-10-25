@@ -203,8 +203,11 @@ already there is reused, its files included) and asks who uses it over SMB,
 reading and writing: *Every account, also those added later* (the default)
 or the accounts you tick; the Shares page changes that later. Jellyfin gets
 its own read-only entry in the share's ACL, for the account it runs as, and
-mounts it read only; removing Jellyfin takes that entry away and keeps the
-share and its files. A second Jellyfin uses the same share.
+mounts it read only; when Jellyfin runs as an account that is itself a member
+of the share, its entry carries the member's read and write instead (an entry
+for one account comes before the group's, so a read-only one would take
+writing away from that person too; the mount keeps Jellyfin read only).
+Removing Jellyfin takes that entry away and keeps the share and its files. A second Jellyfin uses the same share.
 
 With another folder chosen, **Share this folder over SMB as the media share**
 makes that folder the media share instead, with the accounts chosen below it:
