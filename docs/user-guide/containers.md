@@ -242,6 +242,16 @@ Nextcloud runs its newest release on both Linux (Docker image
 its data but never goes back to an older release, so data that moves between
 editions keeps working only when neither side is behind.
 
+Nextcloud's data comes along when its pool moves to another edition
+(FreeBSD to Linux or back): install it again from the catalogue on its kept
+data. Its folders (`./html`, the data folder) are given to the account
+Nextcloud runs as there (`www-data`, uid 33, on Linux; `www`, uid 80, on
+FreeBSD) when they belong to someone else, and a script FreedomNAS puts in
+Nextcloud's `pre-upgrade` and `before-starting` hooks writes that edition's
+paths and database host into `config.php` (`datadirectory`, `apps_paths`,
+`dbhost`) before Nextcloud reads it. The newer release of the two editions
+then upgrades the data by itself.
+
 Nextcloud's data folder must be empty or not exist yet (its parent on a
 pool): FreedomNAS creates it and gives it to the account the Nextcloud
 container runs as (`www-data`, uid 33). Files already in a folder would not
