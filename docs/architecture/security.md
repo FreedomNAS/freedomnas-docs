@@ -192,7 +192,14 @@ WebUI serves the new certificate from the next boot. 800 days stays under the
 825 that Apple devices accept for a certificate from an installed authority.
 
 The supervisor passes `cert.pem` to uvicorn, so the WebUI answers
-`https://<host>:8080`. The CA's certificate (never its key) is served without
+`https://<host>:8080`. It starts the WebUI through `api.serve`, which looks at
+the first byte of every connection on port 8080 before anything reads it: a
+TLS handshake goes to uvicorn as it is (the accepted socket itself, so the
+WebUI still sees the client's own address), while a plain `http://` request
+gets a 308 to `https://` on the same host, port and path, with a short page
+linking there for clients that do not follow redirects. Nothing is ever
+served over plain HTTP: the redirect carries no data and asks for no
+password. The CA's certificate (never its key) is served without
 credentials at `/freedomnas-ca.crt`, so a phone can download it, and the
 System page shows its fingerprint to compare with what the device displays
 before trusting it.

@@ -14,6 +14,8 @@ Open a browser and navigate to:
 https://<hostname or IP>:8080
 ```
 
+(`http://` works too: the WebUI sends the browser to `https://`.)
+
 Sign in with the credentials the system came with. On an image those are:
 
 | Username | Password |

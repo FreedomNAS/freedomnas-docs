@@ -21,7 +21,7 @@ At installation, the packages write:
 FAILURES=0
 MAX_FAILURES=5
 while true; do
-    uvicorn api.main:app --host 0.0.0.0 --port 8080
+    python3 -m api.serve --host 0.0.0.0 --port 8080   # uvicorn, plus the http:// redirect
     EXIT_CODE=$?
     [ $EXIT_CODE -eq 0 ] && { FAILURES=0; continue; }
     FAILURES=$((FAILURES + 1))
