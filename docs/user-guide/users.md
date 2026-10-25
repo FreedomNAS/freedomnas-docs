@@ -29,6 +29,13 @@ shares straight away. Passwords are passed via stdin — never in the command
 string. Changing a password later changes both, and deleting a user removes
 it from Samba too.
 
+An account that existed before FreedomNAS — FreedomNAS installed onto a
+running system, an account made by hand — has no Samba password, so no
+password opens a share for it. When such an administrator signs in to the
+WebUI, the password just accepted is given to Samba too (`samba.user_exists`,
+then `smbpasswd`), once; an account Samba already knows keeps its own. Any
+other account gets one with **Password** on this page.
+
 An administrator — a user in the sudo group (`sudo` or `wheel`) — also joins
 the groups its features need, when they exist on this system: `docker` with
 Containers, so an update can refresh the containers. The setup wizard does the
