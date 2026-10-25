@@ -37,7 +37,8 @@ of the [Containers](containers.md) catalogue that can go behind it do:
 | Home Assistant | not yet: it uses the host's network on a fixed port |
 
 Each app keeps its address: Jellyfin is still `https://<your NAS>:8096`, now
-over HTTPS. The app itself moves to a port only the proxy reaches (on Linux
+over HTTPS; `http://<your NAS>:8096` sends the browser there (as it does for
+apps that try plain HTTP first, such as the Jellyfin app). The app itself moves to a port only the proxy reaches (on Linux
 `127.0.0.1`, on FreeBSD the jail's own address), so nobody reaches it over
 plain HTTP any more. An app installed while the proxy is set up starts behind
 it directly.
