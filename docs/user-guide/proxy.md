@@ -64,6 +64,21 @@ add the wildcard record in your router. A Pi-hole installed before this came
 gets it once reinstalled on its kept data (Containers → remove, keeping the
 data, then install it again).
 
+**A Pi-hole of your network** (one running elsewhere, which your devices
+already use as DNS server) can be kept up to date by FreedomNAS: on the
+*Names* card give its address (such as `http://192.168.1.5`) and an **app
+password** (in Pi-hole 6: Settings → Web interface / API → App password).
+FreedomNAS writes its Local DNS Records there: one for the NAS
+(`<address> <hostname> <hostname>.home.arpa <site>.<hostname>.home.arpa …`,
+so the WebUI answers by the NAS's name too) and, with an own domain, one for
+it. It writes them again whenever sites, names, the domain or the NAS's
+address change, and at every boot; records naming anything else are left
+alone, so several NASes can share one Pi-hole. Pi-hole takes no wildcard
+from its API, so the records name each site. **Forget** takes them out.
+A device with a second DNS server (such as `1.1.1.1`) may ask that one
+instead now and then, which does not know the names: for local names, give
+your devices the Pi-hole alone.
+
 Names need ports 443 and 80 of the NAS; FreedomNAS refuses to turn them on
 while something else uses them, and refuses a site of yours on those ports
 while names are on. Caddy does not run as root, so it is allowed to open them:
