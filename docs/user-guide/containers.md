@@ -171,7 +171,7 @@ level:
 | Home Assistant | home automation | 8123 | host network, so it can find the devices of your home; the port cannot change |
 | Immich | photo and video backup from your phones | 2283 | needs 4 GB of memory or more; the library is `./library` unless you choose a folder of your pool |
 | Jellyfin | films, series and music streaming | 8096 | reads the NAS's **media** share, read only, as the account you choose (see below) |
-| Nextcloud | files, calendars, contacts | 8088 | with its own MariaDB; the administrator password is made up and shown once; its data folder is `./data` unless you choose an empty or new folder of your pool |
+| Nextcloud | files, calendars, contacts | 8088 | the NAS's group shares as External storage (see below); with its own MariaDB; the administrator password is made up and shown once; its data folder is `./data` unless you choose an empty or new folder of your pool |
 | Pi-hole | blocks ads for the whole network as its DNS server | 8053 | answers DNS on port 53 of the NAS's address: give that address to your router; the NAS needs a static address; its web interface uses HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), like Vaultwarden; while the [reverse proxy](proxy.md#names) serves the sites by name it answers every name under `<hostname>.home.arpa` with the NAS's address |
 | Vaultwarden | password manager for the Bitwarden apps | 8222 | serves HTTPS with FreedomNAS's own certificate (setting **HTTPS**, on by default), which browsers need for the web vault: install FreedomNAS's certificate authority once on each device ([System → Certificate](system.md#certificate)) and the web vault, the Bitwarden apps and the browser extensions trust it by the NAS's hostname or address; a new certificate (new address or hostname) reaches the app at the next boot, which restarts it; from outside your network, a certificate of your own domain (reverse proxy) is the lasting way |
 
@@ -205,6 +205,20 @@ or the accounts you tick; the Shares page changes that later. Jellyfin gets
 its own read-only entry in the share's ACL, for the account it runs as, and
 mounts it read only; removing Jellyfin takes that entry away and keeps the
 share and its files. A second Jellyfin uses the same share.
+
+Nextcloud shows the NAS's group shares as **External storage**, to read and
+write: the install lists them (all ticked; untick the ones it should not
+see) and each is mounted into Nextcloud at `/shares/<name>` and appears in
+its Files as a folder of the same name, for every Nextcloud user (Nextcloud's
+*Administration → External storage* can narrow that down). Nextcloud gets
+its own read-write entry in each share's ACL, for the account it runs as
+(`www-data`, uid 33, on Linux; `www`, uid 80, on FreeBSD), and files it
+creates stay the group's, so the share's members reach them over SMB too.
+A script FreedomNAS puts in Nextcloud's `before-starting` hooks creates the
+External storages at every start, for each share mounted (on FreeBSD the recipe sets `RUN_HOOKS_AS_ROOT` empty: the port's entrypoint stops on it unset); the shares are
+chosen at the install, so one made later reaches Nextcloud when it is
+installed again on its kept data. Removing Nextcloud takes its ACL entries
+away; the shares stay.
 
 Nextcloud's data folder must be empty or not exist yet (its parent on a
 pool): FreedomNAS creates it and gives it to the account the Nextcloud
