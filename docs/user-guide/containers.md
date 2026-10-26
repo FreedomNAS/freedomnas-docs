@@ -237,10 +237,15 @@ there. Choosing another one shows a warning in the window, and again once the
 app is installed: a Jellyfin that used `./media` and now reads the media
 share finds its old library empty until its files are there.
 
-Nextcloud runs its newest release on both Linux (Docker image
-`nextcloud:apache`) and FreeBSD (the AppJail Makejail): Nextcloud upgrades
-its data but never goes back to an older release, so data that moves between
-editions keeps working only when neither side is behind.
+Nextcloud runs the release FreedomNAS's catalogue names
+(`NEXTCLOUD_VERSION`, the same on every edition: the Docker image
+`nextcloud:<release>-apache` on Linux), because Nextcloud upgrades its data
+but never goes back to an older release. An install over kept data written
+by a newer release than the catalogue's is refused with a message saying so
+(the data's release is read from `html/version.php`), instead of a Nextcloud
+that restarts forever. **Update** on the app moves it to the catalogue's
+current release, never further back; a new release reaches an installed
+Nextcloud only that way, when you choose.
 
 Pi-hole's settings come along too: both recipes give FTL the paths of their
 own edition (`FTLCONF_webserver_paths_webroot`, `FTLCONF_files_database`,
