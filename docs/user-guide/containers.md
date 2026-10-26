@@ -332,7 +332,13 @@ from the pool the same way.
 
 ### Moving to another edition
 
-The pool keeps each app's data and settings. When it is imported on an
+The pool keeps each app's data and settings. A system restored from it
+(a fresh install, another edition) needs nothing done by hand: the module
+is installed from the edition's repositories, the runtime (Docker on Linux,
+AppJail on FreeBSD) is installed as the page's **Install** would, and its
+data directories are this edition's on the same pool (`<pool>/containers/docker`
+and `containerd`, or `appjail` and `oci`), created when missing and recorded;
+the other edition's stay on the pool, untouched. When it is imported on an
 edition with the other runtime (Linux and FreeBSD), an app from the
 catalogue is set up for it at boot. **Vaultwarden**, whose data both
 runtimes read as it is, only gets this edition's recipe beside it. Every

@@ -164,6 +164,11 @@ nothing changes. **Remove** takes a site added here away again.
 
 ## At boot
 
+A system restored from its pool (a fresh install, another edition) gets
+back the module from its edition's repositories and Caddy installed by
+itself, as **Set up** would, since the configuration says the proxy was set
+up; then everything below.
+
 At every boot FreedomNAS writes Caddy's configuration and the sites again,
 copies FreedomNAS's certificate when it was issued again (a new address or
 hostname) and reloads Caddy. The sites added here are kept in the
