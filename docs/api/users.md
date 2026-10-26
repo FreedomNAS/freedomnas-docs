@@ -164,3 +164,21 @@ Delete an OS user and remove from `config.yaml`.
 !!! warning
     The API does not prevent deleting the currently authenticated user or
     the last admin account. Guard these cases in the UI layer.
+
+## POST /api/account/password
+
+**Auth required:** no Basic credentials: the body carries them. Any account
+may call it for itself, administrator or not.
+
+```json
+{"username": "mario", "password": "the current one", "new_password": "a new one"}
+```
+
+The current password is checked against PAM with the same lockout as
+signing in, and may be a temporary one that has expired (PAM answers
+`PAM_NEW_AUTHTOK_REQD`): changing it is what this is for. The new password
+must differ and meet the usual rules. It is set for the system and Samba,
+the expiry is lifted (`users.password_fresh`) and `temporary_password`
+leaves the account's entry. `401` for a wrong name or password, `422` for a
+bad new one or `root`.
+

@@ -177,11 +177,20 @@ asked for; the hostname, timezone, users and shares stay as restored.
 ```json
 {
   "admin": {"username": "sarah", "password": "a new password", "remove_default": true},
-  "ssh": false
+  "ssh": false,
+  "users": {"mario": "a temporary password"}
 }
 ```
 
-1. `422` for an invalid administrator, as above, or a non-boolean `ssh`
+`users` gives every other restored account (administrators included, but
+not the one taken over nor the account the request is authenticated as) a
+**temporary password**: a configuration never carries passwords, so a
+restored account has none until it is given one here. The wizard asks for
+them one account at a time.
+
+1. `422` for an invalid administrator, as above, or a non-boolean `ssh`;
+   `422` too when `users` does not name exactly the accounts waiting, or one
+   of their passwords is not acceptable (the message starts with its name)
 2. `ssh: true` enables and starts the SSH service; either way
    `system.ssh_enabled` records the choice
 3. `system.edition` becomes the edition running here: the configuration may
@@ -189,11 +198,16 @@ asked for; the hostname, timezone, users and shares stay as restored.
    Samba usershare directory is prepared, as for a new system — before
    2026-10-15 a restored system with no share could not create one
    (`net usershare: cannot open usershare directory`)
-4. The administrator as in step 5 above. A name that already has an account
+4. Each restored account gets its temporary password, for the system and
+   Samba, and has it expired (`users.password_expire`: `chage -d 0` on
+   Linux, `pw usermod -p 1` on FreeBSD), so it must be changed before the
+   account is used; its entry records `temporary_password: true` until its
+   owner changes it ([`/api/account/password`](users.md#post-apiaccountpassword))
+5. The administrator as in step 5 above. A name that already has an account
    (one the restore created) is taken over, not created: it gets the
    password, and its restored entry keeps its fields and gains `admin`. A
    removed shipped account also leaves `config.yaml`
-5. The `setup-pending` file is removed, and `shadow.sync` copies the
+6. The `setup-pending` file is removed, and `shadow.sync` copies the
    configuration to the external copies
 
 The password changes last. When an earlier step fails the route answers
@@ -209,12 +223,11 @@ next attempt completed.
   "detail": "System restored",
   "hostname": "oldnas",
   "admin": "sarah",
-  "without_password": ["mario"]
+  "temporary_passwords": ["mario"]
 }
 ```
 
-`without_password` lists the restored users that still need a password,
-which the **Users** page sets.
+`temporary_passwords` lists the accounts given one.
 
 !!! note
     Neither an image nor an installation creates a `.freedomnas` dataset, so

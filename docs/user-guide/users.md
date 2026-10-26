@@ -59,6 +59,16 @@ Click **Password** on the user's row, enter the new password twice (at least
 8 characters) and click **Set Password**. The button is visible at every UI
 level. The password reaches the OS through stdin, never the command line.
 
+### Temporary passwords and your own password
+
+A configuration never carries passwords: a NAS restored from its pool gives
+every restored account a **temporary password** in the setup wizard, one
+account at a time. Such an account shows *temporary password* in the list
+until its owner changes it. Anyone with an account changes their own
+password on the **/password/** page (also linked from the sign-in page):
+user name, current password (the temporary one too), new password twice.
+The new password is used for the files (SMB) and for signing in at once.
+
 ## Administrator Role
 
 !!! note "Advanced UI level"
