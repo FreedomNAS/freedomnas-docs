@@ -237,13 +237,23 @@ there. Choosing another one shows a warning in the window, and again once the
 app is installed: a Jellyfin that used `./media` and now reads the media
 share finds its old library empty until its files are there.
 
-Nextcloud runs the release FreedomNAS's catalogue names
-(`NEXTCLOUD_VERSION`, the same on every edition: the Docker image
-`nextcloud:<release>-apache` on Linux), because Nextcloud upgrades its data
-but never goes back to an older release. An install over kept data written
-by a newer release than the catalogue's is refused with a message saying so
-(the data's release is read from `html/version.php`), instead of a Nextcloud
-that restarts forever. **Update** on the app moves it to the catalogue's
+Every app of the catalogue whose data can move between Linux and FreeBSD
+runs the **same release on both**, the one the catalogue names, because
+apps upgrade their data and never go back to an older release:
+
+| App | Release | Linux | FreeBSD |
+|-----|---------|-------|---------|
+| Nextcloud | `NEXTCLOUD_VERSION` | `nextcloud:<release>-apache` | the AppJail image, its code replaced at start by the `nextcloud-<release>.tar.bz2` of nextcloud.com (checksum verified) |
+| MariaDB (Nextcloud's) | `MARIADB_VERSION` | `mariadb:<release>` (`MARIADB_AUTO_UPGRADE`) | the AppJail image pinned by digest (`MARIADB_FREEBSD_IMAGE`) |
+| Jellyfin | `JELLYFIN_VERSION` | `jellyfin/jellyfin:<release>` | the AppJail image pinned by digest (`JELLYFIN_FREEBSD_IMAGE`) |
+| Pi-hole | `PIHOLE_RELEASE` | `pihole/pihole:<release>` | FreedomNAS's own port, the same core, web and FTL |
+| Vaultwarden | `VAULTWARDEN_VERSION` | `vaultwarden/server:<release>` | FreeBSD's package, which the catalogue follows |
+
+The releases an app was installed or updated with are written into its
+dataset (`.freedomnas-release`), and Nextcloud's own `html/version.php` is
+read too. An install over kept data written
+by a newer release than the catalogue's is refused with a message saying so,
+instead of an app that restarts forever or whose pages fail. **Update** on the app moves it to the catalogue's
 current release, never further back; a new release reaches an installed
 Nextcloud only that way, when you choose.
 
