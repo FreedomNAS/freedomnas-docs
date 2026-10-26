@@ -131,6 +131,18 @@ The YAML exists for:
 - **Disaster recovery**: reinstall OS, restore from YAML via `ReconciliationEngine`
 - **Cross-OS migration**: move from Debian to FreeBSD with the same config
 
+Beside `config.yaml`, each data pool's `.freedomnas` keeps the NAS's
+**identity** in `identity/` (folders 0700, files 0600, root only): the
+certificate authority (`tls/ca.pem`, `tls/ca-key.pem`) and the SSH host
+keys (`ssh/ssh_host_*_key[.pub]`, from `system.ssh_host_key_dir` in the OS
+profile). Every mirror copies them when they changed; a reinstall that
+restores the configuration (`state-boot`, action `restored`) puts them back
+in place before the certificate is checked, so the server certificate is
+issued again by the same authority and the SSH service is restarted with
+the old keys: devices keep trusting the NAS and SSH clients see the host key
+they recorded. Passwords are never copied: a restored system asks for new
+ones.
+
 ## Atomic Write Pattern
 
 Save operations use a three-step atomic write to prevent corruption:

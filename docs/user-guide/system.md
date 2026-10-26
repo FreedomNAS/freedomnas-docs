@@ -38,6 +38,11 @@ certificate authority. Until a device trusts that authority, its browser
 warns about the certificate. To get rid of the warning for good, install the
 authority once on each computer and phone:
 
+The authority is kept with the configuration on the data pools: a NAS
+installed again and restored from its pool, on any edition, comes back with
+the same authority (and the same SSH host keys), so devices that trust it
+need nothing done.
+
 1. Click **Download the certificate authority** (or open
    `https://<your NAS>:8080/freedomnas-ca.crt` on the phone).
 2. Compare the **Authority** fingerprint shown here with the one your device
