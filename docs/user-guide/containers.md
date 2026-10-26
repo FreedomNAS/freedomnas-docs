@@ -324,13 +324,30 @@ from the pool the same way.
 
 The pool keeps each app's data and settings. When it is imported on an
 edition with the other runtime (Linux and FreeBSD), an app from the
-catalogue is set up for it at boot, if its data can be used by both:
-today **Vaultwarden** (its vault and users come along). Jellyfin and
-Nextcloud keep paths and a database tied to the runtime they were installed
-with: they stay stopped with a message on the dashboard, their dataset
-kept; remove them keeping the dataset and install them again, or copy
-your files out of it. Apps you wrote yourself (Compose or Director files)
-are not changed: write the other file for them.
+catalogue is set up for it at boot. **Vaultwarden**, whose data both
+runtimes read as it is, only gets this edition's recipe beside it. Every
+other app of the catalogue (Jellyfin, Nextcloud, Pi-hole, ...) is installed
+again from the catalogue over the data it kept, with the folders, ports,
+account and passwords of its old `.env`, and started: this edition's
+recipe, folders' owners, paths and reverse proxy address replace those of
+the edition it ran on. This happens whenever the app was last installed on
+the other edition, even when a file this edition wrote long ago is still
+beside its data. When the install cannot be done (data written by a newer
+Nextcloud than the catalogue's, a port something else took), the app stays
+stopped with the reason on the dashboard, recorded as it was and its
+dataset kept. Apps you wrote yourself (Compose or Director files) are not
+changed: write the other file for them.
+
+### After a power cut
+
+A machine that lost power while an app was starting can leave the app
+stuck: on FreeBSD, AppJail Director keeps a lock for each project and a
+copy of its last spec, and AppJail a lock on each jail, and an interrupted
+run leaves the lock behind and the copy empty ("Project locked", "Invalid
+document specification", "the jail has been locked"). Before starting an
+app (at boot, from the page, on Update) FreedomNAS clears what nothing is
+working on any more: the project's lock, an empty copy of its spec, the
+locks of its jails (`containers.compose_repair` in the FreeBSD profile).
 
 ## Containers
 
