@@ -66,6 +66,13 @@ that shows the entry — `assisted` (default), `advanced` or `expert`, the
 same `advanced-only` / `expert-only` classes the core pages use. Entries
 are placed before System, in the order the modules are found.
 
+`after` (optional) lists module ids the reconciler runs first when they are
+present: `containers` declares `"after": ["proxy"]`, so on a fresh install
+restored from its pool the proxy has installed Caddy and made its folders
+before the containers write the apps' sites. It only orders the reconcile
+(a module not installed is ignored, a loop keeps the order modules are
+found in); `depends_on` is not read by the core.
+
 ## Classes
 
 ```python

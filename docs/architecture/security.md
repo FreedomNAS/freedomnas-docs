@@ -170,7 +170,11 @@ runs from `firstboot.sh` at every boot, before the reconcile (so apps that
 serve HTTPS with the certificate get the current one) and once more after it
 with `--names-only` (a restore may have changed the hostname; addresses the
 reconcile brought up, such as the jails' bridge, wait for the next boot so
-the WebUI and the apps keep presenting the same certificate). `supervisor.sh`
+the WebUI and the apps keep presenting the same certificate). The names are
+those of the hostname the configuration records (an image restored from its
+pool still runs under the image's hostname until the reconcile sets it, and
+apps such as the proxy take their copy of the certificate during that
+reconcile), else the system's; `--hostname` overrides both. `supervisor.sh`
 runs it too before every WebUI start, so an update installed without a
 reboot gets the CA at once. It keeps two things in
 `<config_dir>/tls`:
