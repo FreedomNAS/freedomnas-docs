@@ -44,6 +44,59 @@ shipped account and password still work and the restored users have no
 passwords. While the file exists, the reconciler also keeps SSH off whatever
 the configuration records. Finishing either wizard removes the file.
 
+## Restore in progress
+
+Before the wizard, the restore itself runs behind a lock:
+`<state>/restoring.json` (`python3 -m freedomnas path restoring`). When
+`state-boot` answers `restored` or `reinitialized`, or a lock is still there
+from a restore a power cut interrupted, `firstboot.sh` writes it
+(`python3 -m freedomnas restore-begin --reason <action>`), starts the WebUI
+**before** the reconcile, and runs `reconcile --progress`, which writes every
+step into the lock as it goes: each planned change ("Hostname", "Account
+sarah", "SMB share media", ...), "Modules to install", then each module in
+the order they run.
+
+While the lock exists every page answers `303` to `/restoring/` and every
+API `503` (`{"detail": "Restore in progress", "restoring": true}`), the
+setup wizard's included; only the restore page, `/api/restore/*`, static
+files and `/freedomnas-ca.crt` are served. Nothing there asks for a
+password: the restored accounts may not have one yet. A restore that ends
+well removes the lock. One with a failed step keeps it, `finished` and
+`failed`, with the errors: the page shows which step failed and why, and
+**Continue to the WebUI** takes the lock away. A WebUI started while the
+lock was there loaded the configuration and the modules from before the
+restore, so once the lock is gone it restarts itself (the page says so) and
+the next one opens normally, with the wizard when it is still pending.
+
+### GET /api/restore/progress
+
+**Auth required:** no
+
+```json
+{
+  "active": true,
+  "reason": "restored",
+  "started": "2026-10-29T10:44:51+00:00",
+  "steps": [
+    {"label": "Hostname", "state": "done", "error": ""},
+    {"label": "Module containers", "state": "running", "error": ""}
+  ],
+  "finished": false,
+  "failed": false
+}
+```
+
+`state` is `waiting`, `running`, `done` or `failed`; a finished restore with
+errors adds `errors` (every failed action, also those outside a step).
+`{"active": false}` when there is no lock; `{"active": true, "restarting":
+true}` while the WebUI from before the restore restarts.
+
+### POST /api/restore/continue
+
+**Auth required:** no
+
+Takes a finished lock away. `409` while the restore still runs.
+
 ## GET /api/setup/restored
 
 **Auth required:** yes

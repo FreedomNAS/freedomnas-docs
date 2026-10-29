@@ -793,7 +793,11 @@ local|merged|restored|reinitialized|none`, `internal <dataset>`, `source
 configuration was not trusted (logged by `firstboot.sh`), and `keep <pool>`
 for every pool to leave
 imported: the source and the pools `config.yaml` names. Every other pool the
-script imported is exported again.
+script imported is exported again. During a restore (`restored`, `reinitialized`, or a
+restore lock left by an interrupted one) the script writes the lock, starts
+the supervisor in the background before reconciling with `--progress`, and
+waits for it at the end instead of exec'ing it: the WebUI serves only the
+restore page meanwhile ([Restore in progress](../api/setup.md#restore-in-progress)).
 
 It sets `PATH` itself, and has to: cron's `@reboot` environment carries
 neither `sbin` directory, while `useradd`, `zpool` and `rc-service` all live
