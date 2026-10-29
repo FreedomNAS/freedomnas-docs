@@ -788,8 +788,10 @@ On every boot `firstboot.sh` imports pools, unlocks encrypted ones
 (`python -m freedomnas unlock-pools`), runs `python -m freedomnas state-boot`,
 then either reconciles or leaves the WebUI's first-run wizard to take over,
 before exec'ing the supervisor. `state-boot` prints `action
-local|merged|restored|none`, `internal <dataset>`, `source <pool>` when a
-data pool's copy was used, and `keep <pool>` for every pool to leave
+local|merged|restored|reinitialized|none`, `internal <dataset>`, `source
+<pool>` when a data pool's copy was used, `reason <text>` when the internal
+configuration was not trusted (logged by `firstboot.sh`), and `keep <pool>`
+for every pool to leave
 imported: the source and the pools `config.yaml` names. Every other pool the
 script imported is exported again.
 

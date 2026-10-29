@@ -37,6 +37,7 @@ root filesystem, not initialized, and creates no dataset. At every boot
 |----------|----------|--------|
 | initialized | none, or nothing new | `local` — used as it is |
 | initialized | one that brings something | `merged` — the shared sections are taken from the newest |
+| initialized, but not matching this system | an initialized one | `reinitialized` — set up again from the newest, accounts kept (see [Boot snapshots](#boot-snapshots-and-a-configuration-that-cannot-be-trusted)) |
 | not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition and, for users who already exist here, this system's uid and gid |
 | not initialized | none | `none` — the setup wizard runs |
 
@@ -135,13 +136,49 @@ Beside `config.yaml`, each data pool's `.freedomnas` keeps the NAS's
 **identity** in `identity/` (folders 0700, files 0600, root only): the
 certificate authority (`tls/ca.pem`, `tls/ca-key.pem`) and the SSH host
 keys (`ssh/ssh_host_*_key[.pub]`, from `system.ssh_host_key_dir` in the OS
-profile). Every mirror copies them when they changed; a reinstall that
-restores the configuration (`state-boot`, action `restored`) puts them back
-in place before the certificate is checked, so the server certificate is
-issued again by the same authority and the SSH service is restarted with
-the old keys: devices keep trusting the NAS and SSH clients see the host key
-they recorded. Passwords are never copied: a restored system asks for new
-ones.
+profile). A mirror adds the files a copy does not have yet, but never
+overwrites one that differs: the identity a copy keeps is the one devices
+were told to trust, and a system that runs with another (a fresh image's
+own CA, an older FreedomNAS that did not know `identity/`) is the one that
+is wrong. A reinstall that restores the configuration (`state-boot`, action
+`restored`) puts them back in place before the certificate is checked, so
+the server certificate is issued again by the same authority and the SSH
+service is restarted with the old keys: devices keep trusting the NAS and
+SSH clients see the host key they recorded. Passwords are never copied: a
+restored system asks for new ones.
+
+### Boot snapshots and a configuration that cannot be trusted
+
+Before anything else, every boot snapshots each external copy as
+`<pool>/.freedomnas@boot-YYYYmmdd-HHMMSS`; the newest ten are kept, other
+snapshots (taken by hand) are never touched. A copy left without an
+initialized configuration (a write cut short, a file emptied) takes back
+`config.yaml` and `identity/` from its newest snapshot that has one.
+
+The internal configuration is then checked against the running system. It
+is not trusted when
+
+- it records another edition than the one running, or
+- the newest external copy knows a network card of this machine (by MAC)
+  and keeps an identity this system does not have.
+
+Then `state-boot` answers `reinitialized` (with a `reason` line): the
+install is set up again from that copy as a reinstall would be — its
+identity put back in place, its shares, modules, pools and policies taken,
+the running edition recorded — and the reconcile runs on it. The network
+and the hostname follow the usual rule (the copy's when it knows this
+machine). Accounts are the exception: those this install knows stay exactly
+as they are (roles, groups, passwords), the copy's own are added as
+non-administrators. An account whose uid differs from the copy's is given
+the copy's uid, and its own group the copy's gid (`users.uid_set`,
+`users.gid_set`), because the files on the pool carry those numbers; the
+group an edition gives on its own (wheel, gid 0, on FreeBSD) is no
+difference, and a number another account or group holds here is left to it.
+
+This is what an older FreedomNAS leaves behind: an image whose code predates
+`identity/` restores the configuration but runs with a CA of its own; the
+next boot with current code sees the identity differ and sets the install
+up again with the original one.
 
 ## Atomic Write Pattern
 
