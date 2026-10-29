@@ -38,7 +38,7 @@ root filesystem, not initialized, and creates no dataset. At every boot
 | initialized | none, or nothing new | `local` — used as it is |
 | initialized | one that brings something | `merged` — the shared sections are taken from the newest |
 | initialized, but not matching this system | an initialized one | `reinitialized` — set up again from the newest, accounts kept (see [Boot snapshots](#boot-snapshots-and-a-configuration-that-cannot-be-trusted)) |
-| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition; users who already exist here get the copy's uid (and their own group the copy's gid) when the number is free here, else keep this system's |
+| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition; users who already exist here get the copy's uid (and their own group the copy's gid); whoever holds those numbers here is moved to free ones first, numbers below 1000 (the system's) are never taken |
 | not initialized | none | `none` — the setup wizard runs |
 
 "Newest" is `system.saved_at`, the UTC time `ConfigurationManager.save()`
@@ -173,7 +173,14 @@ non-administrators. An account whose uid differs from the copy's is given
 the copy's uid, and its own group the copy's gid (`users.uid_set`,
 `users.gid_set`), because the files on the pool carry those numbers; the
 group an edition gives on its own (wheel, gid 0, on FreeBSD) is no
-difference, and a number another account or group holds here is left to it.
+difference. An account or group that holds such a number here is moved first
+to the first free number from 1000 that no account of the copy waits for
+(`users.uid_set`, `users.group_gid_set`; on FreeBSD the moved account's home
+follows); a number below 1000 belongs to the system and is never taken. The
+reconciler does the same when it creates a restored account, and when that
+moved anything it gives the group shares back again at the end
+(`groupshares.restore`, by name), because a group that changed number no
+longer owns its directory.
 
 This is what an older FreedomNAS leaves behind: an image whose code predates
 `identity/` restores the configuration but runs with a CA of its own; the
