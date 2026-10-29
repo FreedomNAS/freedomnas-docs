@@ -316,7 +316,11 @@ they publish (Assisted shows it read only).
 - **Start** / **Stop**: `docker compose up -d` / `down`. Stopping removes
   the containers; the data on the dataset stays.
 - **Update**: downloads newer images and, if the app is up, recreates its
-  containers with them.
+  containers with them. An app from the catalogue is first installed again
+  from the catalogue over its kept data, with the folders, ports, account
+  and passwords of its `.env` and the catalogue's release: its recipe
+  (compose file, Makejail) is written again, so a fix the catalogue got
+  after the install reaches it too. It stays up or stopped as it was.
 - **Edit**: replaces the compose file, after the same check; an app that is
   up is brought up again with it.
 - **Logs**: the last 200 lines of all its containers.
