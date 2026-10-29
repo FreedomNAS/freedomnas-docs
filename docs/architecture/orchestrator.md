@@ -73,6 +73,13 @@ before the containers write the apps' sites. It only orders the reconcile
 (a module not installed is ignored, a loop keeps the order modules are
 found in); `depends_on` is not read by the core.
 
+A module the reconciler installs (a configuration restored onto a fresh
+image names it) brings its profile fragment with its package: right after
+installing, the reconciler has the engine merge the profiles again
+(`FreedomNASEngine.reload_profile`), so the module's commands (Docker's
+apt repository, Caddy's check) exist when it reconciles in the same run,
+and the restore page gets a step for it.
+
 ## Classes
 
 ```python
