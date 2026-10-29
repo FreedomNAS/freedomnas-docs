@@ -348,7 +348,9 @@ account and passwords of its old `.env`, and started: this edition's
 recipe, folders' owners, paths and reverse proxy address replace those of
 the edition it ran on. This happens whenever the app was last installed on
 the other edition, even when a file this edition wrote long ago is still
-beside its data. When the install cannot be done (data written by a newer
+beside its data, and also when its record names this edition but only the
+other edition's files sit beside its data (an older FreedomNAS recorded the
+move without making it). When the install cannot be done (data written by a newer
 Nextcloud than the catalogue's, a port something else took), the app stays
 stopped with the reason on the dashboard, recorded as it was and its
 dataset kept. Apps you wrote yourself (Compose or Director files) are not
