@@ -25,10 +25,16 @@ installs **any edition its host can bootstrap**, not just Debian.
 
 **Reinstalling a FreedomNAS** needs no special mode. Install onto the new
 system disk and leave the data disks attached: right after you choose the disk,
-the installer tells you which pools hold a FreedomNAS configuration, and the
-first boot of the new system restores it — users, shares, network and
-settings — through the [Reconciliation Engine](../architecture/reconciler.md).
-The setup wizard then asks only for the administrator and SSH.
+the installer lists the pools that hold a FreedomNAS configuration — hostname,
+edition and when it was saved, the newest first — and asks whether to restore
+one or to set up a new NAS. Restoring, it takes the hostname, timezone and
+features from the configuration and asks only for the administrator's new
+password; it also puts back the NAS's certificate authority and SSH host
+keys and installs the modules the configuration uses (Docker or AppJail,
+Caddy…) before the first boot. The first boot then restores the rest — users,
+shares, network, apps and settings — through the
+[Reconciliation Engine](../architecture/reconciler.md), and the setup wizard
+asks only for the other accounts' temporary passwords and SSH.
 
 !!! warning "Data loss (clean install only)"
     A clean install partitions the selected disk. Everything on it is
@@ -147,9 +153,10 @@ destructive happens before the confirmation screen.
 | Disk | Listed by the profile's `list_disks`; resolved to a stable `/dev/disk/by-id/` path where the platform has one |
 | Bootstrap method | Native bootstrapper or rootfs tarball — only methods whose tool exists on the host |
 | Mirror | From the edition's own mirror list, or a custom URL |
+| Existing configuration | Only when another pool holds one: restore it (the newest is preselected) or set up a new NAS. Restoring skips the hostname, timezone, features and users questions below |
 | Hostname, timezone | Defaults `freedomnas` / `UTC` |
 | Optional features | Samba/CIFS, NFS, containers, virtualization — from `packages/MANIFEST.json` |
-| Administrator | Username plus a double-prompt password (minimum 8 characters) |
+| Administrator | Username plus a double-prompt password (minimum 8 characters); restoring, one of the configuration's administrators and its new password |
 | Additional users | Optional, each with optional administrative access |
 
 Firmware (UEFI vs BIOS) is detected, never asked.
@@ -189,7 +196,8 @@ rpool/
 ```
 
 There is no `.freedomnas` dataset yet: the first boot creates it on the root
-pool and, if another pool carries a FreedomNAS configuration, restores it.
+pool and restores the configuration you chose to restore — or, if you were
+not asked, the newest one another pool carries.
 
 `/boot` is a plain directory inside `rpool/ROOT/<edition>` — the kernel and
 initramfs live in the UKI on the ESP, not in ZFS.

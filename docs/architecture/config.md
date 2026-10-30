@@ -38,7 +38,7 @@ root filesystem, not initialized, and creates no dataset. At every boot
 | initialized | none, or nothing new | `local` — used as it is |
 | initialized | one that brings something | `merged` — the shared sections are taken from the newest |
 | initialized, but not matching this system | an initialized one | `reinitialized` — set up again from the newest, accounts kept (see [Boot snapshots](#boot-snapshots-and-a-configuration-that-cannot-be-trusted)) |
-| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), with `system.edition` set to the running edition; users who already exist here get the copy's uid (and their own group the copy's gid); whoever holds those numbers here is moved to free ones first, numbers below 1000 (the system's) are never taken |
+| not initialized | an initialized one | `restored` — the newest is copied in (a reinstall), or the one the installer was told to restore (`system.restore_from`; nothing when the installer was told `system.restore: false`), with `system.edition` set to the running edition; users who already exist here get the copy's uid (and their own group the copy's gid); whoever holds those numbers here is moved to free ones first, numbers below 1000 (the system's) are never taken |
 | not initialized | none | `none` — the setup wizard runs |
 
 "Newest" is `system.saved_at`, the UTC time `ConfigurationManager.save()`

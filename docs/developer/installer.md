@@ -21,8 +21,10 @@ every OS command — including the chroot invocation — comes from
 | `recovery` | `--mode recovery` only: hands the running system's `config.yaml` to the `ReconciliationEngine` | Whatever the reconciler changes |
 
 The menu offers only `clean` and `inplace`. Restoring a FreedomNAS onto a new
-system disk is not an installer mode: install, and the first boot restores the
-configuration it finds on another pool (see [State and restore](#state-and-restore)).
+system disk is not an installer mode: a clean install that finds a
+configuration on another pool offers to restore it, takes what it already
+knows from it and installs its modules before the first boot, which restores
+the rest (see [State and restore](#state-and-restore)).
 
 ```sh
 sudo freedomnas-install                        # menu-driven
@@ -284,8 +286,9 @@ fails.
 The exit code is not taken as proof, because the chroot is torn down with
 lazy unmounts that may still be settling when the export runs: after each
 attempt the pool is looked for in `rootpool.list_pools`. `rootpool.export`
-first (it unmounts the pool's own datasets by itself), then a three-second
-wait, then `rootpool.export_force`. If the pool is still listed after that,
+(it unmounts the pool's own datasets by itself) up to ten times, three
+seconds apart — a host whose services glance at a new pool can hold it busy
+for a while — then `rootpool.export_force`. If the pool is still listed after that,
 the completion dialog says so and **does not offer a reboot** — it gives the
 `zpool export` command to run first.
 
@@ -305,13 +308,17 @@ directory (see [Configuration](../architecture/config.md#storage-locations)).
   installer's answers (hostname, timezone, users, root pool, features) to
   `config.yaml` in the state directory on the root filesystem, and
   `mark_setup_pending("install")` writes `install` into `setup-pending`.
+  The restore chosen in the installer goes in as `system.restore_from: <pool>`,
+  a refused one as `system.restore: false` (see below).
 - **First boot** — `firstboot.sh` imports every pool and runs
   `freedomnas state-boot`: the root pool's `.freedomnas` is created, the
   installer's `config.yaml` moves into it and it is mounted over the state
   directory. An initialized configuration on another pool's `.freedomnas` is
-  restored into it: the reconciler applies it, and the setup wizard asks only
-  for the administrator and SSH (`_finish_restore`). None: the setup wizard
-  runs, and copies the configuration to the pool the administrator picks.
+  restored into it — the newest, or the one `system.restore_from` names; none
+  when `system.restore` is false: the reconciler applies it, and the setup
+  wizard asks only for the administrator and SSH (`_finish_restore`). None:
+  the setup wizard runs, and copies the configuration to the pool the
+  administrator picks.
 - **Password** — `setup-pending` holding `install` tells the WebUI
   (`ConfigurationManager.setup_pending_kind()`, `/api/setup/status`
   `password_chosen`) that the administrator chose the password in the
@@ -326,8 +333,43 @@ reports, except the one on the chosen disk, is imported **read-only** with
 `rootpool.probe_import` — `-N -f -o readonly=on -o cachefile=none`, under a
 temporary name (`fnasprobe<N>`) and a temporary altroot, so another pool
 named `rpool` cannot touch the live system — its `.freedomnas` is mounted,
-`config.yaml` read for the hostname and edition, and the pool exported again.
-A dialog lists what was found and asks to keep those disks attached.
+its `config.yaml` and `identity/` copied to a directory on the live system, and
+the pool exported again — retried until `rootpool.list_pools` no longer shows
+it, then `export_force`: right after the unmount the export can find it busy
+for a moment, and a pool left imported would have all its datasets mounted
+under the temporary altroot by the `zfs mount -a` that follows the root pool's
+creation, so the installer stops there instead, before any disk is touched.
+Only initialized configurations count, newest (`system.saved_at`) first.
+
+**Restoring in the installer.** The dialog *Existing FreedomNAS Configuration*
+lists them — hostname, edition, pool, when it was saved — with the newest
+first and preselected, and *A new NAS* last:
+
+- **A copy chosen** — its hostname, timezone and package categories
+  (`installed_features`, the ones this edition knows, plus Samba/CIFS and NFS
+  — `DEFAULT_OPTIONAL`, preselected in the checklist too — because a
+  configuration made by an image's wizard records none) are taken instead of
+  asked; its administrators (`admin: true`, or an old admin group) are
+  offered, one is picked when there are several, and only its new password is
+  asked: the copy keeps no password. No other account is queued, the setup
+  wizard gives the restored ones temporary passwords. The summary shows
+  `Restore : <hostname> from <pool> (modules: …)`.
+- **A new NAS** — the usual questions, and `system.restore: false`, so the
+  first boot runs the setup wizard although the copies are still there.
+
+After FreedomNAS is installed in the target, `StateWriter.restore_offline()`
+copies the chosen copy to `/var/tmp/freedomnas-restore` in it and runs
+`python.restore_offline` (`python3 -m freedomnas restore-offline --from …`) in
+the chroot. freedomnas-core's `offline_restore` puts the NAS's identity back
+(certificate authority, SSH host keys — SSH is not restarted, nothing runs in
+a chroot), installs the packages of the modules the configuration has
+sections for (`install_missing_modules`, the reconciler's own step) and calls
+each module's `prepare(section)`, which installs what the module needs
+without starting it (containers: Docker or AppJail; proxy: Caddy).
+config.yaml is not written: the first boot's `state-boot` restores it from
+the pool as for any reinstall, and the reconcile finds the packages in place
+instead of downloading them. Whatever fails here is only logged — the first
+boot does the same and more.
 
 ## In-place install
 
