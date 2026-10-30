@@ -44,8 +44,10 @@ with the `FREEBSD_SIGNING_KEY` secret; its public key is
 `freedomnas-freebsd/keys/freedomnas.pub`, also written by
 `installer-freebsd.json`. Releases: `ref: main` builds the newest `vX.Y.Z`
 tag into `15-main`; dev runs (also nightly) build snapshots,
-`X.Y.Z.<commit stamp>`, into `15-dev`. On Gentoo a release adds the
-`X.Y.Z` ebuilds and their Manifest to the overlay (see its README).
+`X.Y.Z.<commit stamp>`, into `15-dev`. On Gentoo the overlay's nightly
+`autobump` workflow adds the `X.Y.Z` ebuilds and their Manifest to `main`, its
+only branch, once the `vX.Y.Z` tags exist (see its README); run it by hand
+from the overlay's Actions tab to have them right away.
 
 ### Registry quota
 

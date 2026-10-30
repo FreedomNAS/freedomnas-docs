@@ -82,11 +82,19 @@ WebUI twice.
     rather manage the service natively; nothing else in FreedomNAS depends
     on it.
 
-## Live ebuilds
+## Releases and live ebuilds
 
-There are no upstream release tags yet, so every ebuild tracks the `dev`
-branch through `git-r3`. Once `dev` is merged and tagged, `EGIT_BRANCH` goes
-away and versioned ebuilds land alongside the live ones.
+Every FreedomNAS package has a live `9999` ebuild, which builds the `dev`
+branch of its repository through `git-r3`, and the ebuilds of the two newest
+releases, `X.Y.Z`, which build the `vX.Y.Z` tag's tarball. The overlay itself
+has a single branch, `main`, carrying both.
+
+Release ebuilds are not written by hand: the overlay's nightly `autobump`
+workflow sees a new `vX.Y.Z` tag, copies the `9999` ebuild to it, checks the
+result with `pkgcheck` and commits it to `main`. The same workflow keeps
+`topgrade-bin`, the Arch and Artix keyrings, `arch-install-scripts` and the
+MkDocs stack on their upstream releases. A bump that fails opens an issue on
+the overlay instead of being committed. Details are in the overlay's README.
 
 ## Why not `distutils-r1`
 
