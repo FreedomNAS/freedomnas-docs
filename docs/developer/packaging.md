@@ -226,7 +226,7 @@ the FreedomNAS form, `0.9.12+<stamp>`, so the comparison works there too.
 
 The documentation is the one component that is compiled: MkDocs with
 Material turns it into a static site. Every format builds it with its own
-distribution's `mkdocs` and `mkdocs-material`, and needs no network: the
+distribution's `mkdocs` and `mkdocs-material` (Gentoo: Zensical, see below), and needs no network: the
 fonts are in the repository (`docs/assets/fonts`, Roboto and Roboto Mono,
 SIL Open Font License 1.1) and `theme.font` is off, so nothing is downloaded
 at build time or when a page is read.
@@ -236,7 +236,7 @@ at build time or when a page is read.
 | `.deb` | Debian's `mkdocs`, `mkdocs-material`, `python3-pymdownx` |
 | Arch | `mkdocs`, `mkdocs-material`, `python-pymdown-extensions` |
 | FreeBSD | `py3xx-mkdocs-material` |
-| Gentoo | `dev-python/mkdocs` and `mkdocs-material` from freedomnas-overlay (they left `::gentoo`), Python 3.11 to 3.14 |
+| Gentoo | `dev-python/zensical` from freedomnas-overlay (MkDocs' successor by the Material authors, which reads the same `mkdocs.yml`; MkDocs left `::gentoo`) |
 | Images | `mkdocs` if the build host has it, otherwise the pinned `requirements.txt` in a throwaway virtualenv, otherwise a prebuilt `site/` |
 
 The public copy at <https://freedomnas.codeberg.page/freedomnas-docs/> is

@@ -92,9 +92,10 @@ has a single branch, `main`, carrying both.
 Release ebuilds are not written by hand: the overlay's nightly `autobump`
 workflow sees a new `vX.Y.Z` tag, copies the `9999` ebuild to it, checks the
 result with `pkgcheck` and commits it to `main`. The same workflow keeps
-`topgrade-bin`, the Arch and Artix keyrings, `arch-install-scripts` and the
-MkDocs stack on their upstream releases. A bump that fails opens an issue on
-the overlay instead of being committed. Details are in the overlay's README.
+`topgrade-bin`, the Arch and Artix keyrings, `arch-install-scripts` and
+Zensical, which builds this documentation, on their upstream releases. A
+bump that fails opens an issue on the overlay instead of being committed.
+Details are in the overlay's README.
 
 ## Why not `distutils-r1`
 
