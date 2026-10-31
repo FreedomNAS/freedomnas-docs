@@ -165,6 +165,32 @@ Delete an OS user and remove from `config.yaml`.
     The API does not prevent deleting the currently authenticated user or
     the last admin account. Guard these cases in the UI layer.
 
+## GET /api/account/me
+
+**Auth required:** any account, administrator or not (401 for a wrong
+password, never 403).
+
+```json
+{
+  "username": "mario", "admin": false, "groups": ["mario", "media"],
+  "hostname": "freedomnas", "edition": "artix",
+  "shares": {"smb": [{"name": "media", "path": "/tank/media", "comment": "media", "read_only": false}],
+             "nfs": []},
+  "links": [{"name": "jellyfin", "title": "Jellyfin", "path": "/", "url": "https://jellyfin.freedomnas.home.arpa/"},
+            {"name": "pihole", "title": "Pi-hole", "path": "/admin/", "scheme": "https", "port": 8053}],
+  "ca_fingerprint": "2D:24:64:15:…"
+}
+```
+
+`shares` are the SMB shares the account owns, is a valid user of, or whose
+group it is in (`users.list_groups`), and the NFS shares it owns. `links`
+joins what every module's `links()` gives, by name: the containers module
+gives each app that is up with its title and path, and its port unless the
+proxy serves it; the proxy module gives each site, by name when names are on
+(the own domain first) or on its port. An entry with `scheme` and `port` is
+on the address the WebUI was reached at; one with neither port nor `url` is
+left out.
+
 ## POST /api/account/password
 
 **Auth required:** no Basic credentials: the body carries them. Any account

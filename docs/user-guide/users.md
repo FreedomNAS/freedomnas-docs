@@ -31,7 +31,7 @@ it from Samba too.
 
 An account that existed before FreedomNAS — FreedomNAS installed onto a
 running system, an account made by hand — has no Samba password, so no
-password opens a share for it. When such an administrator signs in to the
+password opens a share for it. When such an account signs in to the
 WebUI, the password just accepted is given to Samba too (`samba.user_exists`,
 then `smbpasswd`), once; an account Samba already knows keeps its own. Any
 other account gets one with **Password** on this page.

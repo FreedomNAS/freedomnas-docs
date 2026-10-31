@@ -94,6 +94,7 @@ class FreedomNASModule(ABC):
     def health() -> tuple[bool, str]  # healthy, and why; default wraps health_check()
     def reconcile(desired: dict, mode: str) -> list[ActionResult]  # default: nothing to do
     def prepare(desired: dict) -> list[ActionResult]  # packages only, before the first boot (installer's chroot); default: nothing
+    def links() -> list[dict]  # web pages every account may open (account page); default: none
 
 class Orchestrator:
     def register(module) -> None

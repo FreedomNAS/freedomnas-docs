@@ -154,6 +154,12 @@ compared against `users.list_groups` (`id -nG`). `root` always passes. The
 same check guards the updates WebSocket, which runs a system update as the
 caller. Wrong password gives 401, right password without the group gives 403.
 
+The one exception is `/api/account/*`, what an account sees and does for
+itself (`authenticate_account()`: PAM only): its own details, the shares it
+may use, the web pages of the NAS and its own password. The WebUI sends an
+account that is not an administrator to its [account page](../user-guide/account.md)
+instead of refusing it.
+
 ### Guessing limit
 
 Five failed attempts for one username inside 60 seconds lock that username
