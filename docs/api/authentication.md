@@ -37,10 +37,14 @@ These routes do not require authentication:
 
 | Code | Meaning |
 |------|---------|
-| `401 Unauthorized` | Missing or invalid credentials |
+| `401 Unauthorized` | Missing or invalid credentials (`detail`: `Invalid credentials`) |
+| `401 Unauthorized`, `detail`: `Password expired` | The right password, but a temporary one (given after a restore): PAM says it has expired, or the configuration still records `temporary_password`. It opens nothing until its owner changes it with [`/api/account/password`](users.md#post-apiaccountpassword) |
+| `403 Forbidden` | The right password of an account that is not an administrator: only `/api/account/*` is open to it |
 | `503 Service Unavailable` | System not initialized — complete `/setup/` first |
 
-The WebUI handles these automatically: 401 redirects to `/auth/`, 503 redirects to `/setup/`.
+The WebUI handles these automatically: 401 redirects to `/auth/`, 503 redirects to `/setup/`,
+403 to the [account page](../user-guide/account.md). On the sign-in page, `Password expired`
+asks for a new password right away, changes it and signs in with it.
 
 ### The 401 challenge is `FreedomNAS`, not `Basic`
 

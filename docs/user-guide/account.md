@@ -14,6 +14,8 @@ at the bottom of the menu too.
 | Apps | One button per app that is running (Jellyfin, Nextcloud, …) and per site of the [reverse proxy](proxy.md): by its name (`https://jellyfin.<hostname>.home.arpa/`) when names are on, otherwise on its port. Opening an app only opens it: managing apps stays with the administrators |
 | Certificate | The fingerprint of the NAS's certificate authority and the button to download it, to install once on each computer and phone so the browser trusts the NAS and its apps |
 
-An account with a **temporary password** (given after a restore) first
-chooses its own on the **Change your password** page linked from the sign-in
-page; then it signs in here.
+An account with a **temporary password** (given after a restore, in the
+setup wizard) cannot use it for anything but choosing its own: signing in
+with it, the sign-in page asks at once for a new password, twice, changes it
+for signing in and for the shares, and signs in with the new one. Until then
+the temporary password opens neither the WebUI nor its API.
