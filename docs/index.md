@@ -68,14 +68,15 @@ On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing els
 
 ## Editions
 
-| Edition | Base | Status |
-|---------|------|--------|
-| **Debian** | Debian trixie | Official — maximum hardware compatibility |
-| **FreeBSD** | FreeBSD 14+ | Official — native ZFS, robust network stack |
-| **Arch** | Arch Linux | Community — runtime-supported |
-| **Gentoo** | Gentoo (OpenRC) | Community — stage3 + Portage, official binary host enabled |
-| **Artix, Void** | Arch (OpenRC) / independent (runit) | Community — runtime-supported |
-| **Alpine, …** | Any | Add a profile; no core change beyond one `_DISTRO_IDS` entry |
+| Edition | Base | Status | Image |
+|---------|------|--------|-------|
+| **Debian** | Debian trixie | Official — maximum hardware compatibility | yes |
+| **FreeBSD** | FreeBSD 14+ (images: 15.1) | Official — native ZFS, robust network stack | yes |
+| **Gentoo** | Gentoo (OpenRC) | Community — stage3 + Portage, official binary host enabled | yes |
+| **Artix** | Artix Linux (OpenRC, dinit, runit) | Community | one per init |
+| **Void** | Void Linux (runit) | Community | yes |
+| **Arch** | Arch Linux | Community | no — installer or in place |
+| **Alpine, …** | Any | Add a profile; no core change beyond one `_DISTRO_IDS` entry | — |
 
 ---
 

@@ -16,15 +16,16 @@ regardless of which file it physically lives in.
 | `os/os-freebsd.json` | FreeBSD 14+ | Official |
 | `os/os-arch.json` | Arch Linux | Community |
 | `os/os-gentoo.json` | Gentoo (OpenRC) | Community |
-| `os/os-artix.json` | Artix Linux (OpenRC) | Community |
+| `os/os-artix.json` | Artix Linux (OpenRC, dinit, runit) | Community |
 | `os/os-void.json` | Void Linux (runit) | Community |
 
 !!! note
     All five Linux editions are reachable at runtime: the engine maps
     `/etc/os-release`'s `ID` field to a profile through `_DISTRO_IDS`, and
     lists them in `SUPPORTED_OS`. Matching per-module fragments and package
-    category sections exist for each. "Community" means the profile is not
-    exercised by the project's own CI images, not that it is inert.
+    category sections exist for each. The CI images exercise every one of
+    them but Arch, which has no image. "Community" says which editions
+    the project treats as official (Debian, FreeBSD), not which are built.
 
 ## Where Each Category Lives
 
