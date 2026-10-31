@@ -51,12 +51,21 @@ from the overlay's Actions tab to have them right away.
 
 The Pi-hole ports build upstream's release tarballs (`pi-hole/FTL`,
 `pi-hole/pi-hole`, `pi-hole/web` on GitHub) with FreedomNAS's FreeBSD changes
-as one patch per change in `files/patch-*`. `bin/update-pihole.sh ftl|core
-<version>` moves a port to another release: it applies the series with
-`git am -3` on a checkout of that release and writes back the patches, the
-version, the release hash and `distinfo`; a patch that no longer applies
-stops in a checkout where the conflict is fixed, then `--export` finishes.
-`bin/update-pihole.sh web <version>` changes only the web interface.
+as one patch per change in `files/patch-*`. A second series in `next/`
+carries the same changes on upstream's `development` branch, where the next
+release is made (the commit is in `next/UPSTREAM`); it also covers what came
+after the release the port builds, such as the DoT/DoH/DoQ servers, and FTL's
+test suite passes with it on FreeBSD and Linux. `bin/update-pihole.sh ftl|core
+<version>` moves a port to another release, starting from `next/`: it applies
+the series with `git am -3` on a checkout of that release and writes back the
+patches, the version, the release hash and `distinfo`; a patch that no longer
+applies stops in a checkout where the conflict is fixed, then `--export`
+finishes. `bin/update-pihole.sh ftl|core next` carries `next/` to the
+development branch of the day the same way. `bin/update-pihole.sh web
+<version>` changes only the web interface. FTL builds DoQ and HTTP/3 only
+against OpenSSL 4 (`SSL_get_peer_addr()`): a release with them needs
+`security/openssl40` and `www/libnghttp3` in `dns/pihole-ftl`'s
+`LIB_DEPENDS`, base's OpenSSL 3.5 builds it without both.
 
 ### Registry quota
 
