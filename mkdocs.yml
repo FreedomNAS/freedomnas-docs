@@ -114,6 +114,8 @@ nav:
     - Updates: api/updates.md
     - Services: api/services.md
     - Plugins: api/plugins.md
+    - Containers: api/containers.md
+    - Reverse proxy: api/proxy.md
     - Setup: api/setup.md
     - WebSocket Terminal: api/websocket.md
   - Developer Guide:

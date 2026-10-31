@@ -13,7 +13,7 @@ regardless of which file it physically lives in.
 | File | OS | Status |
 |------|----|--------|
 | `os/os-debian.json` | Debian trixie (and compatible) | Official |
-| `os/os-freebsd.json` | FreeBSD 14+ | Official |
+| `os/os-freebsd.json` | FreeBSD 15 (the pkg repository is built for 15) | Official |
 | `os/os-arch.json` | Arch Linux | Community |
 | `os/os-gentoo.json` | Gentoo (OpenRC) | Community |
 | `os/os-artix.json` | Artix Linux (OpenRC, dinit, runit) | Community |

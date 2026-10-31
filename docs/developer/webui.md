@@ -12,15 +12,17 @@ api/
 ├── module_discovery.py   Scans modules/*/manifest.json for a "webui" block;
 │                         mounts each one's router/templates/static (2026-09-02)
 ├── deps.py               Engine singleton, config singleton, PAM auth
+├── restart.py            Restart the WebUI after an update (Notices)
+├── serve.py              uvicorn with FreedomNAS's certificate
 └── routes/               API route handlers (one file per domain) — core
                           modules only, untouched by module_discovery.py
 websocket/
 └── terminal.py       Topgrade streaming — see WebSocket Terminal
 frontend/
-├── templates/        12 Jinja2 templates
+├── templates/        16 Jinja2 templates
 └── static/
     ├── css/main.css  Complete CSS design system
-    ├── js/           11 JS modules
+    ├── js/           15 JS modules
     └── img/          logo.png, logo_cut.png
 ```
 
@@ -77,23 +79,12 @@ on `<html>`, stored in `localStorage`.
 
 ## JS Modules
 
-| File | Purpose |
-|------|---------|
-| `main.js` | Shared: `api()`, `Auth`, `toast()`, `confirm()`, `Theme`, `UILevel`, `Sidebar`, `initShared()` |
-| `auth.js` | Login form, credential check, post-login redirect |
-| `setup.js` | 3-step wizard state machine |
-| `dashboard.js` | System info polling, module health cards |
-| `storage.js` | Pool/dataset/snapshot CRUD, pool page (status, scrub/TRIM, device actions, add vdevs, history, pool properties), volumes, dataset More menu (mount, quotas, promote, user properties), snapshot actions (rollback, clone, rename, holds, diff, bookmarks, bulk destroy), Replication tab (local send/receive jobs, progress, cancel, resume), Live I/O on the pool page, ARC card, Events tab, delegated permissions, Disks tab (SMART health, self-tests), tab switching |
-| `shares.js` | SMB/NFS CRUD, inline delete confirm |
-| `network.js` | Interface list, edit IP modal |
-| `users.js` | User table, create/delete |
-| `updates.js` | Topgrade runner, status polling |
-| `services.js` | Services page: list, filter, start/stop/restart, enable/disable at boot |
-| `system.js` | Hostname save, reboot/shutdown confirm |
+One file per page plus `main.js`, shared by every authenticated page; what
+each one does is in [Frontend JavaScript Modules](frontend.md).
 
 ## deps.py — Dependency Injection
 
-`api/deps.py` provides three FastAPI dependencies shared by all route handlers:
+`api/deps.py` provides the FastAPI dependencies shared by all route handlers:
 
 ```python
 from api.deps import get_engine, get_config, authenticate
@@ -103,10 +94,13 @@ from api.deps import get_engine, get_config, authenticate
 |------------|----------------|-------|
 | `get_engine()` | `FreedomNASEngine` singleton | Calls `freedomnas.engine.get_engine()` |
 | `get_config()` | `ConfigurationManager` singleton | Lazily created on first call, module-level cache |
-| `authenticate(credentials)` | `str` (username) | PAM validation via the `pam` module (Debian packages it as `python3-pampy`); raises `HTTP 401` on failure |
+| `authenticate(request)` | `str` (username) | PAM validation via the `pam` module (Debian packages it as `python3-pampy`); `401` for wrong credentials, `401` `Password expired` for a temporary password, `403` for an account outside the edition's admin group |
+| `authenticate_account(request)` | `str` (username) | The same without the administrator check: only `/api/account/*` uses it |
 
-PAM authentication validates against the OS user database. Any OS user with a valid
-password can log in. There is no FreedomNAS-specific user store for auth.
+PAM authentication validates against the OS user database: every account
+with a valid password can sign in, and only administrators reach the
+administration API — see [Security](../architecture/security.md#authentication-is-not-authorisation).
+There is no FreedomNAS-specific user store for auth.
 
 ```python
 # Route handler — auth + DI pattern
@@ -143,6 +137,10 @@ async function api(method, path, body = null) {
         location.href = `/auth/?next=${encodeURIComponent(location.pathname)}`;
         throw new Error('Unauthorized');
     }
+    if (res.status === 403) {
+        if (location.pathname !== '/account/') location.href = '/account/';
+        throw new Error('This account is not an administrator');
+    }
     if (res.status === 503) {
         location.href = '/setup/';
         throw new Error('Not initialized');
@@ -171,40 +169,37 @@ All authenticated pages extend `base.html`:
 {% endblock %}
 ```
 
-`setup.html` and `auth.html` are standalone (no sidebar needed);
-`index.html` only redirects to `/dashboard/`.
+`setup.html`, `auth.html`, `password.html` and `restoring.html` are
+standalone (no sidebar needed); `index.html` only redirects to
+`/dashboard/`. `base.html` keeps the menu in `{% block nav %}` and the UI
+level picker in `{% block topbar_tools %}`: `account.html` replaces both, so
+an account that is not an administrator sees no link it cannot open.
 
 ## Template Variable Reference
 
-| Variable | Category | Example value |
+Placeholders the Debian profiles fill, with the actions that use them; the
+other editions use the same names.
+
+| Variable | Used by | Example value |
 |----------|---------|---------------|
-| `{username}` | users | `admin` |
-| `{uid}` | users.create | `1000` |
-| `{gid}` | users.create | `1000` |
-| `{shell}` | users.create | `/bin/bash` |
-| `{groups}` | users.create | `sudo,samba` |
-| `{group}` | users.add_to_group | `samba` |
-| `{interface}` | network | `fnas_lan` |
-| `{ip}` | network.set_static_ip | `192.168.1.50` |
-| `{cidr}` | network.set_static_ip | `24` |
-| `{gateway}` | network.set_static_ip | `192.168.1.1` |
-| `{dns}` | network.set_static_ip | `1.1.1.1 8.8.8.8` |
-| `{packages}` | packages.install | `samba samba-common-bin` |
-| `{pool_name}` | zfs | `datapool` |
-| `{dataset}` | zfs | `datapool/documents` |
-| `{snap_name}` | zfs.snapshot_create | `pre-update-20260627` — **not** `snapshot_name`, see [Storage API](../api/storage.md) |
-| `{ashift}` | zfs.create_pool | `12` |
-| `{disks}` | zfs.create_pool | `/dev/disk/by-id/ata-...` |
-| `{algorithm}` | zfs.set_compression | `lz4` |
-| `{share_name}` | samba | `Documents` |
-| `{path}` | samba, nfs | `/mnt/datapool/documents` |
-| `{guest_ok}` | samba.create_share | `n` |
-| `{allowed_hosts}` | nfs.add_export | `192.168.1.0/24` |
-| `{options}` | nfs.add_export | `rw,sync,no_subtree_check` |
-| `{hostname}` | system | `freedomnas` |
-| `{timezone}` | system | `Europe/Rome` |
-| `{service_name}` | services | `smbd` |
-| `{size}` | zfs.set_quota | `500G` |
+| `{username}` | `users.create`, `users.add_to_group` | `admin` |
+| `{uid}`, `{gid}` | `users.create_with_uid`, `users.uid_set`, `users.gid_set` | `1000` |
+| `{groups}` | `users.create` | `sudo,users` |
+| `{group}` | `users.add_to_group`, `users.group_create` | `media` |
+| `{interface}` | `network.ipv4_static`, `network.dns_set`, … | `fnas_lan0` |
+| `{ip}`, `{cidr}`, `{gateway}` | `network.ipv4_static` | `192.168.1.50`, `24`, `192.168.1.1` |
+| `{dns}` | `network.dns_set` | `1.1.1.1 8.8.8.8` |
+| `{package_name}` | `packages.install` | `samba` |
+| `{pool_name}` | `zfs.pool_create`, … | `tank` |
+| `{dataset}` | `zfs` | `tank/documents` |
+| `{snap_name}` | `zfs.snapshot_create` | `pre-update-20260627` — **not** `snapshot_name`, see [Storage API](../api/storage.md) |
+| `{ashift}`, `{compression}`, `{vdev_type}`, `{devices}` | `zfs.pool_create` | `12`, `lz4`, `mirror`, `/dev/disk/by-id/ata-...` |
+| `{size}` | `zfs.volume_create` | `500G` |
+| `{share_name}`, `{path}`, `{comment}`, `{acl}` | `samba.create_share` | `Documents`, `/tank/documents` |
+| `{path}`, `{clients}`, `{options}` | `nfs.export_add` | `/tank/backup`, `192.168.1.0/24`, `rw,sync,no_subtree_check` |
+| `{hostname}` | `system.hostname_set` | `freedomnas` |
+| `{timezone}` | `system.timezone_set` | `Europe/Rome` |
+| `{service_name}` | `services.start`, … | `smbd` |
 
 ## Offline documentation
 

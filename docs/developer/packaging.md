@@ -21,11 +21,11 @@ WebUI has the documentation of its own version at `/docs/`.
 | Format | Repository | Built by | Published to |
 |--------|------------|----------|--------------|
 | `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | Codeberg's Debian registry |
-| Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | Codeberg's Arch registry |
-| Void (ZFS modules, Samba configuration) | freedomnas-void | `bin/build-kmod.sh` in a Void container, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in Codeberg's generic registry |
+| Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | a signed pacman repository in Codeberg's generic registry, `freedomnas-arch/<dev\|main>` (see [Repositories](repositories.md)) |
+| Void (FreedomNAS, ZFS modules, Samba configuration) | freedomnas-void | `bin/build-freedomnas.sh` in a Void container for the FreedomNAS components; `bin/build-kmod.sh`, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in Codeberg's generic registry |
 | FreeBSD `pkg` | freedomnas-freebsd | `ci/build-in-vm.sh`: `bin/build-freedomnas-pkgs.sh` inside FreeBSD's own VM image under QEMU, staging directories handed to `pkg create`; the ports under `ports/` (Pi-hole: `dns/pihole-ftl`, `dns/pihole`) by `bin/build-ports.sh`, against a sparse checkout of the ports tree on the FreeBSD repository's quarterly branch, with their dependencies installed as packages; then a flat catalogue signed by `pkg repo` | a signed pkg repository in Codeberg's generic registry, `freedomnas-freebsd/<major>-<main\|dev>` |
 | Gentoo | freedomnas-overlay | release ebuilds (`X.Y.Z`, the tag's archive tarball, `~amd64`) and live `9999` ebuilds tracking `dev`; one file serves both | the overlay itself |
-| Images, live ISOs | freedomnas-image-builder | `common/install-core.sh` from the sibling checkouts; Artix images by `common/vm-install.sh` | release downloads |
+| Images, live ISOs | freedomnas-image-builder | every image by `common/vm-install.sh`: the installer in image mode inside the live ISO under QEMU; `common/install-core.sh` puts FreedomNAS from the sibling checkouts into the live ISOs | release downloads on the GitHub showcase |
 | Installer copy | freedomnas-installer | `lib/core_installer.py`, from the installed layout or the checkouts | — |
 
 The Debian, Arch and FreeBSD registries are filled by Forgejo workflows
@@ -37,7 +37,9 @@ self-hosted runner is off; a small `kernel-check` job on `codeberg-tiny-lazy`
 looks for the kernel's version in the registry, and only a missing kernel is
 built on the self-hosted runner (`runs-on: docker`), where its ccache lives
 (on Arch after the packages job, since both rewrite the pacman database).
-Void is built entirely on Codeberg's runners. The
+Void is built entirely on Codeberg's runners: `publish-freedomnas.yml` for
+the FreedomNAS packages (on push and nightly), `publish-kmod.yml` for the
+modules and the Samba configuration. The
 FreeBSD one runs on the host like build-images (QEMU needs KVM), needs
 freedomnas-image-builder's FreeBSD driver checked out beside it, and signs
 with the `FREEBSD_SIGNING_KEY` secret; its public key is
@@ -263,7 +265,7 @@ built by freedomnas-docs' own workflow from `requirements.txt`, which pins
 
 ## linux-freedomnas
 
-Arch, Artix and Debian will run their own kernel with the OpenZFS modules built in,
+Arch, Artix and Debian run their own kernel with the OpenZFS modules built in,
 the way Proxmox ships its kernels, instead of building `zfs.ko` with DKMS on
 the NAS: a DKMS build that fails once leaves a NAS that cannot import its
 pool. [linux-freedomnas](https://codeberg.org/FreedomNAS/linux-freedomnas) is
@@ -272,6 +274,16 @@ Arch's `linux-lts` plus OpenZFS compiled against it, split into
 the kernel depends on the userspace of its own build, so pacman never pairs
 a kernel with another ZFS version. freedomnas-arch builds and publishes it,
 rebuilding only when its version is not in the repository yet.
+
+The kernel follows the LTS series by itself: linux-freedomnas' nightly
+`follow-lts.yml` runs `bin/follow-lts.py`, which takes kernel.org's newest
+point release of the series, the newest stable OpenZFS whose `META` allows
+it, and Arch's patches and `config.x86_64` while Arch is on the same series;
+it verifies the tarballs' signatures (`keys/pgp`), dry-runs the patches and
+commits the bump to `dev` with the `LTS_PUSH_TOKEN` secret. A new series is
+taken only when OpenZFS supports it and Arch's `linux-lts` has moved. The
+packages are then built by the publish workflows above, the kernel on the
+self-hosted runner when it is on.
 
 The same repository builds the Debian packages from the same tarballs,
 patches and `config.x86_64`: `debian/rules` reads the versions from the

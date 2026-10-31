@@ -7,16 +7,24 @@ All JS files live in `freedomnas-webui/frontend/static/js/`.
 
 | File | Page | Responsibility |
 |------|------|----------------|
-| `main.js` | All authenticated pages | Shared utilities: Auth, API, Toast, Confirm, Theme, UILevel, Sidebar |
-| `auth.js` | `/auth/` (login) | Login form, credential validation, redirect logic |
-| `setup.js` | `/setup/` (wizard) | 3-step first-run wizard |
-| `dashboard.js` | `/dashboard/` | System info cards, update badge, module health grid |
-| `storage.js` | `/storage/` | Pool creation, cache/log devices, dataset properties, snapshots — tabbed view |
-| `shares.js` | `/shares/` | SMB and NFS share management with tabbed view |
-| `users.js` | `/users/` | User list, add/delete with modal |
-| `network.js` | `/network/` | Interface list, static IP configuration modal |
-| `system.js` | `/system/` | Hostname/timezone forms, reboot/shutdown buttons |
+| `main.js` | All authenticated pages | Shared utilities: Auth, API, Toast, Confirm, Theme, UILevel, Sidebar, Notices |
+| `auth.js` | `/auth/` (sign in) | Sign-in form, the new password a temporary one asks for, where to go next |
+| `password.js` | `/password/` | Any account changes its own password, without signing in |
+| `setup.js` | `/setup/` (wizard) | Five-step first-run wizard, and the restored-system variant |
+| `restoring.js` | `/restoring/` | The restore-in-progress page: steps, failure, **Continue** |
+| `dashboard.js` | `/dashboard/` | System info, update count, module health, a rollback that happened |
+| `storage.js` | `/storage/` | Pools, datasets, snapshots, replication, events, disks — tabbed view |
+| `shares.js` | `/shares/` | SMB (owner or group shares and their members) and NFS shares |
+| `users.js` | `/users/` | Accounts: add, delete, password, administrator role |
+| `network.js` | `/network/` | Interfaces with automatic rollback, bridges/bonds/VLANs, WireGuard |
+| `services.js` | `/services/` | The services FreedomNAS knows: state, start/stop/restart, at boot |
+| `plugins.js` | `/plugins/` | Community modules: list, install, remove, as jobs |
+| `system.js` | `/system/` | Hostname, timezone, certificate, SSH, automatic rollback, reboot/shutdown |
 | `updates.js` | `/updates/` | Update status, WebSocket terminal for running updates |
+| `account.js` | `/account/` | Every account's own page: password, its shares, the NAS's apps, the CA |
+
+Community modules bring their own page scripts (containers, proxy), served
+from their `static_dir` — see [WebUI Internals](webui.md).
 
 ---
 
@@ -43,8 +51,8 @@ Storage keys: `fnas_auth` (base64 token), `fnas_user` (plain username).
 ### api() and apiJSON()
 
 `api(method, path, body)` — adds `Authorization: Basic <token>` header,
-redirects to `/auth/?next=<current>` on 401, redirects to `/setup/` on
-503.
+redirects to `/auth/?next=<current>` on 401, to `/account/` on 403 (an
+account that is not an administrator) and to `/setup/` on 503.
 
 `apiJSON(method, path, body)` — wraps `api()`, parses JSON, throws if
 `res.ok` is false (using `data.detail` as the error message).
@@ -113,8 +121,10 @@ offline documentation reads — see
 Called as the first statement of every page's `DOMContentLoaded` handler.
 Redirects to login if not authenticated; otherwise applies Theme, UILevel,
 Sidebar, marks the active nav item, sets the help link, loads user and
-edition badges (saving the documentation context), wires theme/sidebar/logout
-buttons.
+edition badges (saving the documentation context), refreshes the notices,
+wires theme/sidebar/logout buttons. `initShared({ limited: true })`, on the
+account page, leaves out the edition badge and the notices: their endpoints
+are for administrators.
 
 Returns `true` on success, `false` after redirect.
 
@@ -138,8 +148,12 @@ spinner while loading, restores on done.
 - Applies theme from `localStorage` before anything renders (prevents flash)
 - If `sessionStorage.fnas_auth` already exists, calls `redirectAfterLogin()`
   immediately (skips login form)
-- On form submit: calls `GET /api/system/info` with the typed credentials.
-  If 200, stores them; if 401, clears password field
+- On form submit: calls `GET /api/system/info` (`/api/setup/whoami` while the
+  system is not initialized) with the typed credentials. 200: stores them
+  and goes on. 401 with `Password expired`: hides the form and asks for a new
+  password twice, posts `/api/account/password` and signs in with the new
+  one. Another 401: clears the password field. 403: checks
+  `GET /api/account/me` and goes to `/account/`
 - `redirectAfterLogin()`: checks `GET /api/setup/status` — if
   `initialized` is false, goes to `/setup/`; otherwise to `?next=` param
   or `/dashboard/`
@@ -148,69 +162,64 @@ spinner while loading, restores on done.
 
 ## setup.js
 
-Three-step wizard. No `initShared()` — runs unauthenticated.
+Five steps — **Administrator**, **System**, **Storage**, **Configuration**,
+**Review** — with its own `api()` (no `initShared()`: the page runs before
+the configuration exists). On load it reads `GET /api/setup/status`: an
+initialized system goes to `/dashboard/`; `password_chosen` (set in the
+installer) skips the new administrator password; `restored` fetches
+`GET /api/setup/restored` and turns the wizard into the restored variant
+(take over a restored administrator, temporary passwords for the other
+accounts). Storage lists disks and pools (`/api/setup/devices`,
+`/api/setup/pools`); **Initialize** posts `/api/setup/initialize`. The
+user-facing flow is in [First Run](../getting-started/first-run.md).
 
-- **Step 1**: hostname (validated: letters/digits/hyphens) + timezone, a
-  `<select>` filled by `fillTimezones()` from `Intl.supportedValuesOf('timeZone')`
-  and preselected with the browser's own zone. Not a `<datalist>`: it filters
-  by what the field already holds, so a field starting at `UTC` offered nothing
-  else
-- **Step 2**: edition selector (`debian`/`freebsd`/`arch`/`gentoo`/`artix`/`void`),
-  preselected from `detected_edition`; the hint under it shows `Detected: <edition>.`
-- **Step 3**: summary display → **Initialize** button calls
-  `POST /api/setup/initialize` (no auth header) → shows success panel with
-  link to `/auth/`
+---
 
-On load: checks `GET /api/setup/status`; if already initialized, redirects
-to `/dashboard/`, otherwise preselects `detected_edition`. The review step
-shows the edition's label, not its id.
+## restoring.js
+
+Polls `GET /api/restore/progress` and draws each step of the restore with
+its state; when the lock is gone it waits for the WebUI to restart and goes
+to the normal pages. A failed step shows its error and **Continue**
+(`POST /api/restore/continue`). See [Restore in progress](../api/setup.md#restore-in-progress).
 
 ---
 
 ## dashboard.js
 
-Loads three data sources in parallel on `DOMContentLoaded`:
+Loads in parallel on `DOMContentLoaded`:
 
-1. `GET /api/system/info` → fills hostname, edition, uptime, timezone cards
-2. `GET /api/updates/status` → fills update-count badge (green/orange)
-3. Health grid: renders hardcoded module names (`storage`, `network`,
-   `shares`, `users`, `updates`) all as `running` state (no dedicated
-   health endpoint yet — uses `/api/system/info` success as proxy)
+1. `GET /api/system/info` → hostname, edition, uptime, timezone cards
+2. `GET /api/updates/status` → update-count badge
+3. `GET /api/system/health` → one card per module this edition supports,
+   with its state and detail line
+4. `GET /api/system/boot` → a notice when the system fell back to the
+   previous kernel or snapshot, dismissed with `POST /api/system/boot/forget`
 
 ---
 
 ## storage.js
 
-Tab-based view with three panels: **Pools**, **Datasets**, **Snapshots**.
-
-- Switching tabs calls the appropriate `load*()` function
-- **Pools panel**: renders pool cards with health badge and usage bar
-  (colour: green <70%, orange <85%, red ≥85%)
-- **Datasets panel**: table with name, used, avail, refer, mountpoint
-- **Snapshots panel**: table with name, creation, used
-- The **Snapshots** tab and its **Create Snapshot** button are
-  `advanced-only`: modal with dataset datalist (pre-filled from loaded
-  pools) and snapshot name input, sent as `snap_name`
-- **Create Pool** button → `openPoolForm()`: loads `GET /api/storage/devices`,
-  greys out devices that are `in_use`, fills the cache/log selects with free
-  devices; the log select is `advanced-only`. `submitPool()` asks a final
-  `confirm()` listing the devices, then `POST /api/storage/pools`; a cache or
-  log device that failed to attach comes back as a warning toast
-- Pool cards (`advanced-only` block): attached cache/log devices with a
-  detach **×** (`DELETE /api/storage/pools/{pool}/devices?device=…`) and
-  **Add cache or log device** (`POST /api/storage/pools/{pool}/devices`)
-- Datasets panel **Properties** button (`advanced-only`) → modal built from
-  `GET /api/storage/properties` + the dataset's current values; each property
-  is gated by its `level`, `create_only` ones are left out
+The largest module: six tabs, **Pools**, **Datasets**, **Snapshots**,
+**Replication**, **Events**, **Disks**, each loaded when shown. Pools: create
+(free devices, cache/log), import (inspect, unlock, users it needs), the
+pool detail with its vdevs and their actions, properties, history, export
+and removal. Datasets: create, volume, move, rename, destroy (with the shares
+on them), mountpoint, properties, quotas, user properties, delegation.
+Snapshots, bookmarks, holds and diffs; replication jobs; ZFS events; disks
+with SMART and self-tests. What each tab shows at which UI level is in the
+[Storage guide](../user-guide/storage.md), the endpoints in the
+[Storage API](../api/storage.md).
 
 ---
 
 ## shares.js
 
-Tab-based view: **SMB** and **NFS**.
+Tab-based view: **SMB / CIFS** and **NFS**.
 
-- **Add Share** button pre-configures the modal for the active tab type
-- SMB-specific fields (`#f-share-ro`) hidden for NFS and vice versa
+- **Add Share** pre-configures the modal for the active tab; an SMB share
+  belongs to one owner or to a group, whose members are picked from
+  `GET /api/users/` and changed later with **Members**
+  (`PUT /api/shares/smb/{name}/members`)
 - Delete buttons call `confirm()` before `DELETE /api/shares/{type}/{name}`
 
 ---
@@ -218,34 +227,60 @@ Tab-based view: **SMB** and **NFS**.
 ## users.js
 
 - Username validated client-side: `/^[a-z_][a-z0-9_-]{0,31}$/`
-- Group selection: checkboxes with class `.f-group`
 - Current user (`Auth.getUser()`) shown with a "you" badge; their delete
   button is hidden
-- Delete column hidden in `assisted` UI level (`advanced-only` CSS class)
+- **Password** (`POST /api/users/{name}/password`), **Make administrator** /
+  **Remove administrator** (`POST /api/users/{name}/admin`, `advanced-only`),
+  delete; a restored account waiting for its owner's own password carries a
+  badge
 
 ---
 
 ## network.js
 
-- Handles both Linux (`ip -j link` JSON array) and FreeBSD (`ifconfig -j`)
-  output formats with a fallback chain for field names
-- **Edit IP** button (hidden in `assisted` level): opens modal pre-filled
-  with current address and prefix length
-- DNS field accepts comma- or space-separated values, split client-side
-  before sending to API
+- Interfaces from `GET /api/network/interfaces`; a change goes through
+  `PUT /api/network/interfaces/{name}` and the automatic rollback: the page
+  follows `GET /api/network/pending` and confirms, or reverts, also from the
+  new address (`/api/network/confirm-token`)
+- Bridges, bonds and VLANs (`/api/network/virtual`), interfaces that are
+  gone (forget), WireGuard with its peers, their configuration file and QR
+  code (`/api/network/wireguard`)
+
+---
+
+## services.js
+
+`GET /api/services/` and `POST /api/services/{name}/{action}`; what is
+shown depends on the UI level.
+
+---
+
+## plugins.js
+
+`GET /api/plugins/`, install and remove as a job followed with
+`GET /api/plugins/job?since=N`, `POST /api/plugins/refresh` for the
+catalogue.
 
 ---
 
 ## system.js
 
-!!! warning "Timezone form bug"
-    The timezone form's submit handler currently calls `POST /api/system/hostname`
-    instead of a timezone endpoint (which doesn't exist yet). The toast says
-    "Timezone change requires engine support — saved to config." This is a
-    known placeholder.
-
-- Hostname form: `POST /api/system/hostname`
+- Hostname (`POST /api/system/hostname`) and timezone
+  (`POST /api/system/timezone`, a `<select>` filled by `fillTimezones()`)
+- Certificate (`GET /api/system/certificate`, the CA download), SSH
+  (`/api/system/ssh`), automatic rollback (`/api/system/boot/autorollback`)
 - Reboot/shutdown: both gated behind `confirm()` modal with explicit label
+
+---
+
+## account.js
+
+`initShared({ limited: true })`, then `GET /api/account/me`: the account,
+its groups, its shares with the address to open them from this browser's
+host, one button per web page of the NAS (`url`, or `scheme` and `port` on
+`location.hostname`, plus `path`) and the CA fingerprint. Changing the
+password posts `/api/account/password` and stores the new credentials
+(`Auth.set`). See [My Account](../user-guide/account.md).
 
 ---
 

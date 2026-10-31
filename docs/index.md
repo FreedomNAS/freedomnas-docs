@@ -71,7 +71,7 @@ On FreeBSD, the same merge happens against the `-freebsd` fragments. Nothing els
 | Edition | Base | Status | Image |
 |---------|------|--------|-------|
 | **Debian** | Debian trixie | Official — maximum hardware compatibility | yes |
-| **FreeBSD** | FreeBSD 14+ (images: 15.1) | Official — native ZFS, robust network stack | yes |
+| **FreeBSD** | FreeBSD 15 (packages and images built on 15.1) | Official — native ZFS, robust network stack | yes |
 | **Gentoo** | Gentoo (OpenRC) | Community — stage3 + Portage, official binary host enabled | yes |
 | **Artix** | Artix Linux (OpenRC, dinit, runit) | Community | one per init |
 | **Void** | Void Linux (runit) | Community | yes |
