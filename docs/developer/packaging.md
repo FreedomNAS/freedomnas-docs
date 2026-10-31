@@ -49,6 +49,15 @@ tag into `15-main`; dev runs (also nightly) build snapshots,
 only branch, once the `vX.Y.Z` tags exist (see its README); run it by hand
 from the overlay's Actions tab to have them right away.
 
+The Pi-hole ports build upstream's release tarballs (`pi-hole/FTL`,
+`pi-hole/pi-hole`, `pi-hole/web` on GitHub) with FreedomNAS's FreeBSD changes
+as one patch per change in `files/patch-*`. `bin/update-pihole.sh ftl|core
+<version>` moves a port to another release: it applies the series with
+`git am -3` on a checkout of that release and writes back the patches, the
+version, the release hash and `distinfo`; a patch that no longer applies
+stops in a checkout where the conflict is fixed, then `--export` finishes.
+`bin/update-pihole.sh web <version>` changes only the web interface.
+
 ### Registry quota
 
 Codeberg gives the organisation 1.5 GB for packages, and a kernel with its
