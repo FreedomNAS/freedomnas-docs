@@ -6,6 +6,10 @@ FreedomNAS provides full NAS functionality (file sharing, ZFS storage, user mana
 network configuration) while running identically on Debian, FreeBSD, Arch Linux, and any
 other UNIX-like system — without code modifications.
 
+!!! tip "New here?"
+    The [Quick Start](getting-started/quick-start.md) takes you from an empty
+    computer to shared folders on your network in seven plain steps.
+
 ---
 
 ## Core Principle

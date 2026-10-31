@@ -69,6 +69,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
+    - Quick Start: getting-started/quick-start.md
     - Overview: getting-started/overview.md
     - Installation (Installer): getting-started/installation.md
     - First-Run Setup (WebUI): getting-started/first-run.md
