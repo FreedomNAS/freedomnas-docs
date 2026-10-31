@@ -23,18 +23,9 @@ installs **any edition its host can bootstrap**, not just Debian.
 | **Clean install** | Provisions an edition onto a dedicated disk | The selected disk — erased completely |
 | **In-place install** | Turns the running system into a FreedomNAS | Packages, services and config only |
 
-**Reinstalling a FreedomNAS** needs no special mode. Install onto the new
-system disk and leave the data disks attached: right after you choose the disk,
-the installer lists the pools that hold a FreedomNAS configuration — hostname,
-edition and when it was saved, the newest first — and asks whether to restore
-one or to set up a new NAS. Restoring, it takes the hostname, timezone and
-features from the configuration and asks only for the administrator's new
-password; it also puts back the NAS's certificate authority and SSH host
-keys and installs the modules the configuration uses (Docker or AppJail,
-Caddy…) before the first boot. The first boot then restores the rest — users,
-shares, network, apps and settings — through the
-[Reconciliation Engine](../architecture/reconciler.md), and the setup wizard
-asks only for the other accounts' temporary passwords and SSH.
+**Reinstalling a FreedomNAS** needs no special mode: install onto the new
+system disk with the data disks attached, and the installer offers to restore
+the NAS it finds on them — see [Restoring an existing NAS](#restoring-an-existing-nas).
 
 !!! warning "Data loss (clean install only)"
     A clean install partitions the selected disk. Everything on it is
@@ -53,6 +44,70 @@ the environment it is running in:
 
 Within a family, an edition whose native bootstrapper isn't present on the
 host is installed from a **rootfs tarball** instead — see below.
+
+## Restoring an existing NAS
+
+Every FreedomNAS keeps a copy of its configuration on its data pools, in a
+dataset named `.freedomnas`: users and groups, shares, network, apps and
+settings, plus the NAS's identity (its certificate authority and SSH host
+keys). Passwords are not in it. That copy is what lets a new system disk —
+or another edition — become the same NAS again.
+
+**What the installer does when it finds one**
+
+1. Right after you choose the system disk, the installer looks at every other
+   pool. It imports each one **read-only**, under a temporary name, reads its
+   `.freedomnas`, and exports it again: nothing on the data pools is written,
+   whatever you answer later.
+2. When at least one pool holds a FreedomNAS configuration, the dialog
+   *Existing FreedomNAS Configuration* lists them — hostname, edition, pool
+   and when it was saved — with the newest first and already selected. *A new
+   NAS* is the last entry. Without one, the dialog does not appear and the
+   installation asks the usual questions.
+3. **Restoring** a configuration, the installer takes the hostname, timezone
+   and features from it instead of asking, shows its administrators (you pick
+   one when there are several) and asks only for that account's new
+   password. The summary shows `Restore : <hostname> from <pool> (modules: …)`.
+4. Once FreedomNAS is installed on the new disk, still before the first boot,
+   the installer puts the certificate authority and the SSH host keys back and
+   installs what the configuration's modules need — Docker or AppJail for the
+   apps, Caddy for the reverse proxy — so the first boot downloads nothing for
+   them.
+5. **At the first boot** the [Reconciliation Engine](../architecture/reconciler.md)
+   restores the rest from the pool: users and groups with their numbers,
+   shares and their permissions, network, apps on the data they already have,
+   settings. Meanwhile the WebUI shows only the *Restore in progress* page,
+   with each step as it is done; if a step fails it shows which one and why,
+   and *Continue* lets you in anyway.
+6. Then the setup wizard asks only for what the copy cannot hold: a temporary
+   password for each of the other accounts (they choose their own at their
+   first sign-in) and whether SSH is on.
+
+Choosing **A new NAS** asks every question and runs the full setup wizard at
+the first boot, as on an empty machine; the copies are not restored. The new
+configuration is saved on the pool you pick in the wizard, replacing the copy
+that pool held — the earlier one stays in that dataset's `@boot-<date>`
+snapshots.
+
+| | Comes back | When |
+|---|------------|------|
+| Hostname, timezone, features | from the copy | in the installer |
+| Certificate authority, SSH host keys | from the copy | in the installer, before the first boot |
+| Docker / AppJail, Caddy | installed for the modules the copy uses | in the installer, before the first boot |
+| Users, groups, shares, network, apps, settings | from the copy | first boot |
+| Administrator's password | asked in the installer | — |
+| Other accounts' passwords | temporary ones, chosen in the setup wizard | after the first boot |
+
+**Another edition.** A copy saved by another edition — FreeBSD's on a Linux
+system, or the other way round — is restored the same way: the apps are set
+up again for this edition (Docker instead of AppJail, or the reverse) on the
+data they already have. Only an edition of the installer's own family can be
+installed, so moving a FreeBSD NAS to Linux means a Linux live system, and
+the reverse the FreeBSD one (see [Which editions can be installed](#which-editions-can-be-installed)).
+
+**Flashing an image instead.** An image has no installer questions: at its
+first boot it imports the pools and restores the newest copy it finds by
+itself, then asks for the passwords in the setup wizard.
 
 ## The live ISO
 
@@ -153,7 +208,7 @@ destructive happens before the confirmation screen.
 | Disk | Listed by the profile's `list_disks`; resolved to a stable `/dev/disk/by-id/` path where the platform has one |
 | Bootstrap method | Native bootstrapper or rootfs tarball — only methods whose tool exists on the host |
 | Mirror | From the edition's own mirror list, or a custom URL |
-| Existing configuration | Only when another pool holds one: restore it (the newest is preselected) or set up a new NAS. Restoring skips the hostname, timezone, features and users questions below |
+| Existing configuration | Only when another pool holds one: restore it (the newest is preselected) or set up a new NAS — see [Restoring an existing NAS](#restoring-an-existing-nas). Restoring skips the hostname, timezone, features and users questions below |
 | Hostname, timezone | Defaults `freedomnas` / `UTC` |
 | Optional features | Samba/CIFS, NFS, containers, virtualization — from `packages/MANIFEST.json` |
 | Administrator | Username plus a double-prompt password (minimum 8 characters); restoring, one of the configuration's administrators and its new password |
