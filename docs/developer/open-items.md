@@ -83,7 +83,7 @@ and unused names are gone.
 
 | Item | Notes |
 |------|-------|
-| First scheduled runs | Check the first nightly runs of the overlay auto-bump and of `linux-freedomnas` `follow-lts` (both tokens now exist). The new-LTS-series path of `follow-lts` has never run. |
+| `follow-lts` series change | The nightly runs work (2026-10-31: overlay auto-bump of topgrade-bin, arch-install-scripts and Zensical; `follow-lts` moved the kernel to 6.18.60 with OpenZFS 2.4.4). The path that moves to a new LTS series has never run. |
 | Zensical everywhere | The overlay builds the docs with Zensical; deb, Arch, Void, FreeBSD and the image builder still use MkDocs. Deferred to 2027 (Material for MkDocs is supported until then). |
 | Notify workflows | Actions are disabled on core, WebUI and profiles, so `notify-*` workflows never run: enable them (with secrets) or drop them. |
 | Debian sudoers on existing installs | The `DEBIAN_FRONTEND` `env_keep` line reaches only new installs; existing ones keep the debconf warnings. |
