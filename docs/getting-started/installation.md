@@ -261,10 +261,13 @@ initramfs live in the UKI on the ESP, not in ZFS.
 
 | Method | What runs | Needs on the host |
 |--------|-----------|-------------------|
-| native | `debootstrap`, `pacstrap`, `basestrap`, `xbps-install -r` | that bootstrapper |
+| native | `debootstrap`, `pacstrap`, `basestrap`, `xbps-install -r`, FreeBSD's `pkg` (pkgbase) | that bootstrapper |
 | tarball | fetch + unpack a rootfs tarball | `curl`/`fetch` and `tar` |
 
-The tarball can be the distro's own `rootfs.tar.gz` / `base.txz`, or an
+FreeBSD's base system is installed as packages from FreeBSD's own
+`FreeBSD-base` repository (pkgbase), as `bsdinstall` does it.
+
+The tarball can be the distro's own `rootfs.tar.gz`, or an
 exported container rootfs. Where the distro's filename is date-stamped, the
 installer asks for the URL rather than guessing.
 

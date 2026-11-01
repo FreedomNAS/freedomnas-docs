@@ -28,9 +28,18 @@ Making a copy of the system to install the update into...
 Copy update-YYYYmmdd-HHMMSS ready at /tmp/freedomnas-be: the running system is not touched
 ```
 
-1. `freebsd-update` fetches and installs the base system updates (kernel and
-   userland) into the copy.
-2. `pkg` upgrades the packages inside it, FreedomNAS's own included.
+1. `pkg` upgrades everything inside the copy in one go: the base system
+   (kernel and userland, installed as packages from FreeBSD's `FreeBSD-base`
+   repository, known as *pkgbase*) and the other packages, FreedomNAS's own
+   included.
+2. A system installed before FreedomNAS used pkgbase (from `base.txz` and
+   `kernel.txz`, updated with `freebsd-update`) is converted at its first
+   update: inside the copy, the base system packages matching what is
+   installed are registered and installed over it, keeping the changes made
+   to the files in `/etc`. The log says *The base system is not installed as
+   packages yet: converting it (pkgbase)*. The conversion downloads a few
+   hundred MB, and goes on trial like any update: if the converted system does
+   not start, the system from before comes back by itself.
 3. If nothing changed, the copy is deleted: *Nothing to update*. If a step
    failed, the copy is deleted too and the running system was never touched.
 4. Otherwise the copy starts **once, on trial**, at the next restart, and the

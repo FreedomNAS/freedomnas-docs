@@ -413,10 +413,19 @@ binary is missing simply is not offered:
 
 | Method | Command | Needs on the host |
 |--------|---------|-------------------|
-| native | `debootstrap`, `pacstrap`, `basestrap`, `xbps-install -r` | that bootstrapper |
+| native | `debootstrap`, `pacstrap`, `basestrap`, `xbps-install -r`, FreeBSD's `pkg --rootdir` (`pkgbase`) | that bootstrapper |
 | tarball | fetch + unpack a rootfs tarball | `curl`/`fetch` and `tar` |
 
-The tarball method takes the distro's own `rootfs.tar.gz` / `base.txz`, or an
+FreeBSD's `pkgbase` method installs the base system as packages from the
+`FreeBSD-base` repository, the way `bsdinstall` does: `FreeBSD-set-minimal`,
+`FreeBSD-set-base` (minimal, optional and devel, what `base.txz` held) and
+`FreeBSD-set-kernels`, with the host's signing keys copied into the target.
+The release's repository (`base_release_<minor>`) is written from
+`bootstrap_files.pkgbase_repo`, and `files.pkgbase_repo_conf` enables
+`FreeBSD-base` on the installed system, so `pkg upgrade` updates base and
+packages together.
+
+The tarball method takes the distro's own `rootfs.tar.gz`, or an
 exported container rootfs. It is what makes supporting a new edition cheap,
 and what lets a Debian live environment install Void.
 

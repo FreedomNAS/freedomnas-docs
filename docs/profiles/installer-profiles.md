@@ -33,7 +33,7 @@ Data, not commands — read with `get_profile_value("installer_meta", key)`.
 | `bootstrap_methods` | Ordered list, e.g. `["debootstrap", "tarball"]` |
 | `bootstrap_tools` | `{method: host binary}` — a method whose binary is missing on the host is filtered out at runtime |
 | `rootfs_tarball_url` | Default tarball URL; **empty means "ask"**, which is correct for date-stamped filenames |
-| `extra_tarball_urls` | Tarballs unpacked over the rootfs, in order, with the same `fetch_tarball`/`unpack_tarball` commands — for releases split into sets (FreeBSD: `base.txz` has no kernel, `kernel.txz` follows) |
+| `extra_tarball_urls` | Tarballs unpacked over the rootfs, in order, with the same `fetch_tarball`/`unpack_tarball` commands — for releases split into several tarballs |
 | `chroot_dirs` | Directories created before the chroot mounts |
 | `uki_name`, `uki_recovery_name` | UKI filenames on the ESP (UKI-booting editions) |
 | `community_maintained` | Marks the edition as community in the installer menu |
@@ -100,7 +100,7 @@ root is still empty at that point. The exceptions are `update_cache`,
 |-----|-----------|-------|
 | *native method* | `{arch}`, `{suite}`, `{root}`, `{mirror}`, `{bootstrap_dir}` | Key name must match its entry in `bootstrap_methods`; may be a command sequence |
 | `fetch_tarball` | `{url}`, `{output}` | `curl` on Linux, `fetch` on FreeBSD |
-| `latest_suite` | `{arch}` | Optional. Prints the newest release; FreeBSD picks the newest `N.M-RELEASE` on download.freebsd.org that has a `kernel.txz`. When it prints nothing the installer asks |
+| `latest_suite` | `{arch}` | Optional. Prints the newest release; FreeBSD picks the newest `N.M-RELEASE` on download.freebsd.org whose `FreeBSD-base` repository exists on pkg.FreeBSD.org and whose signing key (`/usr/share/keys/pkgbase-N`) the host has. When it prints nothing the installer asks |
 | `unpack_tarball` | `{tarball}`, `{root}` | |
 | `update_cache` | — | In-target |
 | `install_base` | `{package_list}` | Space-separated; the recommends-free variant |
