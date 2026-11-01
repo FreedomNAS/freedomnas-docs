@@ -12,6 +12,8 @@ Safe for everyday use. Destructive and advanced operations are hidden.
 
 - Core features fully visible: storage health, shares list, user list,
   changing a user's password
+- Snapshot schedules: add, change or remove them, always including the
+  datasets inside; the snapshots are listed, read only
 - Advanced controls hidden: snapshot creation, IP editing, timezone, reboot,
   removing a user, changing the administrator role
 - Danger zone hidden: shutdown, factory reset
@@ -23,7 +25,7 @@ Safe for everyday use. Destructive and advanced operations are hidden.
 Full control of the system. Recommended for experienced users.
 
 - Everything in Assisted
-- Snapshot creation and management
+- Snapshot creation and management; a schedule may leave out the datasets inside
 - Network interface configuration: DHCP or static IPv4, DNS servers and search domains
 - Removing users
 - Making a user an administrator, or taking the role back

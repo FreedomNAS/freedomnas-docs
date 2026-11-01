@@ -31,10 +31,20 @@ snapshots:
       daily: 7
       weekly: 4
       monthly: 12
+      recursive: true
 ```
 
 Each number is *how many to keep*, not how many to take. Zero — or an
 interval left out — means that interval is not taken at all.
+
+`recursive: true` takes the snapshot with `zfs.snapshot_create_recursive`
+(every dataset inside, same moment, same name) and prunes with
+`zfs.snapshot_destroy_recursive`, so the datasets inside always hold the same
+set. Without it (and in policies written before the field existed) only the
+dataset itself is touched. `ConfigurationManager.set_snapshot_policy` refuses
+any overlap, so no dataset is ever pruned by two policies: a dataset inside a
+recursive policy's dataset, or a recursive policy over a dataset that has its
+own. A dataset renamed into a recursive policy's dataset loses its own policy.
 
 ## The one rule
 

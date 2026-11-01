@@ -755,7 +755,7 @@ The scheduled-snapshot policies, as stored in `config.yaml`.
 
 ```json
 { "policies": [
-  { "dataset": "tank/home", "hourly": 24, "daily": 7, "weekly": 4, "monthly": 0 }
+  { "dataset": "tank/home", "hourly": 24, "daily": 7, "weekly": 4, "monthly": 0, "recursive": true }
 ] }
 ```
 
@@ -771,10 +771,13 @@ goes in the path with its slashes intact (`/api/storage/snapshot-policies/tank/h
 **Request:**
 
 ```json
-{ "hourly": 24, "daily": 7, "weekly": 4, "monthly": 12 }
+{ "hourly": 24, "daily": 7, "weekly": 4, "monthly": 12, "recursive": true }
 ```
 
-An interval left out counts as `0`, meaning "do not take these". The route
+An interval left out counts as `0`, meaning "do not take these".
+`recursive` (default `false`) snapshots the datasets inside too, at the same
+moment and under the same name, and prunes them together. A policy older than
+this field has none and stays non-recursive. The route
 writes the policy and nothing else — cron runs
 `freedomnas snapshot-run --interval <interval>` and the scheduler in core
 takes and prunes. Nothing here talks to ZFS, so a policy can be set for a
@@ -785,6 +788,8 @@ dataset that is temporarily unavailable.
 | Code | Detail |
 |------|--------|
 | 422 | a count is not a whole number, or every count is zero (remove the policy instead) |
+| 422 | `recursive` is not `true` or `false` |
+| 422 | the dataset is inside one whose policy is recursive, or the policy is recursive and a dataset inside has its own |
 
 ---
 

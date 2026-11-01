@@ -304,30 +304,56 @@ A volume has no mountpoint.
 
 ## Snapshots Tab
 
-!!! info "Advanced level required"
-    The Snapshots tab is only visible at **Advanced** UI level and above.
+The Snapshots tab is there at every UI level. At **Assisted** it shows the
+schedules and the list of snapshots; making, rolling back or destroying a
+snapshot by hand is for **Advanced** and above.
 
 ### Schedules
 
-The **Schedules** table at the top lists every dataset that gets snapshots
-taken automatically, and how many of each kind are kept: hourly, daily,
-weekly, monthly (*off* when none are taken).
+A schedule takes snapshots automatically — a copy of how the files were at
+that moment — and deletes the old ones by itself. The **Schedules** table
+lists every dataset that has one, what it keeps in plain words ("every day,
+kept 1 week · every month, kept 1 year") and whether the datasets inside it
+are included.
 
-- **Add Schedule** picks a dataset (volumes and the `.freedomnas`
-  configuration datasets are left out) and asks how many hourly, daily, weekly
-  and monthly snapshots to keep. The proposal is 24 hourly, 7 daily, 4 weekly
-  and 12 monthly; `0` takes none of that kind, and a schedule that keeps
-  nothing at all is refused.
-- A schedule covers that dataset only: a child dataset needs its own.
-- **Edit** changes the counts; **Remove** stops the schedule. Removing it, or
-  lowering a count, never touches snapshots taken by hand, and the snapshots
-  the schedule already took stay until you destroy them.
+**Add Schedule** asks for the dataset and, for each of *every hour*, *every
+day*, *every week* and *every month*, whether to take a snapshot and how long
+to keep each one:
+
+| | Keep each for | Proposed |
+|---|---|---|
+| Every hour | 6 hours, 12 hours, 1 day, 2 days, 1 week | 1 day |
+| Every day | 3 days, 1 week, 2 weeks, 1 month | 1 week |
+| Every week | 2 weeks, 1 month, 2 months, 3 months | 1 month |
+| Every month | 3 months, 6 months, 1 year, 2 years | 1 year |
+
+At least one must be ticked. Volumes and the `.freedomnas` configuration
+datasets are never offered.
+
+- **Assisted**: only the datasets of the data pools are offered (not the pool
+  the system runs from), and a new schedule always **includes the datasets
+  inside** — one schedule on `tank` protects everything in it.
+- **Advanced / Expert**: every dataset is offered, and **Include the datasets
+  inside it** can be unticked: then only that dataset is snapshotted, and
+  each dataset inside can get a schedule of its own, with its own times.
+
+No dataset is ever under two schedules: a dataset inside one whose schedule
+includes the datasets inside is not offered (and refused by the API), and a
+schedule cannot include the datasets inside while one of them has its own.
+
+**Edit** changes the times (and, from Advanced, the choice above); **Remove**
+stops the schedule. The snapshots it already took stay until you destroy
+them, and snapshots made by hand are never deleted by a schedule.
 
 Cron takes the snapshots (hourly at minute 0, daily at 00:05, weekly on
-Sunday at 00:10, monthly on the 1st at 00:15) and deletes the oldest of that
-kind beyond the number kept; see [Scheduled Work](../architecture/snapshots.md).
+Sunday at 00:10, monthly on the 1st at 00:15). A schedule that includes the
+datasets inside takes them all at the same moment under the same name and
+deletes them together; see [Scheduled Work](../architecture/snapshots.md).
 
 ### Snapshot list
+
+!!! info "Advanced level required for the actions"
+    At Assisted the list is read only.
 
 Lists all ZFS snapshots with their creation time, the space each one holds
 on its own (**Used**), the size of the data it refers to (**Referenced**),
