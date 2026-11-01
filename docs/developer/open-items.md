@@ -11,11 +11,32 @@ history of each repository.
 
 | Item | Notes |
 |------|-------|
-| Codebase check, code part | Look for errors and discrepancies across all repositories: code against code (core, WebUI, modules, installer), code against docs, profiles against editions, packaging against repositories. The docs part was done on 2026-10-31. |
 | Installer restore on real hardware | Install from the live ISO with a data pool attached; expected result: configuration restored, modules installed in the chroot, 0 failures at first boot. Needs the dev packages with core `069047c` published for every edition first, because the target installs `freedomnas-core` from the repository. The fix that adds `samba-cifs` and `acl` to the restored features was not retested in a VM either. |
 | Package publishes after the LTS kernel bump | All package workflows were started on 2026-10-31 together with a new LTS kernel build (Arch and Debian). Check that every run finished and the registries have the new kernel and core. |
 | Unmodified dev image test | Boot the newest dev Debian image, unmodified, against a data pool with apps; expected: 0 failures. |
 | Test box on packages again | The test box runs dev trees copied over the installed packages. The next `pacman -Syu` there needs `--overwrite '/usr/lib/freedomnas/*'`. |
+
+## Found by the codebase check (2026-11-01)
+
+The check found no broken references. Test suites: core 703, WebUI 535,
+containers 224 and proxy 80 tests pass, and the installer dry run passes for
+every edition (Artix with s6 too). Every literal profile command called from
+Python exists in every edition that can reach it, with all its placeholders
+passed. All profile shell commands pass `sh -n`. The WebUI pages only call API
+routes that exist, and use HTML ids and handlers that are defined. Core
+functions used by the WebUI and modules exist, as do CLI subcommands and
+options used by scripts and profiles. Config keys are written where they are
+read. Packaging declares the same dependencies and copies every core file on
+all editions. shellcheck finds no errors.
+
+| Item | Notes |
+|------|-------|
+| Snapshot schedules have no page | `GET/PUT/DELETE /api/storage/snapshot-policies` and the scheduler exist, but no WebUI page lets the user create or change a schedule. |
+| Pi-hole DNS address ignored on FreeBSD | The install form asks for the DNS address, but `catalogue/pihole/freebsd/appjail-director.yml` exposes port 53 on every address (`expose: '53:53'`); only the Linux compose uses `DNS_ADDRESS`. |
+| Module template behind the module API | `freedomnas-module-template` does not show the `links()` hook (account page) or the manifest's `after` list; both are documented in Architecture → Orchestrator. |
+| Stale descriptions | `freedomnas-core/debian/control` says "Support for Debian, FreeBSD, and Arch Linux"; `packages/MANIFEST.json` and the Updates page say "Docker/Podman" (FreeBSD uses AppJail, nobody uses Podman). |
+| Small leftovers | Unused variables `root` (`freedomnas-core/pool_import.py:433`) and `sudo_group` (`freedomnas-webui/api/routes/setup.py:307`); six unused imports (core `package_manager.py`, installer `context.py`, `disk_installer.py`, `system_installer.py`, proxy `module.py`). Gentoo `freedomnas-webui` depends on `python-multipart`, which nothing imports; Debian `packages/core.json` installs `python3-pip`; `freedomnas-core/requirements.txt` pins `PyYAML==6.0`. |
+| Installer tests | `freedomnas-installer/tests` has only `dryrun_smoke.py` (a script, not pytest), so `pytest` there runs nothing. |
 
 ## Restore and edition switch
 
