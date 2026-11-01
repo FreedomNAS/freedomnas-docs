@@ -307,6 +307,28 @@ A volume has no mountpoint.
 !!! info "Advanced level required"
     The Snapshots tab is only visible at **Advanced** UI level and above.
 
+### Schedules
+
+The **Schedules** table at the top lists every dataset that gets snapshots
+taken automatically, and how many of each kind are kept: hourly, daily,
+weekly, monthly (*off* when none are taken).
+
+- **Add Schedule** picks a dataset (volumes and the `.freedomnas`
+  configuration datasets are left out) and asks how many hourly, daily, weekly
+  and monthly snapshots to keep. The proposal is 24 hourly, 7 daily, 4 weekly
+  and 12 monthly; `0` takes none of that kind, and a schedule that keeps
+  nothing at all is refused.
+- A schedule covers that dataset only: a child dataset needs its own.
+- **Edit** changes the counts; **Remove** stops the schedule. Removing it, or
+  lowering a count, never touches snapshots taken by hand, and the snapshots
+  the schedule already took stay until you destroy them.
+
+Cron takes the snapshots (hourly at minute 0, daily at 00:05, weekly on
+Sunday at 00:10, monthly on the 1st at 00:15) and deletes the oldest of that
+kind beyond the number kept; see [Scheduled Work](../architecture/snapshots.md).
+
+### Snapshot list
+
 Lists all ZFS snapshots with their creation time, the space each one holds
 on its own (**Used**), the size of the data it refers to (**Referenced**),
 its holds and the clones made from it. The box above the table filters by

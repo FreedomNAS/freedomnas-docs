@@ -58,7 +58,7 @@ is ever pruned, because pruning happens only after a successful create.
 
 ## Where it is not
 
-The WebUI writes policies (`PUT /api/storage/snapshot-policies/{dataset}`)
+The WebUI writes policies (Storage → Snapshots → **Schedules**, through `PUT /api/storage/snapshot-policies/{dataset}`)
 and never runs the scheduler itself: a WebUI that is down must not mean
 snapshots that stop.
 
