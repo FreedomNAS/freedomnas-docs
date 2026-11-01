@@ -228,7 +228,13 @@ The automatic rollback: its setting, the boot state, and the last rollback.
 }
 ```
 
-`supported` is false where the edition boots no UKI (FreeBSD). `state` is
+On FreeBSD `rollback` has instead `date`, `failed_system` (the updated boot
+environment that did not finish starting) and `restored_system`, and while
+an updated copy waits for the restart `state` is `trial` and
+`trial_system` names it (`reboot_needed` is then true).
+
+`supported` is false where the edition has neither a UKI nor updates into a
+boot environment. `state` is
 `ok`, `trial` (a new kernel not yet confirmed), `fallback-requested` or
 `rolled-back`. `rollback` is `null` when nothing was rolled back or the
 record was cleared. `failed_dataset` is empty unless it names a
@@ -250,7 +256,9 @@ then show the reboot notice.
 
 Writes `boot.state` on the ESP (`bootloader.autorollback_set`) and
 `system.autorollback` in `config.yaml`. 422 if `enabled` is not a boolean,
-409 on an edition without a UKI. Returns the same body as `GET /boot`.
+409 on an edition with neither. On FreeBSD only `config.yaml` is written: the
+setting decides whether an updated copy starts on trial or at once. Returns
+the same body as `GET /boot`.
 
 ## POST /api/system/boot/forget
 
@@ -262,7 +270,36 @@ Clears the record of the last rollback (`bootloader.rollback_forget`, which
 also deletes `-failed.efi`), so the dashboard notice goes and the failed
 kernel may be built again. With `destroy_failed`, the failed root dataset is
 destroyed first (`zfs.dataset_destroy_recursive`) — only a name matching
-`…-failed-YYYYmmdd-HHMMSS`. Returns `{"destroyed": <dataset or null>, …GET /boot}`.
+`…-failed-YYYYmmdd-HHMMSS`. On FreeBSD it clears the record in
+`<state>/bootenv.json` and `destroy_failed` destroys the failed boot
+environment. Returns `{"destroyed": <dataset or null>, …GET /boot}`.
+
+## GET /api/system/boot-environments
+
+The boot environments (FreeBSD; `{"supported": false, "environments": []}`
+elsewhere), oldest first:
+
+```json
+{ "supported": true, "environments": [
+  { "name": "update-20261101-080147", "running": true, "next_boot": true, "once": false,
+    "space": "3.31G", "created": "2026-11-01 08:01", "ours": true }
+] }
+```
+
+`next_boot` with `once` is a copy that starts at the next start only (an
+update on trial). `ours` marks the copies FreedomNAS made and prunes.
+
+## POST /api/system/boot-environments/{name}/activate
+
+Makes it the boot environment that starts from the next start on
+(`bootloader.be_activate`). A copy that is not running is mounted first and
+any fixed `vfs.root.mountfrom` line is taken out of its `/boot/loader.conf`
+(`bootloader.be_fix_loader`). 422 for an unknown name. Returns the list.
+
+## DELETE /api/system/boot-environments/{name}
+
+Destroys it (`bectl destroy -o`). 422 for the running one or the one that
+starts next. Returns the list.
 
 ## GET /api/system/webui
 

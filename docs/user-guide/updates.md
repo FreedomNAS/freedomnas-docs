@@ -17,6 +17,42 @@ etc.) and updates:
     It does not update pip packages, npm, cargo, or other language runtimes
     — those are outside the scope of a NAS appliance.
 
+### FreeBSD: the update goes into a copy of the system
+
+On FreeBSD the update does not touch the running system. FreedomNAS makes a
+new copy of it (a boot environment, `update-YYYYmmdd-HHMMSS`), installs the
+update into that copy and leaves the running system as it is:
+
+```
+Making a copy of the system to install the update into...
+Copy update-YYYYmmdd-HHMMSS ready at /tmp/freedomnas-be: the running system is not touched
+```
+
+1. `freebsd-update` fetches and installs the base system updates (kernel and
+   userland) into the copy.
+2. `pkg` upgrades the packages inside it, FreedomNAS's own included.
+3. If nothing changed, the copy is deleted: *Nothing to update*. If a step
+   failed, the copy is deleted too and the running system was never touched.
+4. Otherwise the copy starts **once, on trial**, at the next restart, and the
+   pages show *An update is ready* with a **Reboot now** button.
+
+When the updated system finishes starting, it becomes the system that always
+starts. If it does not get that far (a panic restarts the machine by itself;
+a system that hangs needs to be switched off and on), the start after it
+goes back to the system from before, and the dashboard says so (see
+[Dashboard](dashboard.md#rollback-notice)). With
+[Automatic Rollback](system.md#automatic-rollback) off, the copy becomes the
+system that always starts at once, without the trial.
+
+Anything changed on the running system between the update and the restart
+(a package installed by hand, a file edited in `/etc`) is not in the copy.
+FreedomNAS's own settings are kept outside it, and are applied again at
+every start.
+
+The system from before stays under
+[System → Previous systems](system.md#previous-systems), and can be started
+again from there.
+
 ## Update Status Card
 
 The **Update Status** card shows how many packages have updates waiting.
@@ -61,7 +97,7 @@ Snapshot created: datapool@pre-update-YYYYmmdd-HHMMSS (recursive)
 ```
 
 A pool whose snapshot fails is reported as a warning; the others are still
-taken and the update still runs. Right after it, the boot image the system
+taken and the update still runs. On Linux, right after it, the boot image the system
 is running is copied to the `-previous` UKI and paired with this snapshot:
 
 ```

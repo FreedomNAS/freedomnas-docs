@@ -24,7 +24,9 @@ The pages check again every two minutes, and right after an update ends.
 
 After an automatic rollback (see [System](system.md#automatic-rollback)) the
 dashboard says which kernel did not boot, when, why, and whether the system
-files were restored from the pre-update snapshot. **Dismiss** clears the
+files were restored from the pre-update snapshot. On FreeBSD it says which
+updated copy did not finish starting and which system started instead; the
+failed copy is kept until it is deleted. **Dismiss** clears the
 notice; **Delete the failed system** (Advanced) also destroys the failed
 root dataset that was kept. Until the notice is cleared the failed kernel is
 not made the active one again.

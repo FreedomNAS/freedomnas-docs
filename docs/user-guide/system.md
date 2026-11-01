@@ -78,12 +78,35 @@ system, and the choice is kept in the configuration, so it is restored with
 everything else after a reinstall. While it is on, anyone who can reach the
 system and knows an administrator's password can log in.
 
+## Previous Systems
+
+!!! info "Advanced level, FreeBSD"
+
+Every update on FreeBSD is installed into a new copy of the system (a boot
+environment), and the system it was made from stays here as it was (see
+[Updates](updates.md#freebsd-the-update-goes-into-a-copy-of-the-system)).
+The table lists every copy with when it was made and the space it takes,
+and marks the one **Running now**, the one that **Starts next**, or one
+that starts **Next start only** (an update on trial).
+
+- **Start this one** makes that copy the system that starts from the next
+  restart on, and offers to restart now. Everything outside the data pools
+  goes back to how it was in that copy; the same button switches back.
+- **Delete** destroys a copy that neither runs nor starts next.
+
+The five newest copies made by updates are kept; older ones are deleted by
+themselves. Copies made by hand or by `freebsd-update` itself are never
+deleted by FreedomNAS.
+
 ## Automatic Rollback
 
 !!! info "Expert level"
 
-On editions that boot a UKI (all but FreeBSD), **Roll back a kernel update
-that does not boot** is on by default. After a kernel update the new kernel
+**Roll back an update that does not boot** is on by default. On FreeBSD an
+updated copy starts once on trial: if that start does not finish, the start
+after it is the system from before (see
+[Updates](updates.md#freebsd-the-update-goes-into-a-copy-of-the-system)).
+On editions that boot a UKI (all but FreeBSD) it works like this. After a kernel update the new kernel
 is on trial: if it ends in the emergency shell, or does not finish booting
 three times, FreedomNAS puts the previous kernel back by itself and returns
 the system files to the snapshot taken before the update. The failed system

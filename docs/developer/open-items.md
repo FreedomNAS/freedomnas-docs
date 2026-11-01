@@ -108,6 +108,8 @@ and unused names are gone.
 |------|-------|
 | FreeBSD ZFS views | `zpool status -j`, ARC statistics, `zfs allow`, events and live I/O unverified on FreeBSD. |
 | FreeBSD kernel check | `bootloader.kernel_installed` (reboot notice) not tested live. |
+| FreeBSD updates on the box | Updates into a boot environment (trial start, rollback after a panic, Previous systems) were verified in a FreeBSD 15.1 VM on 2026-11-01; not yet on the real box. Existing installs drop the fixed `vfs.root.mountfrom` from `loader.conf` at the first boot with the new core. |
+| pkgbase on FreeBSD | Install and update the FreeBSD base system as `pkg` packages (pkgbase) instead of the distribution sets and `freebsd-update`: one `pkg -c <copy> upgrade` would update base and packages together. Needs the installer and the image builder to install base from pkg, the `updates.be_update` commands in `os-freebsd.json`, and a way to convert existing installs (`pkgbasify`, to check). Check first how supported pkgbase is in 15.x. |
 | Init coverage | `list_all` / `is_running` untested on real s6 and systemd systems. |
 | Two FreeBSD disks | The GPT label `efiboot` used in `fstab` would clash with a second FreeBSD disk. |
 | ESP on another disk | Installer choice of the bootloader target, for boards that cannot boot NVMe on PCIe. |

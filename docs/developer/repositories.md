@@ -114,9 +114,10 @@ its own docstring, as of 2026-10-31; the files say more.
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `__main__.py` | 611 | python -m freedomnas — FreedomNAS Core diagnostic CLI. |
-| `bootstate.py` | 121 | Automatic rollback after a kernel update that does not boot. |
-| `config.py` | 890 | FreedomNAS Configuration Manager |
+| `__main__.py` | 619 | python -m freedomnas — FreedomNAS Core diagnostic CLI. |
+| `bootenv.py` | 337 | Boot environments: whole copies of the system that the boot loader can start. |
+| `bootstate.py` | 147 | Automatic rollback after a kernel update that does not boot. |
+| `config.py` | 910 | FreedomNAS Configuration Manager |
 | `datasets.py` | 428 | Creating, moving, renaming and destroying datasets from the Datasets tab. |
 | `delegation.py` | 100 | Delegated ZFS permissions (`zfs allow` / `zfs unallow`): which users and groups may run which zfs subcommands on a dataset without being root. |
 | `engine.py` | 1000 | FreedomNAS Core Engine - Universal OS Abstraction Layer |

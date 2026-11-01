@@ -368,6 +368,19 @@ the rule when it is missing or different, enables the service and starts it
 | `run_topgrade` | Run Topgrade with FreedomNAS config, `--yes` and all: stdin is `/dev/null`, so a prompt is a failed update |
 | `list_updatable` | Count pending updates |
 | `check_topgrade` | Verify Topgrade is installed |
+| `be_update` | FreeBSD: the commands that install an update into the boot environment mounted at `{root}` (`freebsd-update -b` with `--currently-running` and `--not-running-from-cron`, then `pkg -c`), run one after the other in place of Topgrade |
+
+### `bootloader`: boot environments (FreeBSD)
+
+| Key | Command |
+|-----|---------|
+| `be_list` | `bectl list -H -c creation`: name, flags (`N` running, `R` default, `T` next start only), mountpoint, space, created |
+| `be_create` / `be_destroy` | Clone the running system as `{be}` / destroy `{be}` with its origin snapshot |
+| `be_activate` / `be_activate_once` | Make `{be}` the default / start it at the next start only (`bectl activate -t`) |
+| `be_mountpoint`, `be_mount`, `be_umount` | Where a copy is mounted for an update (`{root}`), and how |
+| `be_enter` / `be_leave` | `devfs` and `resolv.conf` inside the mounted copy, so `pkg -c` reaches the network |
+| `be_fingerprint` | Package list and kernel/userland checksums of `{root}`: equal before and after = nothing was updated |
+| `be_fix_loader` | Take a fixed `vfs.root.mountfrom` out of `{root}/boot/loader.conf`: with it every boot environment would mount the same root |
 
 ## Template Variables
 
