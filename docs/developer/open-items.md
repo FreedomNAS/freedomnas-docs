@@ -29,13 +29,14 @@ options used by scripts and profiles. Config keys are written where they are
 read. Packaging declares the same dependencies and copies every core file on
 all editions. shellcheck finds no errors.
 
+Fixed the same day: snapshot schedules on the Snapshots tab (they had an API
+but no page), Pi-hole's DNS address now honoured on FreeBSD too, the module
+template shows `links()`, `prepare()` and `after`, and the stale descriptions
+and unused names are gone.
+
 | Item | Notes |
 |------|-------|
-| Snapshot schedules have no page | `GET/PUT/DELETE /api/storage/snapshot-policies` and the scheduler exist, but no WebUI page lets the user create or change a schedule. |
-| Pi-hole DNS address ignored on FreeBSD | The install form asks for the DNS address, but `catalogue/pihole/freebsd/appjail-director.yml` exposes port 53 on every address (`expose: '53:53'`); only the Linux compose uses `DNS_ADDRESS`. |
-| Module template behind the module API | `freedomnas-module-template` does not show the `links()` hook (account page) or the manifest's `after` list; both are documented in Architecture → Orchestrator. |
-| Stale descriptions | `freedomnas-core/debian/control` says "Support for Debian, FreeBSD, and Arch Linux"; `packages/MANIFEST.json` and the Updates page say "Docker/Podman" (FreeBSD uses AppJail, nobody uses Podman). |
-| Small leftovers | Unused variables `root` (`freedomnas-core/pool_import.py:433`) and `sudo_group` (`freedomnas-webui/api/routes/setup.py:307`); six unused imports (core `package_manager.py`, installer `context.py`, `disk_installer.py`, `system_installer.py`, proxy `module.py`). Gentoo `freedomnas-webui` depends on `python-multipart`, which nothing imports; Debian `packages/core.json` installs `python3-pip`; `freedomnas-core/requirements.txt` pins `PyYAML==6.0`. |
+| Pi-hole fix on existing FreeBSD installs | Reaches them with the next FreeBSD publish of `freedomnas-module-containers` followed by the app's **Update** (reinstall from the catalogue). |
 | Installer tests | `freedomnas-installer/tests` has only `dryrun_smoke.py` (a script, not pytest), so `pytest` there runs nothing. |
 
 ## Restore and edition switch
