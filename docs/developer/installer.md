@@ -838,7 +838,7 @@ OS has an `/etc/cron.d` drop-in directory — FreeBSD's entry is appended to
 On every boot `firstboot.sh` imports pools, unlocks encrypted ones
 (`python -m freedomnas unlock-pools`), runs `python -m freedomnas state-boot`,
 then either reconciles or leaves the WebUI's first-run wizard to take over,
-before exec'ing the supervisor. `state-boot` prints `action
+and finally starts the supervisor in the background and exits. `state-boot` prints `action
 local|merged|restored|reinitialized|none`, `internal <dataset>`, `source
 <pool>` when a data pool's copy was used, `reason <text>` when the internal
 configuration was not trusted (logged by `firstboot.sh`), and `keep <pool>`
@@ -846,13 +846,24 @@ for every pool to leave
 imported: the source and the pools `config.yaml` names. Every other pool the
 script imported is exported again. During a restore (`restored`, `reinitialized`, or a
 restore lock left by an interrupted one) the script writes the lock, starts
-the supervisor in the background before reconciling with `--progress`, and
-waits for it at the end instead of exec'ing it: the WebUI serves only the
-restore page meanwhile ([Restore in progress](../api/setup.md#restore-in-progress)).
+the supervisor before reconciling with `--progress` instead of at the end:
+the WebUI serves only the restore page meanwhile ([Restore in progress](../api/setup.md#restore-in-progress)).
 
 It sets `PATH` itself, and has to: cron's `@reboot` environment carries
 neither `sbin` directory, while `useradd`, `zpool` and `rc-service` all live
-in one of them. The supervisor inherits it through the `exec`.
+in one of them. The supervisor inherits it.
+
+Cron's job ends with the script: the supervisor and the WebUI go on under
+init (PID 1), not under a cron process waiting for them, so stopping or
+restarting cron leaves them alone. On systemd they stay in `cron.service`'s
+cgroup, which does no harm: Debian's `cron.service` and Arch's `cronie.service`
+both have `KillMode=process`.
+
+The script runs once per boot. Restarting FreeBSD's cron runs `@reboot` entries
+again, unlike cronie and Debian's cron, which keep a marker of their own; so the
+script leaves `/var/run/freedomnas-firstboot`, which every boot clears, and exits
+at once when it finds it. To run it again by hand, remove that file and stop the
+supervisor first.
 
 The configuration of **the pool this system booted from** wins whenever it
 is initialized. A NAS can hold several pools carrying a `.freedomnas` — an
