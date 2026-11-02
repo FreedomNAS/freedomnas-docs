@@ -5,15 +5,17 @@ finished, things done but not yet tested where they matter, known limitations,
 and ideas not started. Finished work is not listed here; it is in the git
 history of each repository.
 
-*Last reviewed: 2026-11-01.*
+*Last reviewed: 2026-11-02.*
 
 ## Next up
 
 | Item | Notes |
 |------|-------|
-| Installer restore on real hardware | Install from the live ISO with a data pool attached; expected result: configuration restored, modules installed in the chroot, 0 failures at first boot. Needs the dev packages with core `069047c` published for every edition first, because the target installs `freedomnas-core` from the repository. The fix that adds `samba-cifs` and `acl` to the restored features was not retested in a VM either. |
-| Package publishes after the LTS kernel bump | All package workflows were started on 2026-10-31 together with a new LTS kernel build (Arch and Debian). Check that every run finished and the registries have the new kernel and core. |
+| Installer restore on real hardware | Install from the live ISO with a data pool attached; expected result: configuration restored, modules installed in the chroot, 0 failures at first boot. The publish workflows of 2026-11-02 succeeded on Debian, Arch, Void and FreeBSD, and the Debian registry has a core that includes `069047c`. The fix that adds `samba-cifs` and `acl` to the restored features was not retested in a VM either. |
+| Image build with the latest changes | The last complete image build is from 2026-10-29, before pkgbase and the supervisor running apart from cron. Run the CI build, then test its images. |
 | Unmodified dev image test | Boot the newest dev Debian image, unmodified, against a data pool with apps; expected: 0 failures. |
+| Supervisor apart from cron | Verified in VMs on Debian, FreeBSD and Artix with dinit, on UEFI. Not tested on OpenRC, runit, s6 or the test box. |
+| Cancelled image builds | Cancelling an image build job can leave its root processes running on the self-hosted runner, which then keeps other jobs waiting. `ci/stop-leftovers.sh` cleans up only when the next job starts, so a way to end the build with its job is still needed. |
 | Test box on packages again | The test box runs dev trees copied over the installed packages. The next `pacman -Syu` there needs `--overwrite '/usr/lib/freedomnas/*'`. |
 
 ## Found by the codebase check (2026-11-01)
@@ -120,7 +122,7 @@ and unused names are gone.
 
 ## Not started (roadmap ideas)
 
-- Virtualization module: libvirt on Linux, vm-bhyve on FreeBSD.
+- Virtualization module: libvirt on Linux, vm-bhyve on FreeBSD, with device passthrough. Starts after the open items above.
 - Active Directory / LDAP.
 - Cloud sync and remote encrypted backups.
 - Profile packages split per distribution and init system.
