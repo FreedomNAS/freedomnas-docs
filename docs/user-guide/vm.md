@@ -6,8 +6,8 @@ Linux, bhyve with vm-bhyve on FreeBSD. Install it from the
 [Plugins page](plugins.md). The page is at the Advanced level.
 
 !!! warning "Still in development"
-    You can create, start and stop a machine, but the page has no console and
-    no way to attach an installation image yet.
+    Hardware cannot be edited yet, and there is no passthrough. The console and
+    install images have been tested on FreeBSD only.
 
 ## Set up
 
@@ -39,6 +39,25 @@ While a machine told to shut down still runs, the page shows **Stopping…**. So
 systems ignore the request: use **Power off** then.
 
 A new machine with the name of a removed one uses its kept disks again.
+
+## Install images
+
+**Install images** lists the `.iso` files on the pool, in `<pool>/vm/.iso`. Upload
+one from your computer, or give an address and the NAS fetches it itself, which is
+quicker for a large image. Windows also needs the virtio drivers while installing,
+and a second image cannot be attached yet.
+
+On a stopped machine, choose an image and press **Start from image**. It is used
+this once: the next start goes to the disks.
+
+## Console
+
+The **Console** tab shows the machine's screen in the browser, with **Ctrl+Alt+Del**
+and **Full screen**. It opens no port on the network: the machine's VNC listens on
+the NAS only and the WebUI bridges to it, after asking for your credentials.
+
+After **Start from image** the console connects by itself. On FreeBSD the machine
+waits for it before it boots, so you do not miss an installer's first prompt.
 
 A machine that FreedomNAS did not create is listed, but you manage it with the
 hypervisor's own tools.

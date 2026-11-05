@@ -67,23 +67,25 @@ and unused names are gone.
 
 `freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. Machines come from
 a neutral record, with the same hardware and identity on every edition, on raw
-zvols. The page lists them, with Summary and Hardware for the one selected, and
-creates, starts, stops and removes them. The same Alpine guest saw the same uuid,
-MAC and PCI slots on bhyve and on KVM. Set up, the page and machines on zvols have
-run live on FreeBSD only; a pool has not yet carried a machine across editions.
+zvols. The page lists them, with Summary, Hardware and Console; images are
+uploaded or fetched, and a machine starts from one once. The same Alpine guest saw
+the same uuid, MAC and PCI slots on bhyve and on KVM. Set up, the page, the console
+and machines on zvols have run live on FreeBSD only; no operating system has been
+installed, and a pool has not yet carried a machine across editions.
 
 | Item | Notes |
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
 | Linux run | Set up and run a machine on zvols and a bridge on a Linux edition. |
-| Shut down on a real guest | `stop` did not shut down a live Alpine guest in 50 s, cause not checked; the page shows Stopping… and offers Power off. Test with an installed guest. |
+| Shut down on a real guest | Shut down did not stop a live Alpine guest, even with its acpid and button driver running, cause not found; the page shows Stopping… and offers Power off. Test with an installed guest. |
 | libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
 | Return to Artix | The test box runs FreeBSD on a new disk; test the move from FreeBSD back to Artix (its disk has only the first version of the proxy change). |
 | Move between editions | Carry a machine with an installed guest between editions on the test box, Linux and Windows guests. |
 | vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
-| Rest of the page | Editing a machine's hardware; the Console, Passthrough, Options and Snapshots tabs. |
-| Console in the browser | noVNC through a WebSocket of the WebUI bridging to the machine's VNC port on loopback. |
-| Networks, ISO store, IOMMU passthrough | Bridges of FreedomNAS, a store for install images, devices given to a machine. |
+| Rest of the page | Editing a machine's hardware; the Passthrough, Options and Snapshots tabs. |
+| Install a real system | Install Debian and Windows from the page, through the console; test the keyboard in a guest (keys were sent, no screen showed them). Windows needs a second image for the virtio drivers. |
+| IOMMU passthrough | Devices given to a machine. |
+| Network on Linux when a machine starts | FreeBSD needed a permanent tap in the bridge, or the NAS lost the network at every machine start and stop. Measure it on Linux. |
 
 ## Reverse proxy module
 
