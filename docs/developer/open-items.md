@@ -65,14 +65,14 @@ and unused names are gone.
 
 ## Virtual machines module
 
-`freedomnas-vm`: libvirt on Linux, vm-bhyve on FreeBSD. The skeleton installs
+`freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. The skeleton installs
 the hypervisor, prepares `<pool>/vm`, is rebuilt by the reconciler and lists
 the machines. Tested live on FreeBSD; on Linux only the list command was run,
 and the packages checked on Debian, Arch, Artix and Void.
 
 | Item | Notes |
 |------|-------|
-| Publish the repository | The Codeberg repository `FreedomNAS/freedomnas-vm` has to be created; packaging for each edition is not wired in the package workflows yet. |
+| Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
 | Setup on Linux | Run the module's Set up on a Linux edition. |
 | Machines | Neutral machine record written out per backend; create, start, stop, remove, one zvol per disk. |
 | Page as list and detail | The list of machines, and for the one selected a second menu: Summary, Console, Hardware, Passthrough, Options, Snapshots. |
