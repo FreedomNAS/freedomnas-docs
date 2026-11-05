@@ -67,21 +67,21 @@ and unused names are gone.
 
 `freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. Machines come from
 a neutral record, with the same hardware and identity on every edition, on raw
-zvols, and the API creates, starts, stops and removes them. The same Alpine guest
-saw the same uuid, MAC and PCI slots on bhyve and on KVM. Set up and machines on
-zvols have run live on FreeBSD only; a pool has not yet carried a machine across
-editions.
+zvols. The page lists them, with Summary and Hardware for the one selected, and
+creates, starts, stops and removes them. The same Alpine guest saw the same uuid,
+MAC and PCI slots on bhyve and on KVM. Set up, the page and machines on zvols have
+run live on FreeBSD only; a pool has not yet carried a machine across editions.
 
 | Item | Notes |
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
 | Linux run | Set up and run a machine on zvols and a bridge on a Linux edition. |
-| Stop and its state | `stop` did not shut down a live Alpine guest in 50 s, and the record says `down` before the machine has stopped. Fix the state and test with an installed guest. |
+| Shut down on a real guest | `stop` did not shut down a live Alpine guest in 50 s, cause not checked; the page shows Stopping… and offers Power off. Test with an installed guest. |
 | libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
 | Return to Artix | The test box runs FreeBSD on a new disk; test the move from FreeBSD back to Artix (its disk has only the first version of the proxy change). |
 | Move between editions | Carry a machine with an installed guest between editions on the test box, Linux and Windows guests. |
 | vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
-| Page as list and detail | The list of machines, and for the one selected a second menu: Summary, Console, Hardware, Passthrough, Options, Snapshots. |
+| Rest of the page | Editing a machine's hardware; the Console, Passthrough, Options and Snapshots tabs. |
 | Console in the browser | noVNC through a WebSocket of the WebUI bridging to the machine's VNC port on loopback. |
 | Networks, ISO store, IOMMU passthrough | Bridges of FreedomNAS, a store for install images, devices given to a machine. |
 

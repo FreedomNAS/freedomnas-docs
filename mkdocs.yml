@@ -85,6 +85,7 @@ nav:
     - Services: user-guide/services.md
     - Containers: user-guide/containers.md
     - Reverse proxy: user-guide/proxy.md
+    - Virtual machines: user-guide/vm.md
     - Plugins: user-guide/plugins.md
     - System Settings: user-guide/system.md
     - UI Levels: user-guide/ui-levels.md
@@ -117,6 +118,7 @@ nav:
     - Plugins: api/plugins.md
     - Containers: api/containers.md
     - Reverse proxy: api/proxy.md
+    - Virtual machines: api/vm.md
     - Setup: api/setup.md
     - WebSocket Terminal: api/websocket.md
   - Developer Guide:
