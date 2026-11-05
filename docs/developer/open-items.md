@@ -72,23 +72,26 @@ uploaded or fetched, and a machine starts from one once. The same Alpine guest s
 the same uuid, MAC and PCI slots on bhyve and on KVM. Set up, the page, the console
 and machines on zvols have run live on FreeBSD only, where Debian 13 was installed
 from the page through the console (keyboard, network, boot from disk and Shut down
-all work). A pool has not yet carried a machine across editions.
+all work). On 2026-11-05 the pool carried that guest from FreeBSD to Artix with dinit:
+it boots unchanged on KVM, with the same uuid, MAC, address and PCI slots, its login
+screen in the console, Shut down, and back up after the box restarts.
 
 | Item | Notes |
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
-| Linux run | Set up and run a machine on zvols and a bridge on a Linux edition. |
+| Linux run | Done on Artix with dinit only: libvirt installed and machine recreated by the reconciler, on a zvol and the bridge. Other editions untried, and Set up from the page untried on Linux. |
 | Shut down on Alpine | Shut down works on installed Debian (2026-11-05, clean poweroff in its journal). A live Alpine guest ignored it even with acpid and its button driver running, cause not found; the page shows Stopping… and offers Power off. |
 | libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
-| Return to Artix | The test box runs FreeBSD on a new disk; test the move from FreeBSD back to Artix (its disk has only the first version of the proxy change). |
-| Move between editions | Carry a machine with an installed guest between editions on the test box, Linux and Windows guests. |
+| Move between editions | FreeBSD to Artix done with Debian. Not done: Artix back to FreeBSD with the same guest, Windows guests. |
+| Interface name in the guest | The same slot is `enp0s5` on bhyve and `ens5` on KVM. NetworkManager's automatic connection follows; a guest with a configuration tied to the name would lose its network. |
+| libvirt group after a move | The account in the record has no `libvirt` after a pool comes from FreeBSD, where the group does not exist, so its own `virsh` needs root. The page is not affected. |
 | vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
 | Rest of the page | Editing a machine's hardware; the Passthrough, Options and Snapshots tabs. |
 | Install more systems | Debian's text installer works from the page; its graphical one drew but failed to write, and it took several tries, cause not looked at. Windows is untried and needs a second image for the virtio drivers. Accented keys in the console are not checked. |
 | Image kept across guest restarts | vm-bhyve keeps the image attached (with `bootindex=1`) until the machine is off, yet Debian's restart went to its disk: why is not known, and libvirt is not checked. |
-| Graphics on bhyve | Debian needs a udev rule in the guest, shown in the Console tab, to reach its login screen. Not tried: the rule after a move to KVM, other distributions and display managers. |
+| Graphics on bhyve | Debian needs a udev rule in the guest, shown in the Console tab, to reach its login screen. The rule stays harmless on KVM, where the guest uses `bochs`. Not tried: other distributions and display managers. |
 | IOMMU passthrough | Devices given to a machine. |
-| Network on Linux when a machine starts | FreeBSD needed a permanent tap in the bridge, or the NAS lost the network at every machine start and stop. Measure it on Linux. |
+| Network on Linux when a machine starts | Measured on Artix: 0 of 200 pings to the NAS lost during a start; not measured on other editions or at a stop. |
 
 ## Reverse proxy module
 
