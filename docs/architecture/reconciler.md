@@ -152,7 +152,7 @@ class Change:
 class ActionResult:
     action: str
     params: dict
-    target_state: str   # "applied" | "failed" | "skipped" | "planned" (dry run)
+    target_state: str   # "applied" | "failed" | "warning" | "skipped" | "planned" (dry run)
     error: Optional[str]
 
 class ReconciliationEngine:

@@ -415,9 +415,13 @@ The body is the YAML itself (no form encoding). What happens, in order:
 {
   "applied": ["system.hostname_set", "users.create", "samba.create_share"],
   "skipped": [],
-  "failed":  []
+  "failed":  [],
+  "warnings": []
 }
 ```
+
+`warnings` lists what could not be done without being a failure: an account
+asking for a group this edition does not have.
 
 This is restore-by-re-applying, not restore-by-copying-files back: the same
 path the appliance uses when it finds a `.freedomnas` dataset at boot.

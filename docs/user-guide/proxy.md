@@ -174,3 +174,10 @@ copies FreedomNAS's certificate when it was issued again (a new address or
 hostname) and reloads Caddy. The sites added here are kept in the
 configuration (`modules.proxy`), so they come back after a reinstall or on
 another edition.
+
+For the apps of the catalogue the configuration says only that an app is
+behind the proxy, never its address: every edition works out the port and
+the address behind it again, and an app that this edition cannot run has no
+site until it can. The sites added here are different: their **Service** is
+kept as you typed it, so give it an address that stays valid, such as another
+machine on your network, rather than the internal address of an app.

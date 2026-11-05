@@ -67,6 +67,8 @@ and unused names are gone.
 
 | Item | Notes |
 |------|-------|
+| Proxy network rebuilt by the reconciler | App records say only that the app is behind the proxy (`"proxy": true`); port and address are worked out on each edition at every reconcile. Verified on the test box from Artix to FreeBSD on real disks; from FreeBSD back to Linux still to run. |
+| Linux service in restored FreeBSD | A configuration restored on FreeBSD from Linux keeps `services.dockerd`, and accounts keep the `docker` group, which now gives a warning at every reconcile. |
 | Let's Encrypt with a real domain | Tested only with Pebble; needs a real domain and a DNS provider token. |
 | Names for apps with their own HTTPS | Vaultwarden and Pi-hole have no name yet (site with an HTTPS upstream). |
 | Public resolver warning | Warning in the Names card when a public resolver sits beside the Pi-hole in the DNS list (offered, not done). |
