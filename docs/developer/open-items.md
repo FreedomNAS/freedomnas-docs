@@ -65,19 +65,18 @@ and unused names are gone.
 
 ## Virtual machines module
 
-`freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. The skeleton installs
-the hypervisor, prepares `<pool>/vm`, lists the machines, and the reconciler
-builds each machine from a neutral record (processors, memory, firmware, disks,
-networks). A machine built from the record boots on FreeBSD with its disk,
-network and console. On Linux only the list command was run and the domain XML
-checked against libvirt's schema; the packages were checked on Debian, Arch,
-Artix and Void.
+`freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. Machines come from
+a neutral record, with the same hardware and identity on every edition, on raw
+zvols, and the API creates, starts, stops and removes them. The same Alpine guest
+saw the same uuid, MAC and PCI slots on bhyve and on KVM. Set up and machines on
+zvols have run live on FreeBSD only; a pool has not yet carried a machine across
+editions.
 
 | Item | Notes |
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
-| Machines | Create, start, stop and remove from the API; machines come only from `config.yaml` for now. |
-| Linux run | Set up and define a machine on a Linux edition. |
+| Linux run | Set up and run a machine on zvols and a bridge on a Linux edition. |
+| Move between editions | Carry a machine with an installed guest between editions on the test box, Linux and Windows guests. |
 | vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
 | Page as list and detail | The list of machines, and for the one selected a second menu: Summary, Console, Hardware, Passthrough, Options, Snapshots. |
 | Console in the browser | noVNC through a WebSocket of the WebUI bridging to the machine's VNC port on loopback. |
