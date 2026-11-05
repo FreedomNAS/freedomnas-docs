@@ -5,7 +5,7 @@ finished, things done but not yet tested where they matter, known limitations,
 and ideas not started. Finished work is not listed here; it is in the git
 history of each repository.
 
-*Last reviewed: 2026-11-02.*
+*Last reviewed: 2026-11-05.*
 
 ## Next up
 
@@ -76,6 +76,9 @@ editions.
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
 | Linux run | Set up and run a machine on zvols and a bridge on a Linux edition. |
+| Stop and its state | `stop` did not shut down a live Alpine guest in 50 s, and the record says `down` before the machine has stopped. Fix the state and test with an installed guest. |
+| libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
+| Return to Artix | The test box runs FreeBSD on a new disk; test the move from FreeBSD back to Artix (its disk has only the first version of the proxy change). |
 | Move between editions | Carry a machine with an installed guest between editions on the test box, Linux and Windows guests. |
 | vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
 | Page as list and detail | The list of machines, and for the one selected a second menu: Summary, Console, Hardware, Passthrough, Options, Snapshots. |
