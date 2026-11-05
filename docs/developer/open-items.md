@@ -66,15 +66,19 @@ and unused names are gone.
 ## Virtual machines module
 
 `freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. The skeleton installs
-the hypervisor, prepares `<pool>/vm`, is rebuilt by the reconciler and lists
-the machines. Tested live on FreeBSD; on Linux only the list command was run,
-and the packages checked on Debian, Arch, Artix and Void.
+the hypervisor, prepares `<pool>/vm`, lists the machines, and the reconciler
+builds each machine from a neutral record (processors, memory, firmware, disks,
+networks). A machine built from the record boots on FreeBSD with its disk,
+network and console. On Linux only the list command was run and the domain XML
+checked against libvirt's schema; the packages were checked on Debian, Arch,
+Artix and Void.
 
 | Item | Notes |
 |------|-------|
 | Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
-| Setup on Linux | Run the module's Set up on a Linux edition. |
-| Machines | Neutral machine record written out per backend; create, start, stop, remove, one zvol per disk. |
+| Machines | Create, start, stop and remove from the API; machines come only from `config.yaml` for now. |
+| Linux run | Set up and define a machine on a Linux edition. |
+| vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
 | Page as list and detail | The list of machines, and for the one selected a second menu: Summary, Console, Hardware, Passthrough, Options, Snapshots. |
 | Console in the browser | noVNC through a WebSocket of the WebUI bridging to the machine's VNC port on loopback. |
 | Networks, ISO store, IOMMU passthrough | Bridges of FreedomNAS, a store for install images, devices given to a machine. |
