@@ -47,8 +47,9 @@ one from your computer, or give an address and the NAS fetches it itself, which 
 quicker for a large image. Windows also needs the virtio drivers while installing,
 and a second image cannot be attached yet.
 
-On a stopped machine, choose an image and press **Start from image**. It is used
-this once: the next start goes to the disks.
+On a stopped machine, choose an image and press **Start from image**. The image
+stays attached while the machine runs, also across restarts from inside the guest;
+the next **Start** after the machine has been off goes to the disks.
 
 ## Console
 
@@ -58,6 +59,23 @@ the NAS only and the WebUI bridges to it, after asking for your credentials.
 
 After **Start from image** the console connects by itself. On FreeBSD the machine
 waits for it before it boots, so you do not miss an installer's first prompt.
+
+### A Linux guest that stops before the login screen on FreeBSD
+
+bhyve gives a machine one screen device, a plain framebuffer, with no graphics card
+a guest can drive. A kernel with `simpledrm` shows it as a card; Debian's has only
+`efifb`, so systemd does not count the screen as graphical. SDDM then waits for ever:
+the boot text stays on screen at `Started sddm`, while the guest is up and on the
+network. The Console tab shows the same fix:
+
+```sh
+echo 'SUBSYSTEM=="graphics", KERNEL=="fb[0-9]", TAG+="master-of-seat"' | sudo tee /etc/udev/rules.d/71-fb-master-of-seat.rules
+```
+
+Run it in the guest over SSH, or add `nomodeset` to the kernel line once from GRUB
+(press `e`, then Ctrl+X) to get to the desktop first. Prefer the rule to a permanent
+`nomodeset`, which would also keep the guest from using the graphics card it gets on
+KVM. Verified with Debian 13 LXQt.
 
 A machine that FreedomNAS did not create is listed, but you manage it with the
 hypervisor's own tools.
