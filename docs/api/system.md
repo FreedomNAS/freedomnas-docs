@@ -69,8 +69,11 @@ Each FreedomNAS module's health, and why.
 Every module `ModuleLoader.instances()` finds for this edition — community
 modules included — is started (which only reads the configuration), asked
 `health()`, and dropped: no orchestrator runs on an appliance, so nothing
-keeps modules alive between requests. `state` is `healthy`, `unhealthy`, or
-`error` when the module raised, with the exception as `detail`. The
+keeps modules alive between requests. `state` is `healthy`, `unhealthy`,
+`error` when the module raised, with the exception as `detail`, or `failed`
+for a module that could not be loaded at all (malformed manifest, code that
+does not import, constructor that raises, profile fragment left out), with
+the reason as `detail` — the dashboard shows it as **Not loaded**. The
 commands run in a worker thread. `500` only when the modules directory
 cannot be found.
 

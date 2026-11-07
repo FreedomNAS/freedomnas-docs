@@ -86,6 +86,28 @@ installing, the reconciler has the engine merge the profiles again
 apt repository, Caddy's check) exist when it reconciles in the same run,
 and the restore page gets a step for it.
 
+## A module that cannot be loaded
+
+`ModuleLoader` loads each module on its own. A `manifest.json` that is not
+valid JSON or not an object, a manifest without `entry_point` (or a
+malformed one), an entry-point file that is missing or raises on import
+(`SyntaxError`, `ImportError`, anything else), a missing class, a
+constructor that raises, or a profile fragment the engine left out
+(`engine.profile_failures`, see
+[Invalid fragments](../profiles/overview.md#invalid-fragments)) leaves that
+module out and records it in `loader.failed` (module id → reason); every
+other module is still returned by `instances()`. A module for another
+edition (`supported_os`) is skipped, not failed. Only a missing modules
+directory still raises `ModuleLoaderException`.
+
+Every caller reports the failed modules: the reconcile as a failed
+`modules.<id>` result each, `restore-offline` as `modules.<id>.prepare` for a
+module the configuration has a section for, `serve` on stderr,
+[`GET /api/system/health`](../api/system.md#get-apisystemhealth) as state
+`failed`, the proxy's and the containers' cross-module reconciles in their
+own results. A module that failed counts as present, so the reconcile does
+not try to install its package again.
+
 ## Classes
 
 ```python
