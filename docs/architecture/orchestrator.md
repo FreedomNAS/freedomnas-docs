@@ -53,7 +53,13 @@ the system through the profiles. `webui` is `null` for
 every core module today; a community module with a WebUI component sets it
 to an object naming its `api_routes.py`, route prefix, and template/static
 directories — see `freedomnas-webui/api/module_discovery.py`, which mounts
-those the same way, independently of this file. A module with a page of its
+those the same way, independently of this file. Each community module is loaded on its own: an invalid
+manifest, a `webui` block without `api_routes`, a missing file, an
+`api_routes.py` that raises on import (`SyntaxError`, `ImportError`, …), no
+`APIRouter` under `router_attr`, or a bad `route_prefix` leaves that module
+out and records it in `module_discovery.failed_modules` with the reason; the
+WebUI starts with the others and serves the list at
+`GET /api/plugins/failed`. A module with a page of its
 own can also ask for a sidebar entry, `webui.nav`:
 
 ```json

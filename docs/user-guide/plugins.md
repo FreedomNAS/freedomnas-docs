@@ -33,6 +33,15 @@ When it has finished, the card and the banner at the top of every page offer
 **Restart WebUI**; the page reloads by itself once the WebUI is back, and an
 installed module's page is in the sidebar.
 
+## When a module does not load
+
+If a module's WebUI part cannot be loaded when the WebUI starts (an error in
+its code, or a manifest that is missing something), the WebUI starts anyway
+with every other module, and the Plugins page and the Dashboard show a red
+notice: "The module *X* was not loaded" with the reason (file, line and
+error). The module's own page and API are missing until a fixed version is
+installed and the WebUI restarted.
+
 **Check for new modules** downloads the repository's package list again. The
 list the page shows comes from the copy the system already has, which the
 normal updates refresh, so a module published since then appears only after

@@ -41,6 +41,16 @@ manager. The WebUI's [Plugins page](../user-guide/plugins.md) uses them.
 A module present in `<root>/modules` but not installed from a package is
 listed with `package: null` and cannot be removed here.
 
+## GET /api/plugins/failed
+
+The community modules the WebUI could not load when it started, with the
+reason; empty when all loaded. The Plugins page and the Dashboard show them
+as a notice.
+
+```json
+{ "failed": [ { "id": "w2test", "reason": "SyntaxError in /usr/lib/freedomnas/modules/w2test/api_routes.py, line 2: '(' was never closed" } ] }
+```
+
 ## Jobs
 
 Install, remove and refresh are jobs: one at a time, never while a system
