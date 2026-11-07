@@ -46,7 +46,8 @@ engine.execute("samba", "create_share", share_name="docs", path="/mnt/data/docs"
          ▼
   Scan every other profiles/ subdirectory (storage/, network/, shares/,
   users/, any installed community module's own directory) and merge in
-  {dir}/{dir}-debian.json when present — one dict.update() per fragment
+  {dir}/{dir}-debian.json when present: core fragments first, then the
+  community modules' in name order, each adding only categories of its own
          │
          ▼
   Merge init/init-systemd.json's "services" section in last
@@ -62,8 +63,14 @@ engine.execute("samba", "create_share", share_name="docs", path="/mnt/data/docs"
 ```
 
 Each fragment owns its own top-level category key(s) — `storage/` owns
-`zfs`/`media`/`zfs_properties`, `shares/` owns `samba`/`nfs`, and so on — so merging
-is a plain `dict.update()` per fragment, with nothing to resolve.
+`zfs`/`media`/`zfs_properties`, `shares/` owns `samba`/`nfs`, and so on. The
+OS profile and the core fragments are merged first; then each community
+module's fragment, in name order, may only **add** categories nobody has
+defined yet. A module fragment that names a category of the OS profile, of a
+core fragment or of a module merged before it is refused as a whole (nothing
+of it is merged, nothing is combined) and reported like an invalid fragment
+below: "the category 'users' belongs to the core", or "… belongs to the
+module proxy".
 
 ### Invalid fragments
 
