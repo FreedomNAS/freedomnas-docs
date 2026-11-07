@@ -94,8 +94,10 @@ that starts **Next start only** (an update on trial).
   goes back to how it was in that copy; the same button switches back.
 - **Delete** destroys a copy that neither runs nor starts next.
 
-The five newest copies made by updates are kept; older ones are deleted by
-themselves. Copies made by hand, or by `freebsd-update` on a system installed
+The five newest copies made by updates (`update-<date>`) are kept; older ones
+are deleted by themselves after each update. The `pre-update-<date>` copies left
+by the way FreedomNAS updated FreeBSD before, outside a copy, are deleted first,
+unless one of them is running or starts next. Copies made by hand, or by `freebsd-update` on a system installed
 before pkgbase, are never deleted by FreedomNAS.
 
 ## Automatic Rollback

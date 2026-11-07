@@ -2,8 +2,14 @@
 
 Other operating systems running on the NAS, with the community module
 **Virtual machines** (package `freedomnas-module-vm`): libvirt with QEMU/KVM on
-Linux, bhyve with vm-bhyve on FreeBSD. Install it from the
-[Plugins page](plugins.md). The page is at the Advanced level.
+Linux, bhyve with vm-bhyve on FreeBSD. The page is at the Advanced level.
+
+!!! danger "Not published"
+    The module is not in any package repository, not even the `dev` one, and the
+    [Plugins page](plugins.md) does not offer it. It stays out until it is stable
+    and works fully, so that nobody trying it can harm their system. Until then
+    it is only for development: copy `modules/vm` and `profiles/vm` from the
+    `freedomnas-module-vm` git repository onto a test machine by hand.
 
 !!! warning "Still in development"
     Hardware cannot be edited yet, and there is no passthrough. Install images

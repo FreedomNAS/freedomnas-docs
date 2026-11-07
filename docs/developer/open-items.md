@@ -78,7 +78,7 @@ screen in the console, Shut down, and back up after the box restarts.
 
 | Item | Notes |
 |------|-------|
-| Publish the packages | Packaging for each edition is not wired in the package workflows yet. |
+| Publish the packages | On purpose, not before the module is stable and works fully: it is in no repository, `dev` included, and is copied by hand from git onto test machines. |
 | Linux run | Done on Artix with dinit only: libvirt installed and machine recreated by the reconciler, on a zvol and the bridge. Other editions untried, and Set up from the page untried on Linux. |
 | Shut down on Alpine | Shut down works on installed Debian (2026-11-05, clean poweroff in its journal). A live Alpine guest ignored it even with acpid and its button driver running, cause not found; the page shows Stopping… and offers Power off. |
 | libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
@@ -97,7 +97,6 @@ screen in the console, Shut down, and back up after the box restarts.
 
 | Item | Notes |
 |------|-------|
-| Proxy network rebuilt by the reconciler | App records say only that the app is behind the proxy (`"proxy": true`); port and address are worked out on each edition at every reconcile. Verified on the test box from Artix to FreeBSD on real disks; from FreeBSD back to Linux still to run. |
 | Linux service in restored FreeBSD | A configuration restored on FreeBSD from Linux keeps `services.dockerd`, and accounts keep the `docker` group, which now gives a warning at every reconcile. |
 | Let's Encrypt with a real domain | Tested only with Pebble; needs a real domain and a DNS provider token. |
 | Names for apps with their own HTTPS | Vaultwarden and Pi-hole have no name yet (site with an HTTPS upstream). |
