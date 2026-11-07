@@ -65,6 +65,20 @@ Each fragment owns its own top-level category key(s) — `storage/` owns
 `zfs`/`media`/`zfs_properties`, `shares/` owns `samba`/`nfs`, and so on — so merging
 is a plain `dict.update()` per fragment, with nothing to resolve.
 
+### Invalid fragments
+
+A fragment that is not valid JSON, or whose JSON is not an object, is handled
+by who ships it:
+
+- **Community module** (a directory named like a module that has a
+  `manifest.json` under `<root>/modules/`, and is not a core module id): the
+  fragment is left out, the engine starts with everything else, and the
+  failure (file, line, column, error) is kept in `engine.profile_failures`.
+  Every reconcile reports it as a failed `modules.<id>.profile` action, so it
+  shows on the restore page and in the reconcile result.
+- **Core** (every other fragment, plus `os/` and `init/`): the engine does not
+  start, and the error names the file, line and column.
+
 ## Why This Design
 
 ### Adding a new OS requires (almost) zero Python changes

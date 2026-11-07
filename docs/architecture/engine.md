@@ -11,6 +11,9 @@ OS-specific shell commands using JSON profiles. It is implemented as a
   own `<module>/<module>-<os>.json` fragment (see
   [Profile System Overview](../profiles/overview.md)), then merge the init
   profile's `services` section last
+- Leave out an invalid community module fragment and record it in
+  `profile_failures`; stop on an invalid core fragment (see
+  [Invalid fragments](../profiles/overview.md#invalid-fragments))
 - Translate abstract action names into shell command strings
 - Execute commands safely (no `shell=True` unless the profile command requires it)
 - Provide introspection: list available categories and actions
