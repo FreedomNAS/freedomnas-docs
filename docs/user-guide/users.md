@@ -95,6 +95,10 @@ this is how one is made, deliberately.
 Click **Remove**. A confirmation dialog appears. The user is deleted
 with `userdel -r` (removes home directory) and removed from `config.yaml`.
 
+FreedomNAS refuses to delete your own account, `root`, or the last
+administrator: make someone else an administrator first. The reason is shown
+in the error message.
+
 !!! warning
     Deleting a user permanently removes their home directory. Ensure any
     important data has been moved to a shared dataset first.

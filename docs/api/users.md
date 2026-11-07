@@ -159,11 +159,12 @@ Delete an OS user and remove from `config.yaml`.
 
 | Code | Detail |
 |------|--------|
+| 422 | `target` is your own account, `root`, or the last administrator in the configuration — nothing is deleted |
 | 500 | OS user deletion failed |
 
-!!! warning
-    The API does not prevent deleting the currently authenticated user or
-    the last admin account. Guard these cases in the UI layer.
+The refusals are checked before any command runs, with the same rule as
+`POST /api/users/{target}/admin` (nobody acts on their own account, the last
+administrator stays).
 
 ## GET /api/account/me
 
