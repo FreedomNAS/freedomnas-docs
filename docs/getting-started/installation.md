@@ -134,7 +134,7 @@ What the ISO offers for each edition:
 | Void | `xbps-install` (Void's static build), or tarball |
 | Gentoo | stage3 tarball |
 | Arch | `pacstrap`, or tarball |
-| Artix | `pacstrap`, or tarball |
+| Artix | `basestrap`, `pacstrap`, or tarball |
 
 The pool is created by the ISO's ZFS (2.4), whichever edition is being
 installed — see [ZFS version skew](../developer/installer.md#zfs-version-skew-between-host-and-target).

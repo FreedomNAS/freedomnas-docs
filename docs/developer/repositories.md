@@ -115,7 +115,7 @@ its own docstring, as of 2026-10-31; the files say more.
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `__main__.py` | 619 | python -m freedomnas — FreedomNAS Core diagnostic CLI. |
+| `__main__.py` | 620 | python -m freedomnas — FreedomNAS Core diagnostic CLI. |
 | `bootenv.py` | 337 | Boot environments: whole copies of the system that the boot loader can start. |
 | `bootstate.py` | 147 | Automatic rollback after a kernel update that does not boot. |
 | `config.py` | 910 | FreedomNAS Configuration Manager |
@@ -131,16 +131,16 @@ its own docstring, as of 2026-10-31; the files say more.
 | `netnames.py` | 116 | FreedomNAS names for the physical network interfaces: fnas_lan1, fnas_lan2…, the same on every edition, tied to each card's MAC address. |
 | `offline_restore.py` | 90 | The part of a restore a system can take before it ever runs: the installer calls it inside the chroot of the system it installs, with a data pool's copy of the configurat… |
 | `orchestrator.py` | 376 | FreedomNAS Orchestrator — Module lifecycle management with heartbeat monitoring. |
-| `package_manager.py` | 275 | FreedomNAS Package Manager — Load and manage OS-specific package definitions. |
+| `package_manager.py` | 274 | FreedomNAS Package Manager — Load and manage OS-specific package definitions. |
 | `paths.py` | 85 | Where FreedomNAS keeps its files. |
-| `pool_import.py` | 592 | Bringing in a pool that already exists: another FreedomNAS's data pool, or a pool some other system made. |
+| `pool_import.py` | 591 | Bringing in a pool that already exists: another FreedomNAS's data pool, or a pool some other system made. |
 | `pool_removal.py` | 82 | Exporting and destroying a pool from the Pools tab. |
 | `pools.py` | 242 | Pool composition: the devices that are not where the data lives. |
-| `reconcile.py` | 1407 | FreedomNAS Reconciliation Engine |
+| `reconcile.py` | 1416 | FreedomNAS Reconciliation Engine |
 | `replication.py` | 323 | Local ZFS replication: zfs send \| zfs receive between pools of this system, or into and out of a stream file. |
 | `restoring.py` | 130 | The restore lock: while a restored or reinitialized configuration is being applied, `<state>/restoring.json` exists and the WebUI serves only the page that follows it. |
 | `shadow.py` | 925 | The configuration's two kinds of `.freedomnas` dataset. |
-| `snapshots.py` | 221 | Scheduled ZFS snapshots with retention. |
+| `snapshots.py` | 226 | Scheduled ZFS snapshots with retention. |
 | `tls.py` | 269 | The WebUI's TLS material. |
 | `usershares.py` | 72 | Samba usershares: the [global] settings and the directory they live in. |
 | `wireguard.py` | 152 | WireGuard VPN: one interface on the NAS (fnas_wg1) and the devices allowed to connect to it, each with its own key pair. |
@@ -181,7 +181,7 @@ OS-specific file content remains in its Python — see
 |------|-------|---------|
 | `setup.py` | 349 | FreedomNAS Installer — entry point. |
 | `lib/bootloader_installer.py` | 388 | FreedomNAS Installer — boot chain. |
-| `lib/context.py` | 374 | FreedomNAS Installer — execution context. |
+| `lib/context.py` | 373 | FreedomNAS Installer — execution context. |
 | `lib/core_installer.py` | 248 | FreedomNAS Installer — deploying FreedomNAS itself into the target. |
 | `lib/corelink.py` | 117 | FreedomNAS Installer — freedomnas-core import shim. |
 | `lib/diagnostics.py` | 64 | FreedomNAS Installer — what the machine looked like when something failed. |
@@ -190,7 +190,7 @@ OS-specific file content remains in its Python — see
 | `lib/installer_modules.py` | 410 | FreedomNAS Installer — Base infrastructure. |
 | `lib/packages_installer.py` | 341 | FreedomNAS Installer — package selection and installation. |
 | `lib/state_installer.py` | 318 | FreedomNAS Installer — persisting the installation to config.yaml. |
-| `lib/system_installer.py` | 490 | FreedomNAS Installer — base system provisioning. |
+| `lib/system_installer.py` | 492 | FreedomNAS Installer — base system provisioning. |
 | `lib/target_installer.py` | 267 | FreedomNAS Installer — clean install onto a dedicated disk. |
 | `lib/users_installer.py` | 219 | FreedomNAS Installer — user creation. |
 | `lib/zfs_installer.py` | 293 | FreedomNAS Installer — root pool and dataset creation. |
@@ -211,14 +211,14 @@ OS-specific file content remains in its Python — see
 | `api/routes/plugins.py` | 252 | /api/plugins/* — community modules installed from the edition's package repository. |
 | `api/routes/restore.py` | 67 | /api/restore/* — the restore page's two calls, open without signing in: while a restore runs the accounts may not have their passwords yet. |
 | `api/routes/services.py` | 106 | /api/services/* — the system's services, through the init profile. |
-| `api/routes/setup.py` | 330 | /api/setup/* — first-run wizard (spec §7.2). |
+| `api/routes/setup.py` | 329 | /api/setup/* — first-run wizard (spec §7.2). |
 | `api/routes/shares.py` | 350 | /api/shares/* — SMB and NFS share management. |
-| `api/routes/storage.py` | 1698 | /api/storage/* — ZFS pool, dataset and snapshot management. |
-| `api/routes/system.py` | 368 | /api/system/* — system identity, status, and power management. |
+| `api/routes/storage.py` | 1707 | /api/storage/* — ZFS pool, dataset and snapshot management. |
+| `api/routes/system.py` | 414 | /api/system/* — system identity, status, and power management. |
 | `api/routes/updates.py` | 142 | /api/updates/* — update management via Topgrade. |
 | `api/routes/users.py` | 293 | /api/users/* — OS user management. |
 | `api/serve.py` | 178 | The WebUI's listener: one port for https:// and for the plain http:// a browser tries first. |
-| `websocket/terminal.py` | 242 | /ws/updates/terminal — WebSocket endpoint that streams topgrade output. |
+| `websocket/terminal.py` | 306 | /ws/updates/terminal — WebSocket endpoint that streams topgrade output. |
 
 **Tests** (`python3 -m pytest tests/`, needs `fastapi`, `uvicorn`, `websockets`
 and the sibling `freedomnas-core` and `freedomnas-profiles` checkouts — not

@@ -48,7 +48,7 @@ and unused names are gone.
 | Data newer than code | The reconciler never overwrites a differing identity copy and snapshots the data pool's `.freedomnas` before applying it, but there is no format/version check of the stored configuration against the running code yet (update FreedomNAS first, or hold the sections it does not know). |
 | SSH right after the restore wizard | Once, the first SSH login right after the wizard was refused and worked later. Probably a fluke; recheck on the next restore. |
 | Package-manager updates without a snapshot | A raw `pacman -Syu` (not through the WebUI) takes no pre-update root snapshot, so an automatic rollback can only restore the UKI. |
-| Restore source probe | The installer probe and `pool_import.find_restorable` may still offer another installation's root pool as a restore source; boot and sync already skip foreign root pools. |
+| Restore source probe | The installer's probe (`StateWriter.find_restorable` in `lib/state_installer.py`) may still offer another installation's root pool as a restore source; boot and sync already skip foreign root pools. |
 | Forged or wrong CA in the copy | A CA stored in the data pool copy is restored as it is; a wrong one can only be recovered from older snapshots. Known limitation. |
 | Cosmetic log lines | First edition move logs a harmless `containers.apps.vaultwarden.down` failure (compose file missing before the reinstall). When the hostname changes during a boot, Caddy's certificate copy keeps the old names until the next boot. |
 
@@ -69,8 +69,8 @@ and unused names are gone.
 a neutral record, with the same hardware and identity on every edition, on raw
 zvols. The page lists them, with Summary, Hardware and Console; images are
 uploaded or fetched, and a machine starts from one once. The same Alpine guest saw
-the same uuid, MAC and PCI slots on bhyve and on KVM. Set up, the page, the console
-and machines on zvols have run live on FreeBSD only, where Debian 13 was installed
+the same uuid, MAC and PCI slots on bhyve and on KVM. Set up from the page and install
+images have run live on FreeBSD only, where Debian 13 was installed
 from the page through the console (keyboard, network, boot from disk and Shut down
 all work). On 2026-11-05 the pool carried that guest from FreeBSD to Artix with dinit:
 it boots unchanged on KVM, with the same uuid, MAC, address and PCI slots, its login

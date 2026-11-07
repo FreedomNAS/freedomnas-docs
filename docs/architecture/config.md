@@ -209,8 +209,9 @@ system:
   initialized: false
   initialized_at: null
   initialized_by: null          # "installer" | "webui"
-  edition: null                 # "debian" | "arch" | "freebsd"
+  edition: null                 # "debian" | "arch" | "artix" | "gentoo" | "void" | "freebsd"
   root_filesystem: null         # reserved field (not actively used)
+  saved_at: null                # UTC time of the last save, stamped by save()
   # ssh_enabled: false          # not in the template; written by the setup
   #                             # wizard and POST /api/system/ssh
 
@@ -231,9 +232,12 @@ storage:
 snapshots:
   root: []
   boot: []
-  policies: []                  # {dataset, hourly, daily, weekly, monthly}
+  policies: []                  # {dataset, hourly, daily, weekly, monthly, recursive}
 
 installed_features: []
+
+services:
+  boot: {}                      # service → started at boot or not, from the Services page
 
 modules: {}                     # community modules' own sections, by module id
 

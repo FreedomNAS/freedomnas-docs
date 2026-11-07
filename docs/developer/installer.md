@@ -868,9 +868,12 @@ supervisor first.
 The configuration of **the pool this system booted from** wins whenever it
 is initialized. A NAS can hold several pools carrying a `.freedomnas` — an
 older install, another edition on another disk, a disk from another machine
-— and none of them may change who administers this install, its edition or
-its network. A data pool's copy restores a system only when its own is not
-initialized, and otherwise lends only its shared sections, when it is newer.
+— and none of them may change who administers this install or its edition. A
+data pool's copy restores a system only when its own is not initialized, or
+sets it up again (`reinitialized`, accounts kept) when its own does not match
+the running system. Otherwise it lends only its shared sections, whatever its
+age, and the network when it knows a card of this machine (see
+[Storage locations](../architecture/config.md)).
 When the configuration comes from another pool, the script says so in the
 log.
 

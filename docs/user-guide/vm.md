@@ -6,8 +6,8 @@ Linux, bhyve with vm-bhyve on FreeBSD. Install it from the
 [Plugins page](plugins.md). The page is at the Advanced level.
 
 !!! warning "Still in development"
-    Hardware cannot be edited yet, and there is no passthrough. The console and
-    install images have been tested on FreeBSD only.
+    Hardware cannot be edited yet, and there is no passthrough. Install images
+    have been tested on FreeBSD only; the console on FreeBSD and on Artix.
 
 ## Set up
 
@@ -32,7 +32,7 @@ Select a machine for its **Summary** and **Hardware**:
 |--------|--------------|
 | **Start** | Starts the machine, and from now on it starts with the NAS |
 | **Shut down** | Asks the guest to shut down, and from now on it stays off at boot |
-| **Power off** | Stops it at once, like pulling the plug |
+| **Power off** | Stops it at once, like pulling the plug, and from now on it stays off at boot |
 | **Remove** | Removes a stopped machine; its disks stay unless you tick the box |
 
 While a machine told to shut down still runs, the page shows **Stopping…**. Some
@@ -49,7 +49,8 @@ and a second image cannot be attached yet.
 
 On a stopped machine, choose an image and press **Start from image**. The image
 stays attached while the machine runs, also across restarts from inside the guest;
-the next **Start** after the machine has been off goes to the disks.
+the next **Start** after the machine has been off goes to the disks. Like
+**Start**, it also makes the machine start with the NAS from then on.
 
 ## Console
 
@@ -94,4 +95,5 @@ So a machine is rebuilt when its pool comes back on another edition. Keep in min
   the fallback path `\EFI\BOOT\BOOTX64.EFI`.
 - A few virtual chipset details still differ, and Windows may notice.
 
-A real move of an installed system between editions has not been tested yet.
+An installed Debian guest has moved from FreeBSD to Artix this way and booted
+unchanged. The way back, and Windows guests, have not been tested yet.

@@ -38,7 +38,8 @@ The profile-driven installer, run from any live/rescue environment of the
 same OS family as the edition you want:
 
 - Detects UEFI or BIOS boot mode
-- Partitions the target disk and creates a single `rpool` (no boot pool)
+- Partitions the target disk and creates a single root pool (`rpool` unless
+  you name it otherwise; no boot pool)
 - Installs the base OS with the edition's own bootstrapper, or from a
   rootfs tarball
 - Configures hostname, timezone, users, and the optional features
