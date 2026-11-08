@@ -104,6 +104,12 @@ cachefile, and every pool imported that way is exported again unless the
 configuration needs it: a pool with an external copy, a pool named in
 `storage.pools`, or the pool of a module (`modules.<id>.pool`).
 
+The pool a configuration is restored, reinitialized or merged from was in
+use on the system that wrote it, so `state-boot` records it in
+`storage.pools` when that system did not (a desktop that became a NAS may
+never have): the reconciler then mounts every dataset of it, as that system
+did, and puts it in the cachefile.
+
 **Another install's root pool.** Two editions on two disks of the same
 machine each see the other's root pool. A pool whose `.freedomnas` carries
 `org.freedomnas:role=internal`, or that has a `bootfs`, is another install's
