@@ -50,7 +50,11 @@ Create a new OS user with its password, and persist it to `config.yaml`.
 }
 ```
 
-`username` and `password` are required. `groups` defaults to `[]`, `shell`
+`username` and `password` are required. `groups` defaults to `[]`; the
+groups administrators get (`admin_groups_present`: `docker`, `libvirt`) come
+only with the edition's administrator group (`users.sudo_group`), and asking
+for one without it answers `422` ("docker: only administrators may be in
+this group"), since each gives root's power. `shell`
 to `/bin/bash`. `uid` and `gid` are optional — omit them to let the OS
 assign IDs. The password is at least 8 characters; neither it nor the
 username may hold line breaks or control characters, and the username may
@@ -123,7 +127,7 @@ Give an existing account the administrator role, or take it back.
 ```
 
 The edition's administrator group (`users.sudo_group`) and the groups
-administrators get with it (`admin_groups_present`: `docker`…) are added
+administrators get with it (`admin_groups_present`: `docker`, `libvirt`) are added
 with `users.add_to_group` or taken with `users.remove_from_group`, only
 those the account does (not) have yet (`users.list_groups`); the
 configuration entry gets `admin`, its `groups` without those. Answers

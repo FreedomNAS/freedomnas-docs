@@ -86,6 +86,10 @@ topgrade's containers step talks to Docker as the signed-in user. The
 installer joins them after the packages are in — the group is created by the
 package that owns it — and this grants nothing new: `files.sudoers` already
 gives that user's group `NOPASSWD: ALL` so topgrade can update the system.
+The virtualization category lists `libvirt` on Linux. Each of these groups
+gives root's power, so only administrators are in them: the role adds and
+takes them all, the WebUI refuses them for any other account, and the
+reconciler takes such an account out of them.
 
 Where an edition ships service scripts as separate packages per init — Artix's
 `openssh-openrc` and `openssh-dinit` — the per-init parts go under

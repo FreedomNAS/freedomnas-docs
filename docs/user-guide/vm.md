@@ -22,8 +22,9 @@ the hypervisor and creates the `<pool>/vm` dataset. If the processor's
 virtualization is off, the page says so: turn on VT-x or AMD-V in the firmware
 settings.
 
-On Linux the account that ran Set up joins the `libvirt` group, to use `virsh`
-and virt-manager with its own login. Log out and back in first, also over SSH: a
+On Linux every administrator is in the `libvirt` group, to use `virsh`
+and virt-manager with their own login; no other account may be, because it
+gives root's power. Log out and back in first, also over SSH: a
 session keeps the groups it started with. The WebUI does not need this. On
 FreeBSD vm-bhyve is for root only.
 
