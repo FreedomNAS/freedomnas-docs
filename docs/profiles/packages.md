@@ -38,7 +38,7 @@ and service names. They decouple `config.yaml` from any specific OS.
   "id": "samba-cifs",
   "debian":  { "packages": ["samba", "samba-common-bin"], "services": ["smbd", "nmbd"], "config_paths": ["/etc/samba/smb.conf"] },
   "freebsd": { "packages": ["samba416"], "services": ["samba_server"], "config_paths": ["/usr/local/etc/smb4.conf"] },
-  "arch":    { "packages": ["samba"], "services": ["smbd"], "config_paths": ["/etc/samba/smb.conf"] }
+  "arch":    { "packages": ["samba"], "services": ["smb", "nmb", "winbind"], "config_paths": ["/etc/samba/smb.conf"] }
 }
 ```
 

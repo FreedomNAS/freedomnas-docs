@@ -91,7 +91,7 @@ values nested under a shared `"packages"`/`"services"` key:
   "id": "samba-cifs",
   "debian":  { "packages": ["samba", "samba-common-bin"], "services": ["smbd", "nmbd"], "config_paths": [...] },
   "freebsd": { "packages": ["samba416"], "services": ["samba_server"], "config_paths": [...] },
-  "arch":    { "packages": ["samba"], "services": ["smbd"], "config_paths": [...] },
+  "arch":    { "packages": ["samba"], "services": ["smb", "nmb", "winbind"], "config_paths": [...] },
   "alpine":  { "packages": ["samba"], "services": ["samba"], "config_paths": [...] }   ← add this
 }
 ```
