@@ -24,7 +24,7 @@ regardless of which file it physically lives in.
     `/etc/os-release`'s `ID` field to a profile through `_DISTRO_IDS`, and
     lists them in `SUPPORTED_OS`. Matching per-module fragments and package
     category sections exist for each. The CI images exercise every one of
-    them but Arch, which has no image. "Community" says which editions
+    them. "Community" says which editions
     the project treats as official (Debian, FreeBSD), not which are built.
 
 ## Where Each Category Lives

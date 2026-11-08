@@ -26,8 +26,7 @@ imports any ZFS pools, unlocks encrypted ones, and either reconciles an
 existing `.freedomnas` configuration or launches the first-run wizard.
 Every run of build-images publishes an image for each edition it can
 flash: Debian and FreeBSD, the official editions, and the community editions
-Void, Gentoo and Artix (one image each for OpenRC, dinit and runit). Arch has
-no image: it is installed with the installer or in place.
+Arch, Void, Gentoo and Artix (one image each for OpenRC, dinit and runit).
 
 Use this if you're installing FreedomNAS from scratch on a dedicated
 machine — it's the actively maintained path.

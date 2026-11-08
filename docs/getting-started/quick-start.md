@@ -32,7 +32,7 @@ Get the newest image from the
 [download page](https://github.com/FreedomNAS/freedomnas-image/releases).
 If you don't know which one to take, take **Debian** (`debian.img.zst`): it
 works on the widest range of hardware. **FreeBSD** (`freebsd.img.zst`) is
-the other official edition. The others (Void, Gentoo, Artix) are for people
+the other official edition. The others (Arch, Void, Gentoo, Artix) are for people
 who already use those systems.
 
 ## 2. Write it to the system disk
