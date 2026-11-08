@@ -151,12 +151,14 @@ output into the tab-separated lines with awk, so the
 [Plugins API](../api/plugins.md) reads the same format everywhere.
 `module_search` reads the local index only; `update_cache` refreshes it.
 
-Where a module's package comes in one variant per init (Artix:
-`freedomnas-module-containers-openrc`, `-dinit`, `-runit`),
-`module_suffixes` lists every variant's suffix and `by_init` gives the
-running init's `module_suffix`: that variant is the module, the other inits'
-are not listed, and a package without a suffix stands for a module that has
-no variant for this init.
+`module_pattern` is a regular expression that matches a module's package
+name whole and captures the module's id (`freedomnas-module-([a-z0-9][a-z0-9_-]{0,62})`,
+with an optional `<category>/` or `<repository>/` in front). Where a module's
+package comes in one variant per init (Artix:
+`freedomnas-module-containers-openrc`, `-dinit`, `-runit`), `by_init` gives
+each init its own `module_search` and `module_installed`, which keep only that
+init's variant of each module (or the plain package of a module without
+one), and a `module_pattern` that leaves the init's suffix out of the id.
 
 ### `zfs`
 

@@ -190,10 +190,11 @@ nothing left to install.
   `freedomnas-module-<id>` for Arch, and `freedomnas-module-<id>-openrc`,
   `-dinit`, `-runit` (and `-s6` for vm) for Artix, each depending on its
   init's packages and providing and conflicting with the plain one.
-  `os-artix.json` names the suffixes (`packages.module_suffixes`, and the
-  running init's `module_suffix` under `by_init`); the core lists the running
-  init's variant as the module (`package_manager.parse_module_packages`), and
-  leaves the other inits' out.
+  All of it is in `os-artix.json`: under `by_init`, each init's
+  `module_search` and `module_installed` keep its own variant of each module
+  (and a plain package only for a module without one), and its
+  `module_pattern` reads the module's id without the suffix. The core knows
+  no init and no suffix.
 - **Gentoo:** Caddy and lego are `~amd64`; the installer accepts them in
   `/etc/portage/package.accept_keywords/freedomnas`.
 
