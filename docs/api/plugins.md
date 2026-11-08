@@ -4,7 +4,8 @@ Community modules installed from the edition's package repository. A module
 is the package `freedomnas-module-<id>` (`app-nas/freedomnas-module-<id>` on
 Gentoo). The OS profile lists them with `packages.module_search` (the local
 package index) and `packages.module_installed`, one line per package:
-`name<TAB>version<TAB>description`; it installs them with `packages.install`
+`name<TAB>version<TAB>description` (on Artix, one variant per init: see
+[OS profiles](../profiles/os-profiles.md)); it installs them with `packages.install`
 and removes them with `packages.module_remove`. The routes know no package
 manager. The WebUI's [Plugins page](../user-guide/plugins.md) uses them.
 

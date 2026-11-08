@@ -17,8 +17,10 @@ Linux, bhyve with vm-bhyve on FreeBSD. The page is at the Advanced level.
 
 ## Set up
 
-Choose the pool that keeps the machines and press **Set up**. FreedomNAS installs
-the hypervisor and creates the `<pool>/vm` dataset. If the processor's
+Choose the pool that keeps the machines and press **Set up**. On Debian, Arch and
+Artix the module's package has already brought the hypervisor (libvirt and QEMU,
+with your init's service on Artix); elsewhere Set up installs it. It creates the
+`<pool>/vm` dataset. If the processor's
 virtualization is off, the page says so: turn on VT-x or AMD-V in the firmware
 settings.
 

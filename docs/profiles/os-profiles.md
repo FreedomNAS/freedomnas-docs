@@ -151,6 +151,13 @@ output into the tab-separated lines with awk, so the
 [Plugins API](../api/plugins.md) reads the same format everywhere.
 `module_search` reads the local index only; `update_cache` refreshes it.
 
+Where a module's package comes in one variant per init (Artix:
+`freedomnas-module-containers-openrc`, `-dinit`, `-runit`),
+`module_suffixes` lists every variant's suffix and `by_init` gives the
+running init's `module_suffix`: that variant is the module, the other inits'
+are not listed, and a package without a suffix stands for a module that has
+no variant for this init.
+
 ### `zfs`
 
 | Key | Command |

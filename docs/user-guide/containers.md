@@ -24,8 +24,10 @@ module's code are the same on every edition.
 
 ## Install Docker
 
-*Advanced and Expert.* If Docker is not installed, **Install Docker**
-installs it: on Debian from Docker's own APT repository, elsewhere from the
+The module's package brings Docker with it (AppJail on FreeBSD), so after
+installing the module from the [Plugins page](plugins.md) there is nothing
+more to install. *Advanced and Expert.* If Docker is missing anyway (the
+module copied by hand, or Docker removed), **Install Docker** installs it: on Debian from Docker's own APT repository, elsewhere from the
 edition's packages, with the service scripts of your init. It takes a few
 minutes; on Gentoo much longer, because Docker is compiled. The page shows
 the installation while it runs.

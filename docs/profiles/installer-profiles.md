@@ -178,13 +178,15 @@ skips the step entirely on editions that declare none.
 Debian's `core` entry adds FreedomNAS's own APT repository — the Codeberg
 package registry that carries `freedomnas-core`, `-profiles`, `-webui`,
 `-installer` and `topgrade` — by fetching its signing key and writing a
-`sources.list.d` file. It is a command sequence rather than a `files` entry
+`sources.list.d` file, and Docker's, which `freedomnas-module-containers`
+needs for `docker-ce` whether or not the containers are chosen at install. It is a command sequence rather than a `files` entry
 on purpose: the first `apt-get update` runs before this step, and a sources
 file whose key is not there yet would make it complain.
 
 ```json
 "repositories": {
-  "containers": [
+  "core": [
+    "…FreedomNAS's repository…",
     "env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl",
     "install -m 0755 -d /etc/apt/keyrings",
     "curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc",

@@ -169,6 +169,34 @@ records a FreeBSD dependency without a version range, so there the guard is
 the module's first tag coming after a FreedomNAS release newer than 0.9.12.
 On Gentoo the module has only a live `9999` ebuild until its first tag.
 
+A module's package brings the software it runs, as a dependency, on every
+edition: installing the module installs the runtime, and its page has
+nothing left to install.
+
+| Module | Debian | Arch, Artix | Void | Gentoo | FreeBSD |
+|--------|--------|-------------|------|--------|---------|
+| containers | `docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin` | `docker`, `docker-compose`, `containerd` | `docker`, `docker-compose`, `containerd` | `app-containers/docker`, `docker-cli`, `containerd`, `docker-compose` | `appjail`, `py*-director`, `dnsmasq` |
+| proxy | `caddy`, `lego` | `caddy`, `lego` (`caddy-bin`, `lego-bin` provide them) | `caddy`, `libcap-progs`, `lego` | `>=www-servers/caddy-2.11`, `app-crypt/lego` | `caddy`, `lego` |
+| vm | `libvirt-daemon-system`, `libvirt-clients`, `qemu-system-x86`, `qemu-utils`, `ovmf`, `dnsmasq-base` | `qemu-base`, `libvirt`, `edk2-ovmf`, `dnsmasq` | — | — | — |
+
+- **Debian:** `docker-ce` is only in Docker's own repository. The installer
+  adds it with FreedomNAS's (`repositories.core` of `installer-debian.json`),
+  and `freedomnas-repository` 1.1 adds it on a system that has none
+  (`docker.sources`, the key in `/etc/apt/keyrings/docker.asc`, the same files
+  the installer and the module write; Docker's key is pinned in
+  `checksums/docker-key.sha256` of freedomnas-debian-repo).
+- **Artix:** the service scripts are a package per init (`docker-openrc`,
+  `caddy-dinit`, `libvirt-runit`…), so each module's PKGBUILD is split:
+  `freedomnas-module-<id>` for Arch, and `freedomnas-module-<id>-openrc`,
+  `-dinit`, `-runit` (and `-s6` for vm) for Artix, each depending on its
+  init's packages and providing and conflicting with the plain one.
+  `os-artix.json` names the suffixes (`packages.module_suffixes`, and the
+  running init's `module_suffix` under `by_init`); the core lists the running
+  init's variant as the module (`package_manager.parse_module_packages`), and
+  leaves the other inits' out.
+- **Gentoo:** Caddy and lego are `~amd64`; the installer accepts them in
+  `/etc/portage/package.accept_keywords/freedomnas`.
+
 ## Versions
 
 The base version is the upstream half of each component's
