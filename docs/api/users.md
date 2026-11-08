@@ -190,7 +190,8 @@ gives each app that is up with its title and path, and its port unless the
 proxy serves it; the proxy module gives each site, by name when names are on
 (the own domain first) or on its port. An entry with `scheme` and `port` is
 on the address the WebUI was reached at; one with neither port nor `url` is
-left out.
+left out. All modules are asked at once: one that raises, or has not
+answered within 5 seconds, gives no links, and the others are listed.
 
 ## POST /api/account/password
 
