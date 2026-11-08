@@ -50,32 +50,48 @@ system against — see [WebUI Internals](../developer/webui.md#offline-documenta
 
 ## GET /api/system/health
 
-Each FreedomNAS module's health, and why.
+Each FreedomNAS module's health, and why, as `python -m freedomnas serve`
+last wrote it (see [Orchestrator](../architecture/orchestrator.md#checks-retries-and-blocked-modules)).
 
 **Auth required:** yes
 
 ```json
 {
   "modules": [
-    { "id": "network", "name": "Network", "state": "healthy",   "detail": "enp3s0 up" },
-    { "id": "shares",  "name": "Shares",  "state": "unhealthy", "detail": "smbd not running" },
-    { "id": "storage", "name": "Storage", "state": "healthy",   "detail": "2 pool(s) online" },
-    { "id": "updates", "name": "Updates", "state": "healthy",   "detail": "topgrade configured" },
-    { "id": "users",   "name": "Users",   "state": "healthy",   "detail": "3 account(s) present" }
-  ]
+    { "id": "network", "name": "Network", "state": "healthy",  "detail": "enp3s0 up", "checked_at": "2026-11-08T11:55:33+00:00" },
+    { "id": "shares",  "name": "Shares",  "state": "problem",  "detail": "smbd not running", "checked_at": "2026-11-08T11:55:33+00:00" },
+    { "id": "proxy",   "name": "Reverse proxy", "state": "retrying", "attempt": 2, "attempts": 4,
+      "detail": "did not answer within 5 s", "checked_at": "2026-11-08T11:55:43+00:00" },
+    { "id": "broken",  "name": "broken",  "state": "failed",   "detail": "SyntaxError in module.py, line 1", "checked_at": null }
+  ],
+  "monitor": { "running": true, "updated_at": "2026-11-08T11:55:43+00:00" }
 }
 ```
 
-Every module `ModuleLoader.instances()` finds for this edition — community
-modules included — is started (which only reads the configuration), asked
-`health()`, and dropped: no orchestrator runs on an appliance, so nothing
-keeps modules alive between requests. `state` is `healthy`, `unhealthy`,
-`error` when the module raised, with the exception as `detail`, or `failed`
-for a module that could not be loaded at all (malformed manifest, code that
-does not import, constructor that raises, profile fragment left out), with
-the reason as `detail` — the dashboard shows it as **Not loaded**. The
-commands run in a worker thread. `500` only when the modules directory
-cannot be found.
+`state` is `starting`, `healthy`, `problem` (the module answered: what it
+manages is not well), `retrying` with `attempt` of `attempts`, `blocked`
+(the tries ran out; see the next call), or `failed` for a module that could
+not be loaded at all (malformed manifest, code that does not import,
+constructor that raises, profile fragment left out) — the dashboard shows it
+as **Not loaded**. `monitor.running` is false when `serve` has not written
+for 90 seconds, or never did since the system started (`modules` is then
+empty): the modules shown are the last state known, from `updated_at`.
+
+---
+
+## POST /api/system/modules/{id}/restart
+
+Check a module again at once, with its tries counted from zero — the way
+out of `blocked`.
+
+**Auth required:** yes
+
+```json
+{ "requested": "proxy" }
+```
+
+Leaves `<run_dir>/module-restart/<id>` for `serve`, which takes it within a
+second. `404` for an id the last health report does not list.
 
 ---
 

@@ -38,6 +38,14 @@ SIGTERM. When the supervisor finds the marker after the exit, it deletes
 it, resets the counter and starts the WebUI again at once; it also deletes
 a stale marker when it starts.
 
+Next to the WebUI, in the background, the supervisor keeps
+`python3 -m freedomnas serve` running — the module checks (see
+[Orchestrator](orchestrator.md#checks-retries-and-blocked-modules)) — with
+a counter of its own: five failed exits stop that loop and leave the WebUI
+alone, and the WebUI's breaker leaves `serve` alone. `serve` exits with 75
+when the installed modules change; that is not a failure, and it starts
+again at once.
+
 ## Service Management via Profiles
 
 Init-system-specific service commands live in `init/init-{name}.json`

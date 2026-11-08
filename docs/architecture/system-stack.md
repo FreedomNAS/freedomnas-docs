@@ -89,7 +89,7 @@ All three communicate with the core library — never directly with the OS.
 | `engine.py` | Translates abstract actions → OS commands via JSON profiles |
 | `config.py` | YAML configuration manager — shadow copy on ZFS dataset |
 | `reconcile.py` | Diff and apply changes (installer recovery mode, firstboot) |
-| `orchestrator.py` | Module lifecycle, heartbeat bus, circuit breaker |
+| `orchestrator.py` | Module checks for `freedomnas serve`: retries after 10/20/30/60 s, then blocked; `<run_dir>/module-health.json` |
 | `module_loader.py` | Manifest-driven module discovery + registration — see [Orchestrator](orchestrator.md) |
 | `package_manager.py` | Abstract package install/remove via profiles |
 | `tls.py` | FreedomNAS's own CA and the WebUI certificate it signs for the host's names and addresses, checked at every boot |

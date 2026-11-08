@@ -60,9 +60,17 @@ state and the reason for it. Each tile leads to the module's page.
 | Users | every account in the configuration exists on the system | `mario missing from the system` |
 | Updates | its configuration can be read | — |
 
-**Healthy** is green, **Problem** red; **Error** means the module itself
-could not be asked, with the reason. The grid is filled once when the page
-opens, from [`GET /api/system/health`](../api/system.md).
+**Healthy** is green and **Problem** amber: what the module looks after is
+not well, and the tile turns green by itself when it is fixed. A module
+that breaks — it raises an error or does not answer within 5 seconds — is
+tried again after 10, 20, 30 and 60 seconds (**Retrying 1/4** … **4/4**);
+when the fourth try fails too it is **Blocked**, red, with a **Restart
+module** button. **Not loaded** means the module could not be loaded at all.
+
+The checks run in the background, not in the page
+([`GET /api/system/health`](../api/system.md) reads what they found); the
+grid is refreshed every 15 seconds. When they are not running the grid
+says so on top, with the time of the last state it shows.
 
 ## Quick Actions
 

@@ -1,8 +1,9 @@
 # Orchestrator
 
-`orchestrator.py` manages the lifecycle of FreedomNAS pluggable modules.
-It runs a background heartbeat thread that periodically calls `health_check()`
-on every registered module and applies a circuit breaker on repeated failures.
+`orchestrator.py` keeps the FreedomNAS modules checked while the NAS runs:
+`python -m freedomnas serve`, which `supervisor.sh` starts next to the WebUI,
+checks every module, retries one that fails and blocks it when the tries run
+out, and writes what it found for the WebUI.
 
 **Populated by `module_loader.py` (2026-09-02)**, not hand-wired: modules
 live in `modules/<name>/{module.py, manifest.json, __init__.py}` (see
@@ -12,7 +13,8 @@ split), and `ModuleLoader` scans `modules/*/manifest.json`, filters by
 the first real caller of `Orchestrator` — before this refactor it was
 fully defined but never instantiated anywhere. `python -m freedomnas serve`
 builds the engine/config/orchestrator, runs `ModuleLoader.load_all()`, then
-`orchestrator.start_all()` and blocks until `SIGINT`/`SIGTERM`.
+checks the modules until `SIGINT`/`SIGTERM` (see [Checks, retries and
+blocked modules](#checks-retries-and-blocked-modules)).
 
 A community module (its own repo/`.deb`, dropped into `modules/<id>/` at
 install time) is discovered the exact same way, with zero changes to this
@@ -112,35 +114,59 @@ not try to install its package again.
 
 ```python
 class ModuleState(str, Enum):
-    STOPPED | STARTING | RUNNING | FAILED | DISABLED
+    STARTING | HEALTHY | PROBLEM | RETRYING | BLOCKED | FAILED
 
 class FreedomNASModule(ABC):
     @property name: str     # unique module identifier
-    def start() -> None     # idempotent
+    def start() -> None     # idempotent; reads the configuration
     def stop() -> None      # idempotent
-    def health_check() -> bool  # must never raise
+    def health_check() -> bool  # False is a real problem; raising is a failure
     def health() -> tuple[bool, str]  # healthy, and why; default wraps health_check()
     def reconcile(desired: dict, mode: str) -> list[ActionResult]  # default: nothing to do
     def prepare(desired: dict) -> list[ActionResult]  # packages only, before the first boot (installer's chroot); default: nothing
     def links() -> list[dict]  # web pages every account may open (account page); default: none
 
 class Orchestrator:
-    def register(module) -> None
-    def start_all() -> None           # starts modules in registration order, then heartbeat
-    def stop_all() -> None            # stops heartbeat, then modules in reverse order
-    def start_module(name) -> None
-    def stop_module(name) -> None
-    def restart_module(name) -> None  # resets failure_count, re-enables DISABLED modules
-    def get_status() -> Dict[str, ModuleStatus]
-    def get_module_status(name) -> ModuleStatus
-    def list_modules() -> List[str]
+    def register(module, module_id=None, name=None) -> None  # id and name from the manifest
+    def mark_failed(module_id, reason) -> None  # a module that could not be loaded
+    def keep_blocked() -> None        # modules the last serve left blocked stay blocked
+    def start_all() -> None           # every module due for a check now
+    def check_due() -> list[str]      # check the modules whose time has come
+    def take_restart_requests() -> list[str]  # <run>/module-restart/<id>, from the WebUI
+    def write() -> None               # <run>/module-health.json
+    def stop_all() -> None
 ```
 
-## Circuit Breaker
+## Checks, retries and blocked modules
 
-- `MAX_FAILURES = 5` — consecutive `health_check()` failures trigger `DISABLED` state
-- `HEARTBEAT_INTERVAL = 30` seconds between checks
-- `restart_module()` resets the counter and re-enables a `DISABLED` module
+`serve` loops about once a second. A module is checked every
+`CHECK_INTERVAL` (30) seconds: `start()`, which reads the configuration
+again, and `health()`, together within `CHECK_TIMEOUT` (5) seconds, in a
+thread of their own.
+
+| State | When | Next |
+|-------|------|------|
+| `healthy` | `health()` said yes | checked again in 30 s |
+| `problem` | `health()` said no: a degraded pool, a broken disk, a service down | shown, checked again in 30 s; never blocks the module and turns `healthy` by itself |
+| `retrying` | the module raised, or did not answer within 5 s | `stop()` and `start()` again after 10, 20, 30, then 60 s (`RETRY_DELAYS`), about 2 minutes in all |
+| `blocked` | the fourth try failed too | not checked any more until a restart is asked for (**Restart module** on the dashboard) |
+| `failed` | the module could not be loaded (manifest, import, constructor, profile fragment) | never checked |
+
+A restart request is a file named after the module in
+`<run_dir>/module-restart/` (`POST /api/system/modules/{id}/restart` writes
+it): the module is checked again at once, with its tries counted from zero.
+
+The state is written to `<run_dir>/module-health.json` (`run_dir` comes
+from the OS profile: `/run/freedomnas`, `/var/run/freedomnas` on FreeBSD)
+whenever a module was checked and at least every 10 seconds. A module
+blocked there stays blocked when `serve` starts again. `serve` reads the
+configuration again when `config.yaml` changes, exits with 75 when the set
+of installed modules changes so that `supervisor.sh` starts it again with
+the new one, and refuses to start while another `serve` holds
+`<run_dir>/serve.lock`.
+
+The reconciler does not look at this state: a blocked module is still
+reconciled at boot and reports its own errors.
 
 ## Pluggable Modules
 
@@ -157,10 +183,8 @@ its `health_check()` is `health()[0]`.
 
 ## Dashboard Integration
 
-`python -m freedomnas serve` is not started on an appliance: `supervisor.sh`
-runs the WebUI only. The dashboard therefore does not read the
-orchestrator's state. [`GET /api/system/health`](../api/system.md) takes
-`ModuleLoader.instances()` — every module this edition supports, community
-ones included, instantiated but not registered — starts each, asks
-`health()` and drops it; the dashboard draws one tile per module with its
-state and reason when the page opens.
+The WebUI checks nothing itself. [`GET /api/system/health`](../api/system.md)
+returns `module-health.json` as `serve` last wrote it, with
+`monitor.running` false when the file is older than 90 seconds or missing;
+the dashboard then says that module checks are not running and shows the
+last state known with its time. It reloads the tiles every 15 seconds.

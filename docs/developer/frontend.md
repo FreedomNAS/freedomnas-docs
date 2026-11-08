@@ -190,8 +190,9 @@ Loads in parallel on `DOMContentLoaded`:
 
 1. `GET /api/system/info` → hostname, edition, uptime, timezone cards
 2. `GET /api/updates/status` → update-count badge
-3. `GET /api/system/health` → one card per module this edition supports,
-   with its state and detail line
+3. `GET /api/system/health` → one card per module, with its state and
+   detail line, every 15 s; a notice when the checks are not running, and
+   **Restart module** on a blocked one (`POST /api/system/modules/{id}/restart`)
 4. `GET /api/system/boot` → a notice when the system fell back to the
    previous kernel or snapshot, dismissed with `POST /api/system/boot/forget`
 
