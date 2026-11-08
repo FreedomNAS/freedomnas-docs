@@ -154,6 +154,23 @@ compared against `users.list_groups` (`id -nG`). `root` always passes. The
 same check guards the updates WebSocket, which runs a system update as the
 caller. Wrong password gives 401, right password without the group gives 403.
 
+### Groups that give root's power
+
+`docker` (the daemon's socket) and `libvirt` (the hypervisor) let their
+members do anything root can. They are the `admin_groups` of the containers
+and virtualization package categories, and only administrators are in them:
+
+- the administrator role adds them and taking it takes them all
+  (`POST /api/users/{target}/admin`); a configuration entry does not name
+  them, they come from `admin: true`;
+- `POST /api/users` answers `422` when an account that is not an
+  administrator asks for one;
+- the reconciler takes every account of the configuration that is not an
+  administrator out of them, with a warning in the log. Accounts that are
+  not in the configuration (a CI runner's own user) are left alone;
+- the virtual machines module puts the administrator who set it up in
+  `libvirt` at once, and nobody else.
+
 The one exception is `/api/account/*`, what an account sees and does for
 itself (`authenticate_account()`: PAM only): its own details, the shares it
 may use, the web pages of the NAS and its own password. The WebUI sends an

@@ -403,7 +403,9 @@ class ConfigurationManager:
   `add_user()` (`normalize_user`) any edition's `users.sudo_group` — every
   `users/users-*.json`, `known_admin_groups()` — is removed from `groups`
   and turns into `admin: true`, so a file written on Debian (`sudo`) reads
-  the same on Gentoo (`wheel`)
+  the same on Gentoo (`wheel`). An administrator's `groups` also lose the
+  groups that come with the role (`admin_groups` of every package category,
+  `known_reserved_groups()`: `docker`, `libvirt`)
 - Every save stamps `system.saved_at` (UTC)
 - Validation runs on both load and save; raises `ConfigurationException` on
   type or structure errors
