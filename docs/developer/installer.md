@@ -122,11 +122,11 @@ otherwise):
 
 | Edition | Repository | Channel |
 |---------|------------|---------|
-| Debian | Codeberg's Debian registry, `trixie` | component `main` / `dev` |
-| Arch, Artix | `[freedomnas]`, freedomnas-arch in Codeberg's generic registry, key pinned by fingerprint | `.../freedomnas-arch/main` / `dev` |
-| Void | freedomnas-void in Codeberg's generic registry (`xbps.d`) | `.../freedomnas-void/main` / `dev` |
+| Debian | freedomnas-deb's GitHub releases, a flat APT repository | `apt-main` / `apt-dev` |
+| Arch, Artix | `[freedomnas]`, freedomnas-arch's GitHub releases, key pinned by fingerprint | `pacman-main` / `pacman-dev` |
+| Void | freedomnas-void's GitHub releases (`xbps.d`), its key written to `/var/db/xbps/keys` | `xbps-main` / `xbps-dev` |
 | Gentoo | the freedomnas overlay (`app-nas/freedomnas-*`) | `main`: the release ebuilds, `~amd64`; `dev`: the `9999` ebuilds, `**` — written to `package.accept_keywords/freedomnas-channel` |
-| FreeBSD | freedomnas-freebsd in Codeberg's generic registry, a signed pkg catalogue; the public key is in the profile (`files.pkg_repo_key`) | `.../freedomnas-freebsd/${VERSION_MAJOR}-main` / `-dev`, expanded by pkg |
+| FreeBSD | freedomnas-freebsd's GitHub releases, a signed pkg catalogue; the public key is in the profile (`files.pkg_repo_key`) | `pkg-${VERSION_MAJOR}-main` / `-dev`, expanded by pkg |
 
 On Gentoo the second keyword line, `*/*::freedomnas ~amd64`, accepts the
 MkDocs packages `freedomnas-docs` is built with: the documentation is

@@ -124,7 +124,7 @@ pm.get_services_for_os("samba-cifs", "debian")   # → ["smbd", "nmbd"]
 pm.get_services_for_os("samba-cifs", "artix", "dinit")  # → ["smbd", "nmbd", "winbindd"]
 pm.get_early_services_for_os("core", "gentoo")          # → ["zfs-import", "zfs-mount"]
 pm.get_pkgbuilds_for_os("core", "artix", "dinit")
-# → [{"name": "zfs-dinit", "git": "https://codeberg.org/sarahmeow86/zfs-dinit.git"}]
+# → [{"name": "zfs-dinit", "git": "https://github.com/sarahmeow86/zfs-dinit.git"}]
 pm.get_admin_groups_for_os("containers", "artix")       # → ["docker"]
 pm.get_config_paths("samba-cifs", "debian")       # → ["/etc/samba/smb.conf", ...]
 

@@ -404,8 +404,8 @@ On Debian 13 (trixie), one package sets up the FreedomNAS repository and its
 signing key, so nothing has to be typed by hand but these lines:
 
 ```bash
-curl -LO https://codeberg.org/api/packages/FreedomNAS/debian/pool/trixie/main/freedomnas-repository_1.0_all.deb
-sudo apt install ./freedomnas-repository_1.0_all.deb
+curl -LO https://github.com/FreedomNAS/freedomnas-deb/releases/download/apt-main/freedomnas-repository_1.2_all.deb
+sudo apt install ./freedomnas-repository_1.2_all.deb
 sudo apt update
 sudo apt install freedomnas-installer
 sudo freedomnas-install --mode inplace

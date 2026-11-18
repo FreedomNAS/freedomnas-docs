@@ -109,7 +109,7 @@ with `["system"]`; a hand-edited file was left as it was.
     | Arch, Artix | `topgrade-bin` from the FreedomNAS pacman repository, built by freedomnas-arch from the same binary — not in the official repositories |
     | Void | `topgrade`, in the distribution |
     | Gentoo | `app-admin/topgrade-bin` in freedomnas-overlay, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
-    | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://codeberg.org/FreedomNAS/freedomnas-deb) and published to Codeberg's Debian registry, which `repositories.core` adds to the target's sources |
+    | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://github.com/FreedomNAS/freedomnas-deb) and published in that repository's GitHub releases, which `repositories.core` adds to the target's sources |
     | FreeBSD | `sysutils/topgrade`, in FreeBSD's own repository |
 
     Every edition's package list installs topgrade (`packages/core.json`),

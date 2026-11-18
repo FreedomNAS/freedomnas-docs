@@ -8,7 +8,7 @@ counterpart to the Gentoo edition profiles: the profiles tell the installer
 ## Adding the overlay
 
 ```sh
-eselect repository add freedomnas git https://codeberg.org/FreedomNAS/freedomnas-overlay.git
+eselect repository add freedomnas git https://github.com/FreedomNAS/freedomnas-overlay.git
 emaint sync --repo freedomnas
 ```
 
@@ -18,7 +18,7 @@ Or by hand, in `/etc/portage/repos.conf/freedomnas.conf`:
 [freedomnas]
 location = /var/db/repos/freedomnas
 sync-type = git
-sync-uri = https://codeberg.org/FreedomNAS/freedomnas-overlay.git
+sync-uri = https://github.com/FreedomNAS/freedomnas-overlay.git
 auto-sync = yes
 masters = gentoo
 ```

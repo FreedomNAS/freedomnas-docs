@@ -12,10 +12,10 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
 ├── pages                    Public project website (static HTML + CSS), at freedomnas.codeberg.page
-├── freedomnas-deb           .deb packages, published to Codeberg's Debian registry by CI
-├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to Codeberg's Arch registry
+├── freedomnas-deb           .deb packages, a signed APT repository in its GitHub releases
+├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to its GitHub releases
 ├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
-├── freedomnas-void          FreedomNAS packages for Void, OpenZFS modules for Void's own kernel and the Samba configuration, a signed xbps repository built on Codeberg's hosted runners
+├── freedomnas-void          FreedomNAS packages for Void, OpenZFS modules for Void's own kernel and the Samba configuration, a signed xbps repository in its GitHub releases
 ├── freedomnas-freebsd       FreeBSD pkg repository (built with pkg create, signed catalogue)
 ├── freedomnas-module-template Starting point for a community module
 ├── freedomnas-containers    Containers community module (package freedomnas-module-containers)
@@ -56,10 +56,11 @@ has a repository of its own: Arch's `linux-lts` with the OpenZFS modules
 built into the same package, plus `zfs-utils-freedomnas` at the matching
 version, so the Arch and Artix editions run without DKMS the way Proxmox
 does; freedomnas-arch's workflow clones it. freedomnas-arch publishes a
-signed pacman repository of its own to Codeberg's generic registry
-(`.../generic/freedomnas-arch/<dev|main>`), built with `repo-add`: Codeberg's
-Arch registry cuts each package's file list at 65535 bytes inside the `.db`,
-and the kernel's longer list made pacman reject the whole repository. The module template keeps its own PKGBUILD, since a module author
+signed pacman repository of its own in its GitHub releases
+(`pacman-<dev|main>`), built with `repo-add`. A pacman repository of our own
+dates from Codeberg, whose Arch registry cut each package's file list at
+65535 bytes inside the `.db`, so the kernel's longer list made pacman reject
+the whole repository. The module template keeps its own PKGBUILD, since a module author
 copies it with the rest of the scaffolding.
 
 `pages` is the website and has to carry that name for Codeberg Pages to

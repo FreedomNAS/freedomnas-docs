@@ -20,33 +20,35 @@ WebUI has the documentation of its own version at `/docs/`.
 
 | Format | Repository | Built by | Published to |
 |--------|------------|----------|--------------|
-| `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | Codeberg's Debian registry |
-| Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | a signed pacman repository in Codeberg's generic registry, `freedomnas-arch/<dev\|main>` (see [Repositories](repositories.md)) |
-| Void (FreedomNAS, ZFS modules, Samba configuration) | freedomnas-void | `bin/build-freedomnas.sh` in a Void container for the FreedomNAS components; `bin/build-kmod.sh`, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in Codeberg's generic registry |
-| FreeBSD `pkg` | freedomnas-freebsd | `ci/build-in-vm.sh`: `bin/build-freedomnas-pkgs.sh` inside FreeBSD's own VM image under QEMU, staging directories handed to `pkg create`; the ports under `ports/` (Pi-hole: `dns/pihole-ftl`, `dns/pihole`) by `bin/build-ports.sh`, against a sparse checkout of the ports tree on the FreeBSD repository's quarterly branch, with their dependencies installed as packages; then a flat catalogue signed by `pkg repo` | a signed pkg repository in Codeberg's generic registry, `freedomnas-freebsd/<major>-<main\|dev>` |
+| `.deb` | freedomnas-deb | `bin/build-freedomnas-debs.sh` from each component's `debian/` | a flat, signed APT repository in freedomnas-deb's GitHub releases, `apt-<dev\|main>` |
+| Arch / Artix | freedomnas-arch | `bin/build.sh` in an Arch container, PKGBUILDs cloning the components at a branch | a signed pacman repository in freedomnas-arch's GitHub releases, `pacman-<dev\|main>` (see [Repositories](repositories.md)) |
+| Void (FreedomNAS, ZFS modules, Samba configuration) | freedomnas-void | `bin/build-freedomnas.sh` in a Void container for the FreedomNAS components; `bin/build-kmod.sh`, Void's `zfs` DKMS source against Void's kernel; `bin/build-samba-conf.sh` | a signed xbps repository in freedomnas-void's GitHub releases, `xbps-<dev\|main>` |
+| FreeBSD `pkg` | freedomnas-freebsd | `ci/build-in-vm.sh`: `bin/build-freedomnas-pkgs.sh` inside FreeBSD's own VM image under QEMU, staging directories handed to `pkg create`; the ports under `ports/` (Pi-hole: `dns/pihole-ftl`, `dns/pihole`) by `bin/build-ports.sh`, against a sparse checkout of the ports tree on the FreeBSD repository's quarterly branch, with their dependencies installed as packages; then a flat catalogue signed by `pkg repo` | a signed pkg repository in freedomnas-freebsd's GitHub releases, `pkg-<major>-<main\|dev>` |
 | Gentoo | freedomnas-overlay | release ebuilds (`X.Y.Z`, the tag's archive tarball, `~amd64`) and live `9999` ebuilds tracking `dev`; one file serves both | the overlay itself |
 | Images, live ISOs | freedomnas-image-builder | every image by `common/vm-install.sh`: the installer in image mode inside the live ISO under QEMU; `common/install-core.sh` puts FreedomNAS from the sibling checkouts into the live ISOs | release downloads on the GitHub showcase |
 | Installer copy | freedomnas-installer | `lib/core_installer.py`, from the installed layout or the checkouts | — |
 
-The Debian, Arch and FreeBSD registries are filled by Forgejo workflows
-(`publish-packages.yml` in each repository), with the organisation's
-`PACKAGE_REGISTRY_USER` and `PACKAGE_REGISTRY_TOKEN`. On Debian and Arch the
-FreedomNAS packages and the community modules are built on Codeberg's own
-runners (`codeberg-medium`), so they are published even when the
-self-hosted runner is off; a small `kernel-check` job on `codeberg-tiny-lazy`
-looks for the kernel's version in the registry, and only a missing kernel is
-built on the self-hosted runner (`runs-on: docker`), where its ccache lives
-(on Arch after the packages job, since both rewrite the pacman database).
-Void is built entirely on Codeberg's runners: `publish-freedomnas.yml` for
-the FreedomNAS packages (on push and nightly), `publish-kmod.yml` for the
-modules and the Samba configuration. The
-FreeBSD one runs on the host like build-images (QEMU needs KVM), needs
-freedomnas-image-builder's FreeBSD driver checked out beside it, and signs
-with the `FREEBSD_SIGNING_KEY` secret; its public key is
+Every package repository is kept as the assets of GitHub releases, filled
+by GitHub Actions workflows in its own repository (ADR-003 in
+freedomnas-specs; the Forgejo workflows are switched off). Each component's
+`notify-packages` workflow sends a `repository_dispatch` to freedomnas-deb,
+-arch, -void and -freebsd on every push to `dev` or `main` and on every
+`vX.Y.Z` tag; their `gather-pushes` workflow waits until ten minutes pass
+without a push and then starts one build per channel, so a burst of pushes
+to several repositories makes a single build (see freedomnas-deb's
+`docs/ci-setup.md`). Each also runs on a schedule as a safety net. On Debian
+and Arch a small `kernel-check` job looks for the kernel's version in the
+release, and only a missing kernel is built, with its ccache kept by
+`actions/cache`; a final `publish` job writes the release once, with what
+the build jobs produced. Void builds `publish-freedomnas.yml` for the
+FreedomNAS packages and `publish-kmod.yml` (hourly) for the modules and the
+Samba configuration. FreeBSD builds inside FreeBSD's VM image under QEMU with
+KVM, with freedomnas-builder's FreeBSD driver checked out beside it, and
+signs with the `FREEBSD_SIGNING_KEY` secret; its public key is
 `freedomnas-freebsd/keys/freedomnas.pub`, also written by
 `installer-freebsd.json`. Releases: `ref: main` builds the newest `vX.Y.Z`
-tag into `15-main`; dev runs (also nightly) build snapshots,
-`X.Y.Z.<commit stamp>`, into `15-dev`. On Gentoo the overlay's nightly
+tag into `pkg-15-main`; dev runs build snapshots,
+`X.Y.Z.<commit stamp>`, into `pkg-15-dev`. On Gentoo the overlay's nightly
 `autobump` workflow adds the `X.Y.Z` ebuilds and their Manifest to `main`, its
 only branch, once the `vX.Y.Z` tags exist (see its README); run it by hand
 from the overlay's Actions tab to have them right away.
@@ -349,13 +351,12 @@ DKMS, the dracut module and a runit `zed` service), and runit-void's
 `03-filesystems.sh` already imports and mounts the pools at boot. What is
 avoided is DKMS on the NAS, which would bring `gcc` and the kernel headers
 and recompile at every kernel update.
-[freedomnas-void](https://codeberg.org/FreedomNAS/freedomnas-void) builds the
-module once per kernel, in a Void container on Codeberg's hosted runners
-(an hourly `codeberg-tiny-lazy` check, a `codeberg-medium` build of about
-three minutes only when a module is missing), and publishes
+[freedomnas-void](https://github.com/FreedomNAS/freedomnas-void) builds the
+module once per kernel, in a Void container on GitHub's runners (an hourly
+check, and a build of about three minutes only when a module is missing), and publishes
 `<series>-zfs` (e.g. `linux6.18-zfs-6.18.54.1.2.4.4.1_2`, the last field
 being the repository's `revision`) to
-`.../generic/freedomnas-void/<dev|main>`, signed with `xbps-rindex`. After
+the releases `xbps-dev` and `xbps-main`, signed with `xbps-rindex`. After
 installing the modules the package runs the kernel's hooks in
 `/etc/kernel.d/post-install/` again, because `zfs` and, on an update, the
 kernel build their images before it is configured: the initramfs on plain

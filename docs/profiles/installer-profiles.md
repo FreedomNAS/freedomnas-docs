@@ -228,9 +228,9 @@ ordinary entries of `packages` under `init.<name>`:
 
 | Init | Package | Built from | Services it provides |
 |------|---------|------------|----------------------|
-| OpenRC | `zfs-openrc` | `https://codeberg.org/sarahmeow86/zfs-openrc` | `zfs-import`, `zfs-mount`, `zfs-load-key`, `zfs-share`, `zfs-zed` |
-| dinit | `zfs-dinit` | `https://codeberg.org/sarahmeow86/zfs-dinit` | `zfs-mount`, `zfs-zvol`, `zfs-share`, `zed` |
-| runit | `zfs-runit` | `https://codeberg.org/sarahmeow86/zfs-dinit` | the sysinit step, `zed`, `zfs-share` |
+| OpenRC | `zfs-openrc` | `https://github.com/sarahmeow86/zfs-openrc` | `zfs-import`, `zfs-mount`, `zfs-load-key`, `zfs-share`, `zfs-zed` |
+| dinit | `zfs-dinit` | `https://github.com/sarahmeow86/zfs-dinit` | `zfs-mount`, `zfs-zvol`, `zfs-share`, `zed` |
+| runit | `zfs-runit` | `https://github.com/sarahmeow86/zfs-dinit` | the sysinit step, `zed`, `zfs-share` |
 
 `makepkg` refuses to run as root, so the sequence installs `git` and
 `base-devel`, creates a `freedomnas-build` system user, clones and builds as
