@@ -47,7 +47,7 @@ init.
 `freedomnas-arch` holds the Arch PKGBUILDs of FreedomNAS's components
 (core, profiles, webui, installer, docs), which used to sit in their own
 repositories and now build from a branch with snapshot versions
-(`0.9.12+<commit date and time>.<commit>`), of the two community modules
+(`0.9.20+<commit date and time>.<commit>`), of the two community modules
 (`freedomnas-module-containers`, `freedomnas-module-proxy`) and of the
 binaries the official repositories lack (`caddy-bin`, `lego-bin`,
 `topgrade-bin`), and the scripts

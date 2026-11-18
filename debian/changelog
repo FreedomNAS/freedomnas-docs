@@ -1,3 +1,13 @@
+freedomnas-docs (0.9.20-1) unstable; urgency=medium
+
+  * Community modules, the containers and reverse proxy modules, and the
+    Plugins page documented
+  * Restore, group shares, accounts, certificates, snapshot schedules,
+    pkgbase and boot environments documented
+  * Quick start in plain words for first-time users
+
+ -- FreedomNAS Team <dev@freedomnas.io>  Wed, 18 Nov 2026 17:28:25 +0000
+
 freedomnas-docs (0.9.12-1) unstable; urgency=medium
 
   * UKI backup, automatic rollback, verbose installer and the editions'
