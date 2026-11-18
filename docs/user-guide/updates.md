@@ -149,6 +149,22 @@ Gentoo appends its own section, because Portage's default flags would stop
 at a prompt. If nobody has saved a configuration yet, the first update run
 writes one with all three steps.
 
+## Arch and Artix machines installed before November 2026
+
+Machines installed before 0.9.20 fetch the FreedomNAS packages from
+Codeberg, with a key that is no longer used, so their updates stop. Run once,
+as root:
+
+```
+curl -fLo /tmp/freedomnas-keyring.pkg.tar.zst https://github.com/FreedomNAS/freedomnas-arch/releases/download/pacman-main/freedomnas-keyring.pkg.tar.zst
+pacman -U /tmp/freedomnas-keyring.pkg.tar.zst
+pacman -Syu
+```
+
+The package keeps the channel the machine was on (`main` or `dev`), adds the
+new key and points `[freedomnas]` in `/etc/pacman.conf` at GitHub. Later
+changes of key or address arrive as normal updates.
+
 ## Terminal
 
 The terminal panel shows the live output of Topgrade. Each line is

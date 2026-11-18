@@ -123,7 +123,7 @@ otherwise):
 | Edition | Repository | Channel |
 |---------|------------|---------|
 | Debian | freedomnas-deb's GitHub releases, a flat APT repository | `apt-main` / `apt-dev` |
-| Arch, Artix | `[freedomnas]`, freedomnas-arch's GitHub releases, key pinned by fingerprint | `pacman-main` / `pacman-dev` |
+| Arch, Artix | `[freedomnas]` reading `/etc/pacman.d/freedomnas-mirrorlist`, freedomnas-arch's GitHub releases; key and section come from `freedomnas-keyring` | `pacman-main` / `pacman-dev` |
 | Void | freedomnas-void's GitHub releases (`xbps.d`), its key written to `/var/db/xbps/keys` | `xbps-main` / `xbps-dev` |
 | Gentoo | the freedomnas overlay (`app-nas/freedomnas-*`) | `main`: the release ebuilds, `~amd64`; `dev`: the `9999` ebuilds, `**` — written to `package.accept_keywords/freedomnas-channel` |
 | FreeBSD | freedomnas-freebsd's GitHub releases, a signed pkg catalogue; the public key is in the profile (`files.pkg_repo_key`) | `pkg-${VERSION_MAJOR}-main` / `-dev`, expanded by pkg |

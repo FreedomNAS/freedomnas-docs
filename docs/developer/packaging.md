@@ -262,6 +262,19 @@ twice with different `Signed-By` keys). The key's SHA-256 is recorded in
 freedomnas-deb's `checksums/repository-key.sha256`; a build with a
 different key fails until that file is replaced and the version raised.
 
+`freedomnas-keyring` (freedomnas-arch) does the same for Arch and Artix. It
+installs the repository key under `/usr/share/pacman/keyrings` and runs
+`pacman-key --populate freedomnas`, writes
+`/etc/pacman.d/freedomnas-mirrorlist` with the GitHub server of the channel
+already in use (read from that file, or from the `[freedomnas]` section, old
+Codeberg addresses included; `main` when there is none), and rewrites
+`[freedomnas]` in `/etc/pacman.conf` to `Include` it. A new key or address
+is a new version of the package, which `pacman -Syu` brings. Each release
+also holds a copy named `freedomnas-keyring.pkg.tar.zst`, the fixed name the
+installer downloads and installs with `pacman -U` from a local file:
+`LocalFileSigLevel = Optional` lets pacman install it before any FreedomNAS
+key is trusted, so the trust comes from HTTPS to github.com.
+
 The `freedomnas-profiles` package also installs
 `/etc/sudoers.d/freedomnas-debconf` (`Defaults env_keep += "DEBIAN_FRONTEND"`),
 so the `DEBIAN_FRONTEND=noninteractive` that `updates.run_topgrade` sets on
