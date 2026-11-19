@@ -7,9 +7,9 @@ Build-Depends: debhelper-compat (= 13),
  mkdocs,
  mkdocs-material,
  python3-pymdownx
-Homepage: https://codeberg.org/FreedomNAS/freedomnas-docs
-Vcs-Browser: https://codeberg.org/FreedomNAS/freedomnas-docs
-Vcs-Git: https://codeberg.org/FreedomNAS/freedomnas-docs.git
+Homepage: https://github.com/FreedomNAS/freedomnas-docs
+Vcs-Browser: https://github.com/FreedomNAS/freedomnas-docs
+Vcs-Git: https://github.com/FreedomNAS/freedomnas-docs.git
 
 Package: freedomnas-docs
 Architecture: all

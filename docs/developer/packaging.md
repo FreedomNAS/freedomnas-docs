@@ -313,7 +313,7 @@ built by freedomnas-docs' own workflow from `requirements.txt`, which pins
 Arch, Artix and Debian run their own kernel with the OpenZFS modules built in,
 the way Proxmox ships its kernels, instead of building `zfs.ko` with DKMS on
 the NAS: a DKMS build that fails once leaves a NAS that cannot import its
-pool. [linux-freedomnas](https://codeberg.org/FreedomNAS/linux-freedomnas) is
+pool. [linux-freedomnas](https://github.com/FreedomNAS/linux-freedomnas) is
 Arch's `linux-lts` plus OpenZFS compiled against it, split into
 `linux-freedomnas`, `linux-freedomnas-headers` and `zfs-utils-freedomnas`;
 the kernel depends on the userspace of its own build, so pacman never pairs
