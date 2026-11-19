@@ -1,39 +1,44 @@
-# Git & Codeberg
+# Git & GitHub
+
+FreedomNAS lives in the GitHub organization
+[FreedomNAS](https://github.com/FreedomNAS): sources, issues, CI (GitHub
+Actions on hosted runners), the package repositories (release assets of
+freedomnas-deb, freedomnas-arch, freedomnas-void and freedomnas-freebsd),
+the images (freedomnas-image) and the website and documentation (GitHub
+Pages). Codeberg, where the project started, is no longer used.
 
 ## Remote URLs
 
 All remotes use SSH, not HTTPS:
 
 ```
-git@codeberg.org:FreedomNAS/freedomnas-core.git
-git@codeberg.org:FreedomNAS/freedomnas-profiles.git
-git@codeberg.org:FreedomNAS/freedomnas-installer.git
-git@codeberg.org:FreedomNAS/freedomnas-webui.git
-git@codeberg.org:FreedomNAS/freedomnas-docs.git
+git@github.com:FreedomNAS/freedomnas-core.git
+git@github.com:FreedomNAS/freedomnas-profiles.git
+git@github.com:FreedomNAS/freedomnas-installer.git
+git@github.com:FreedomNAS/freedomnas-webui.git
+git@github.com:FreedomNAS/freedomnas-docs.git
 ```
 
-## SSH Key
+The image builder is `freedomnas-builder` on GitHub (its checkout is still
+called `freedomnas-image-builder`, the name the build scripts look for next
+to the other repositories), and the website is `freedomnas.github.io`.
 
-The SSH key for Codeberg is `~/.ssh/codeberg-nas`.
+## CI
 
-SSH config (`~/.ssh/config`):
+| Workflow | Where | What |
+|----------|-------|------|
+| `tests` | core, webui | the test suites, on every push and pull request |
+| `notify-packages` | every component | tells the four package repositories; they build once, ten minutes after the last push |
+| `notify-image-builder` | core, profiles, webui | a push to `main` asks freedomnas-image for the release images |
+| `follow-lts` | linux-freedomnas | every night, the newest LTS kernel OpenZFS supports |
+| `autobump` | freedomnas-overlay | every night, the overlay's ebuilds on their upstream's newest version |
+| `pages` | freedomnas-docs, freedomnas.github.io | the documentation and the website |
 
-```
-Host codeberg.org
-  IdentityFile ~/.ssh/codeberg-nas
-```
-
-## Push Command (CachyOS)
-
-On CachyOS, there is no interactive TTY for SSH key passphrase entry.
-Use the X11 askpass helper:
-
-```bash
-DISPLAY=:0 \
-SSH_ASKPASS=/usr/lib/ssh/x11-ssh-askpass \
-SSH_ASKPASS_REQUIRE=force \
-bash -c 'eval "$(ssh-agent -s)" && ssh-add ~/.ssh/codeberg-nas && git push'
-```
+The organization secret `PACKAGES_DISPATCH_TOKEN` carries the dispatches
+from one repository to another; everything else uses each run's own
+`GITHUB_TOKEN`. The signing keys are organization secrets too
+(`APT_SIGNING_KEY`, `ARCH_SIGNING_KEY`, `VOID_SIGNING_KEY`,
+`FREEBSD_SIGNING_KEY`).
 
 ## Commit Conventions
 

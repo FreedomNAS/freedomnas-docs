@@ -128,7 +128,7 @@ nav:
     - ZFS Best Practices: developer/zfs.md
     - WebUI Development: developer/webui.md
     - Frontend JS Modules: developer/frontend.md
-    - Git & Codeberg: developer/git.md
+    - Git & GitHub: developer/git.md
     - AI Assistant Constraints: developer/ai-constraints.md
     - Open Items: developer/open-items.md
 
