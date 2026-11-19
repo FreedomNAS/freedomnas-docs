@@ -29,7 +29,7 @@ to the other repositories), and the website is `freedomnas.github.io`.
 |----------|-------|------|
 | `tests` | core, webui | the test suites, on every push and pull request |
 | `notify-packages` | every component | tells the four package repositories; they build once, ten minutes after the last push |
-| `notify-image-builder` | core, profiles, webui | a push to `main` asks freedomnas-image for the release images |
+| `build-images` | freedomnas-image | the `dev` images every Monday; the release images once per tag, started by `release-check` when the four package repositories have published that version |
 | `follow-lts` | linux-freedomnas | every night, the newest LTS kernel OpenZFS supports |
 | `autobump` | freedomnas-overlay | every night, the overlay's ebuilds on their upstream's newest version |
 | `pages` | freedomnas-docs, freedomnas.github.io | the documentation and the website |
