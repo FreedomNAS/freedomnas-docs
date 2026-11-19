@@ -11,7 +11,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-webui         FastAPI WebUI + Jinja2 frontend
 ├── freedomnas-overlay       Gentoo ebuilds (app-nas category)
 ├── freedomnas-docs          This documentation site
-├── pages                    Public project website (static HTML + CSS), at freedomnas.codeberg.page
+├── freedomnas.github.io     Public project website (static HTML + CSS), at freedomnas.github.io
 ├── freedomnas-deb           .deb packages, a signed APT repository in its GitHub releases
 ├── freedomnas-arch          Arch/Artix PKGBUILDs and the scripts that publish them to its GitHub releases
 ├── linux-freedomnas         Arch/Artix kernel with the OpenZFS modules built in
@@ -63,11 +63,11 @@ dates from Codeberg, whose Arch registry cut each package's file list at
 the whole repository. The module template keeps its own PKGBUILD, since a module author
 copies it with the rest of the scaffolding.
 
-`pages` is the website and has to carry that name for Codeberg Pages to
-serve it at the root of <https://freedomnas.codeberg.page/>. Both it and
-this documentation publish themselves on every push to `dev`: a workflow on
-the self-hosted runner hands the files to `git-pages/action`, and the
-documentation lands at <https://freedomnas.codeberg.page/freedomnas-docs/>.
+`freedomnas.github.io` is the website and has to carry that name for GitHub
+Pages to serve it at the root of <https://freedomnas.github.io/>. Both it and
+this documentation publish themselves on every push to `dev` with GitHub's
+Pages actions, and the documentation lands at
+<https://freedomnas.github.io/freedomnas-docs/>.
 
 `freedomnas-image-builder` produces the primary install path (ADR-002).
 `freedomnas-installer` is the secondary one, for hardware that can't be

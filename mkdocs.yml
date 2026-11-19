@@ -1,10 +1,10 @@
 site_name: FreedomNAS Documentation
 site_description: Software-Defined Storage Appliance — OS-agnostic NAS platform
 site_author: FreedomNAS Contributors
-site_url: https://freedomnas.codeberg.page/freedomnas-docs/
+site_url: https://freedomnas.github.io/freedomnas-docs/
 
 repo_name: FreedomNAS
-repo_url: https://codeberg.org/FreedomNAS
+repo_url: https://github.com/FreedomNAS
 
 theme:
   name: material
@@ -138,6 +138,6 @@ plugins:
 extra:
   freedomnas_version: !ENV [FREEDOMNAS_DOCS_VERSION, "dev"]
   social:
-    - icon: fontawesome/brands/git-alt
-      link: https://codeberg.org/FreedomNAS
-      name: FreedomNAS on Codeberg
+    - icon: fontawesome/brands/github
+      link: https://github.com/FreedomNAS
+      name: FreedomNAS on GitHub

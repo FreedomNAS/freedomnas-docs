@@ -304,7 +304,7 @@ at build time or when a page is read.
 | Gentoo | `dev-python/zensical` from freedomnas-overlay (MkDocs' successor by the Material authors, which reads the same `mkdocs.yml`; MkDocs left `::gentoo`) |
 | Images | `mkdocs` if the build host has it, otherwise the pinned `requirements.txt` in a throwaway virtualenv, otherwise a prebuilt `site/` |
 
-The public copy at <https://freedomnas.codeberg.page/freedomnas-docs/> is
+The public copy at <https://freedomnas.github.io/freedomnas-docs/> is
 built by freedomnas-docs' own workflow from `requirements.txt`, which pins
 `mkdocs<2`: MkDocs 2.0 breaks Material's plugins and themes.
 
