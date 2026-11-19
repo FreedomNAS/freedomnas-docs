@@ -71,21 +71,17 @@ against OpenSSL 4 (`SSL_get_peer_addr()`): a release with them needs
 `security/openssl40` and `www/libnghttp3` in `dns/pihole-ftl`'s
 `LIB_DEPENDS`, base's OpenSSL 3.5 builds it without both.
 
-### Registry quota
+### Old versions
 
-Codeberg gives the organisation 1.5 GB for packages, and a kernel with its
-headers takes about 245 MB on Arch and 305 MB on Debian (its modules carry
-about six times the BTF, for reasons not yet found). After publishing, each
-workflow runs `bin/prune-registry.py`, which deletes superseded versions:
+Each publish deletes what the repository no longer needs:
 
-| Registry | Kept |
-|----------|------|
-| Debian | the 2 newest versions of every package, and the 2 newest kernels (`linux-image-<kver>` with its headers) |
-| Arch | the newest version of every package: pacman installs nothing else, and the rolling editions have no use for an older kernel |
+| Repository | Kept |
+|------------|------|
+| Debian | the 2 newest snapshots and the 2 newest releases of every package, and the 2 newest kernels with their headers (`KEEP` in `bin/publish-github.py`) |
+| Arch, Void, FreeBSD | what the repository database lists: `repo-add`, `xbps-rindex` and `pkg repo` drop a package's older version, and its files go |
 
 Snapshots (`0.9.21+<date>...`) and releases are counted apart, so snapshots
-never push a release out. `DRY_RUN=1 bin/prune-registry.py` lists what would
-go. Debian's firmware comes from `trixie-backports` rather than a package of
+never push a release out. Debian's firmware comes from `trixie-backports` rather than a package of
 our own: `linux-firmware` alone is 660 MB.
 
 ### Images installed in a VM

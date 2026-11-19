@@ -223,7 +223,7 @@ OS-specific file content remains in its Python — see
 
 **Tests** (`python3 -m pytest tests/`, needs `fastapi`, `uvicorn`, `websockets`
 and the sibling `freedomnas-core` and `freedomnas-profiles` checkouts — not
-`httpx`, not `python-pam`; `.forgejo/workflows/tests.yml` runs them on every
+`httpx`, not `python-pam`; `.github/workflows/tests.yml` runs them on every
 push to `dev` and `main`):
 
 | File | Covers |
