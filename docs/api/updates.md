@@ -124,6 +124,13 @@ the whole run: on Arch and Artix an unconfigured system ended at
 `` Command failed: `/usr/bin/sudo /usr/bin/pacman -Syu` ``. The flag holds
 whether or not `topgrade.toml` has been written yet.
 
+It also passes `--no-self-update`. Topgrade's self-update is a step like
+the others, so the `only` list of `topgrade.toml` already leaves it out; the
+flag keeps it out when that file is missing or rejected (topgrade then falls
+back to its defaults, self-update included), and for a release binary that
+was built with the feature. On the packages FreedomNAS installs, built
+without it, the flag changes nothing.
+
 On Debian, `run_topgrade` also sets `DEBIAN_FRONTEND=noninteractive`, and
 `/etc/sudoers.d/freedomnas-debconf`, installed by the `freedomnas-profiles`
 package, keeps it through `sudo`

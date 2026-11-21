@@ -374,7 +374,7 @@ the rule when it is missing or different, enables the service and starts it
 
 | Key | Command |
 |-----|---------|
-| `run_topgrade` | Run Topgrade with FreedomNAS config, `--yes` and all: stdin is `/dev/null`, so a prompt is a failed update |
+| `run_topgrade` | Run Topgrade with FreedomNAS config, `--yes`, `--no-self-update` and all: stdin is `/dev/null`, so a prompt is a failed update |
 | `list_updatable` | Count pending updates |
 | `check_topgrade` | Verify Topgrade is installed |
 | `be_update` | FreeBSD: the commands that install an update into the boot environment mounted at `{root}` (a system not yet on pkgbase is converted first, as `pkgbasify` does it: the matching `FreeBSD-set-*` registered with `--register-only`, then installed with `-f` so pkg merges the local changes into the configuration files; then `pkg -c {root} upgrade`, base and packages together), run one after the other in place of Topgrade |
