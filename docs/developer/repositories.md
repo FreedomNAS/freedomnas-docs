@@ -49,8 +49,8 @@ init.
 repositories and now build from a branch with snapshot versions
 (`0.9.21+<commit date and time>.<commit>`), of the two community modules
 (`freedomnas-module-containers`, `freedomnas-module-proxy`) and of the
-binaries the official repositories lack (`caddy-bin`, `lego-bin`,
-`topgrade-bin`), and the scripts
+packages the official repositories lack (`caddy-bin`, `lego-bin`, and
+`topgrade` built from source), and the scripts
 and workflow that build and publish every Arch package. `linux-freedomnas`
 has a repository of its own: Arch's `linux-lts` with the OpenZFS modules
 built into the same package, plus `zfs-utils-freedomnas` at the matching

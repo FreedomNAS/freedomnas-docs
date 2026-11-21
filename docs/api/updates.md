@@ -100,16 +100,17 @@ with `["system"]`; a hand-edited file was left as it was.
 ## topgrade itself
 
 !!! note "How each edition packages topgrade"
-    Building Topgrade from source pulls the Rust toolchain and several
-    hundred crates. FreedomNAS uses release binaries where available rather
-    than compiling it as part of the system package:
+    Upstream's release binary is built with the self-update feature:
+    before an update it tries to replace itself and waits for an answer the
+    WebUI cannot give. Every edition therefore installs a topgrade built
+    from source without that feature, updated only by the package manager:
 
     | Edition | Where topgrade comes from |
     |---------|---------------------------|
-    | Arch, Artix | `topgrade-bin` from the FreedomNAS pacman repository, built by freedomnas-arch from the same binary — not in the official repositories |
+    | Arch, Artix | `topgrade` from the FreedomNAS pacman repository, built from source by freedomnas-arch after the AUR's PKGBUILD (it replaces the old `topgrade-bin`) — not in the official repositories |
     | Void | `topgrade`, in the distribution |
-    | Gentoo | `app-admin/topgrade-bin` in freedomnas-overlay, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
-    | Debian | a `.deb` built from the same binary by [freedomnas-deb](https://github.com/FreedomNAS/freedomnas-deb) and published in that repository's GitHub releases, which `repositories.core` adds to the target's sources |
+    | Gentoo | `app-admin/topgrade` in freedomnas-overlay, built from source, which the installer adds as a git-synced repository (`files.repos_conf`, `repositories.core`) |
+    | Debian | a `.deb` built from source by [freedomnas-deb](https://github.com/FreedomNAS/freedomnas-deb) and published in that repository's GitHub releases, which `repositories.core` adds to the target's sources |
     | FreeBSD | `sysutils/topgrade`, in FreeBSD's own repository |
 
     Every edition's package list installs topgrade (`packages/core.json`),

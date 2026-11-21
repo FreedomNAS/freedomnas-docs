@@ -205,7 +205,7 @@ Debian and the two pacman editions need one today:
   from its own repository.
 - Arch's and Artix's `core`: the FreedomNAS pacman repository, which
   carries `linux-freedomnas` (the kernel with OpenZFS built in),
-  `zfs-utils-freedomnas`, `topgrade-bin` and Artix's ZFS service scripts. The
+  `zfs-utils-freedomnas`, `topgrade` and Artix's ZFS service scripts. The
   entry downloads the repository's key, `pacman-key --add`s it and
   `--lsign-key`s its full fingerprint, appends a `[freedomnas]` section with
   `SigLevel = Required` to `pacman.conf` unless it is already there, and ends
