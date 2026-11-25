@@ -342,11 +342,12 @@ in the installer's Python.
 | `symlink_to` | Makes the entry a symlink rather than a file |
 | `mode` | Decimal mode (420 = 0o644); default 0o644 |
 | `append` | Append instead of overwrite, skipping if already present — for editions with no drop-in directory (FreeBSD has no `/etc/cron.d`) |
-| `inplace` | Also write this file during an in-place install. Reserved for additive drop-ins (a `package.accept_keywords` entry, say) — a running system must never have its hostname or fstab rewritten under it |
+| `inplace` | `true`: also write this file during an in-place install. Reserved for additive drop-ins (a `package.accept_keywords` entry, say) — a running system must never have its hostname or fstab rewritten under it. `"missing"`: write it during an in-place install only if the system has none — for a service configuration the package does not ship, such as Samba's on FreeBSD, Arch, Artix and Gentoo |
 
 Every entry is written during the configuration step except `webui_cron`,
 which is written together with the scripts it points at. An in-place install
-writes only the entries marked `inplace`.
+writes only the entries marked `inplace`, and those marked `"missing"` only
+when the file is not there yet.
 
 ## Writing one
 

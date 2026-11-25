@@ -382,7 +382,8 @@ packages, get the system. On a machine already running a supported OS:
 2. Their services are enabled through the **init profile**, so the same code
    works under systemd, OpenRC, runit, s6, dinit and bsd_rc.
 3. `firstboot.sh` + `supervisor.sh` are deployed and the cron `@reboot` hook
-   is registered.
+   is registered. Where the WebUI package already ships them as links to the
+   profiles' assets (FreeBSD), they are left as they are.
 4. Optionally a FreedomNAS admin account is created; otherwise the system's
    existing accounts are kept.
 5. The installation is recorded in `config.yaml` in the state directory, not
