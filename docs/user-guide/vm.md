@@ -2,7 +2,7 @@
 
 Other operating systems running on the NAS, with the community module
 **Virtual machines** (package `freedomnas-module-vm`): libvirt with QEMU/KVM on
-Linux, bhyve with vm-bhyve on FreeBSD. The page is at the Advanced level.
+Linux, QEMU with NVMM on FreeBSD. The page is at the Advanced level.
 
 !!! danger "Not published"
     The module is not in any package repository, not even the `dev` one, and the
@@ -28,7 +28,7 @@ On Linux every administrator is in the `libvirt` group, to use `virsh`
 and virt-manager with their own login; no other account may be, because it
 gives root's power. Log out and back in first, also over SSH: a
 session keeps the groups it started with. The WebUI does not need this. On
-FreeBSD vm-bhyve is for root only.
+FreeBSD `/dev/nvmm` is for root only.
 
 ## Machines
 
@@ -67,25 +67,7 @@ The **Console** tab shows the machine's screen in the browser, with **Ctrl+Alt+D
 and **Full screen**. It opens no port on the network: the machine's VNC listens on
 the NAS only and the WebUI bridges to it, after asking for your credentials.
 
-After **Start from image** the console connects by itself. On FreeBSD the machine
-waits for it before it boots, so you do not miss an installer's first prompt.
-
-### A Linux guest that stops before the login screen on FreeBSD
-
-bhyve gives a machine one screen device, a plain framebuffer, with no graphics card
-a guest can drive. A kernel with `simpledrm` shows it as a card; Debian's has only
-`efifb`, so systemd does not count the screen as graphical. SDDM then waits for ever:
-the boot text stays on screen at `Started sddm`, while the guest is up and on the
-network. The Console tab shows the same fix:
-
-```sh
-echo 'SUBSYSTEM=="graphics", KERNEL=="fb[0-9]", TAG+="master-of-seat"' | sudo tee /etc/udev/rules.d/71-fb-master-of-seat.rules
-```
-
-Run it in the guest over SSH, or add `nomodeset` to the kernel line once from GRUB
-(press `e`, then Ctrl+X) to get to the desktop first. Prefer the rule to a permanent
-`nomodeset`, which would also keep the guest from using the graphics card it gets on
-KVM. Verified with Debian 13 LXQt.
+After **Start from image** the console connects by itself.
 
 A machine that FreedomNAS did not create is listed, but you manage it with the
 hypervisor's own tools.

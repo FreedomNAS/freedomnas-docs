@@ -94,8 +94,9 @@ group for the administrator to join.
 
 KVM/QEMU virtual machines.
 
-On FreeBSD the hypervisor is bhyve, part of the base system; the entry
-installs only `libvirt`, `vm-bhyve` and `grub2-bhyve`.
+On FreeBSD the hypervisor is QEMU with NVMM: the entry installs
+`qemu-nox11`, patched for NVMM, and `freedomnas-nvmm` (the kernel module,
+libnvmm and `nvmmctl`), both from the FreedomNAS repository.
 
 ## The core's own runtime
 

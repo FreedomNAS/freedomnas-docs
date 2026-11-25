@@ -65,7 +65,7 @@ and unused names are gone.
 
 ## Virtual machines module
 
-`freedomnas-module-vm`: libvirt on Linux, vm-bhyve on FreeBSD. Machines come from
+`freedomnas-module-vm`: libvirt on Linux, QEMU with NVMM on FreeBSD (since 2026-11-25, through the module's `bin/freedomnas-qemu-vm`; vm-bhyve before). Machines come from
 a neutral record, with the same hardware and identity on every edition, on raw
 zvols. The page lists them, with Summary, Hardware and Console; images are
 uploaded or fetched, and a machine starts from one once. The same Alpine guest saw
@@ -83,13 +83,12 @@ screen in the console, Shut down, and back up after the box restarts.
 | Shut down on Alpine | Shut down works on installed Debian (2026-11-05, clean poweroff in its journal). A live Alpine guest ignored it even with acpid and its button driver running, cause not found; the page shows Stopping… and offers Power off. |
 | libvirt group | Set up adds its account to `libvirt`; not run on Linux yet, and the group not confirmed on Void. |
 | Move between editions | FreeBSD to Artix done with Debian. Not done: Artix back to FreeBSD with the same guest, Windows guests. |
-| Interface name in the guest | The same slot is `enp0s5` on bhyve and `ens5` on KVM. NetworkManager's automatic connection follows; a guest with a configuration tied to the name would lose its network. |
+| Interface name in the guest | The same slot was `enp0s5` on bhyve and `ens5` on KVM; not checked again with QEMU on FreeBSD. NetworkManager's automatic connection follows; a guest with a configuration tied to the name would lose its network. |
 | libvirt group after a move | The account in the record has no `libvirt` after a pool comes from FreeBSD, where the group does not exist, so its own `virsh` needs root. The page is not affected. |
-| vm-bhyve switch | A switch created for a bridge stays in vm-bhyve when no machine uses it any more. |
 | Rest of the page | Editing a machine's hardware; the Passthrough, Options and Snapshots tabs. |
 | Install more systems | Debian's text installer works from the page; its graphical one drew but failed to write, and it took several tries, cause not looked at. Windows is untried and needs a second image for the virtio drivers. Accented keys in the console are not checked. |
-| Image kept across guest restarts | vm-bhyve keeps the image attached (with `bootindex=1`) until the machine is off, yet Debian's restart went to its disk: why is not known, and libvirt is not checked. |
-| Graphics on bhyve | Debian needs a udev rule in the guest, shown in the Console tab, to reach its login screen. The rule stays harmless on KVM, where the guest uses `bochs`. Not tried: other distributions and display managers. |
+| NVMM packages | `freedomnas-nvmm` (nvmm.ko, libnvmm, nvmmctl) and `qemu-nox11` with the NVMM patches (meson, ROM devices mapped read-only for UEFI) are not built yet: the FreedomNAS repository must ship them with a priority above FreeBSD's, or Set up installs FreeBSD's `qemu-nox11`, which has no NVMM. On box .200 they are installed by hand. |
+| QEMU on Linux | Decided 2026-11-25: QEMU without libvirt on every edition, through `freedomnas-qemu-vm`. The Linux profiles still use libvirt. |
 | IOMMU passthrough | Devices given to a machine. |
 | Network on Linux when a machine starts | Measured on Artix: 0 of 200 pings to the NAS lost during a start; not measured on other editions or at a stop. |
 
@@ -153,7 +152,7 @@ screen in the console, Shut down, and back up after the box restarts.
 
 ## Not started (roadmap ideas)
 
-- Virtualization module: libvirt on Linux, vm-bhyve on FreeBSD, with device passthrough. Starts after the open items above.
+- Virtualization module: QEMU on every edition (KVM on Linux, NVMM on FreeBSD), with device passthrough. Starts after the open items above.
 - Active Directory / LDAP.
 - Cloud sync and remote encrypted backups.
 - Profile packages split per distribution and init system.

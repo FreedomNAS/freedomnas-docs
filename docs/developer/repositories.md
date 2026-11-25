@@ -20,7 +20,7 @@ codeberg.org/FreedomNAS/
 ├── freedomnas-module-template Starting point for a community module
 ├── freedomnas-containers    Containers community module (package freedomnas-module-containers)
 ├── freedomnas-proxy         Reverse proxy community module, Caddy (package freedomnas-module-proxy)
-├── freedomnas-module-vm     Virtual machines community module, libvirt and vm-bhyve (package freedomnas-module-vm)
+├── freedomnas-module-vm     Virtual machines community module, libvirt and QEMU with NVMM (package freedomnas-module-vm)
 ├── freedomnas-specs         Specifications and plans (private)
 ├── pihole-ftl-freebsd       Fork of Pi-hole FTL where the FreeBSD patches are made
 └── pihole-core-freebsd      Fork of Pi-hole's core scripts, the same
