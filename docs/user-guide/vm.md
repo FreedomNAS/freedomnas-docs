@@ -28,7 +28,7 @@ On Linux every administrator is in the `libvirt` group, to use `virsh`
 and virt-manager with their own login; no other account may be, because it
 gives root's power. Log out and back in first, also over SSH: a
 session keeps the groups it started with. The WebUI does not need this. On
-FreeBSD `/dev/nvmm` is for root only.
+FreeBSD the group is `nvmm`, which owns `/dev/nvmm`.
 
 ## Machines
 

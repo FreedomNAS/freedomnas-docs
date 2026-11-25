@@ -96,7 +96,11 @@ KVM/QEMU virtual machines.
 
 On FreeBSD the hypervisor is QEMU with NVMM: the entry installs
 `qemu-nox11`, patched for NVMM, and `freedomnas-nvmm` (the kernel module,
-libnvmm and `nvmmctl`), both from the FreedomNAS repository.
+libnvmm and `nvmmctl`), both from the FreedomNAS repository, built from
+`freedomnas-freebsd/ports/`. `freedomnas-nvmm` creates the `nvmm` group
+with GID 402, which owns `/dev/nvmm` (`0660`). The FreedomNAS repository has
+`priority: 10`, so `pkg` takes its `qemu-nox11` over FreeBSD's, which has no
+NVMM.
 
 ## The core's own runtime
 
