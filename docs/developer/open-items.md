@@ -133,6 +133,9 @@ screen in the console, Shut down, and back up after the box restarts.
 | Untested live | FreeBSD `lagg`; WireGuard on Debian and Arch. |
 | VPN to LAN | Reaching the LAN through the WireGuard VPN is not offered. |
 | Existing installs | `wireguard-tools` and `qrencode` must be installed by hand on installs older than the networking work (overlay and Arch packages not updated). |
+| New bridge drops the network (FreeBSD) | 2026-11-26 on box .200: creating `fnas_bridge2` (free port, DHCP) from the page restarted the whole network, `fnas_bridge1` included; the checkpoint put it back. Adding a bridge should not touch the ones in use. |
+| Ports of an existing bridge from the page | No way in the WebUI, Expert included, to add a port to an existing bridge; done by hand in config.yaml on box .200 (fnas_lan1 into fnas_bridge1). |
+| Existing FreeBSD rc.conf | Before profiles 9d3755d a second bridge or bond port lost its keyword (`addm a b`): check `ifconfig_<bridge>` on FreeBSD installs with two ports. |
 
 ## Storage and boot
 
